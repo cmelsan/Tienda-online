@@ -1,0 +1,47 @@
+---
+export const prerender = false;
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { createServerSupabaseClient } from '@/lib/supabase';
+
+// Redirect if already logged in
+const supabase = createServerSupabaseClient(Astro);
+const { data: { session } } = await supabase.auth.getSession();
+if (session) {
+  return Astro.redirect('/admin');
+}
+---
+
+<BaseLayout title="Iniciar Sesión - Admin">
+  <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-10">
+        <h1 class="text-3xl font-bold text-black uppercase tracking-widest mb-2">ÉCLAT</h1>
+        <p class="text-xs text-gray-500 uppercase tracking-wider">Acceso Administrativo</p>
+      </div>
+
+      <div class="bg-white p-8 border border-gray-200 shadow-sm">
+        <h2 class="text-lg font-bold text-black uppercase tracking-wider mb-8 text-center">Identificarse</h2>
+
+        <form action="/api/auth/signin" method="POST" class="space-y-6">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Usuario</label>
+            <input name="email" type="email" placeholder="ADMIN@ECLAT.COM" required class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-400 uppercase rounded-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Contraseña</label>
+            <input name="password" type="password" placeholder="••••••••" required class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-400 uppercase rounded-none" />
+          </div>
+
+          <button type="submit" class="w-full bg-black text-white py-4 text-sm font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors focus:outline-none">
+            Entrar al Panel
+          </button>
+        </form>
+
+        <div class="mt-8 text-center border-t border-gray-100 pt-6">
+          <a href="/" class="text-xs font-bold text-gray-400 hover:text-black transition-colors uppercase tracking-wider">← Volver a la Tienda</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

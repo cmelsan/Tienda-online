@@ -1,0 +1,94 @@
+---
+import PublicLayout from '@/layouts/PublicLayout.astro';
+import ProductCard from '@/components/product/ProductCard.astro';
+import { supabase } from '@/lib/supabase';
+
+export async function getStaticPaths() {
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('slug');
+
+  return categories?.map((category) => ({
+    params: { slug: category.slug },
+  })) || [];
+}
+
+const { slug } = Astro.params;
+
+// Fetch category
+const { data: category } = await supabase
+  .from('categories')
+  .select('*')
+  .eq('slug', slug)
+  .single();
+
+if (!category) {
+  return Astro.redirect('/404');
+}
+
+// Fetch products in this category
+const { data: products } = await supabase
+  .from('products')
+  .select('*')
+  .eq('category_id', category.id)
+  .order('created_at', { ascending: false });
+---
+
+<PublicLayout
+  title={`${category.name} - ÉCLAT`}
+  description={category.description || `Explora nuestra colección de ${category.name.toLowerCase()}`}
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Page Header -->
+    <div class="mb-12">
+      <nav class="mb-4 text-sm">
+        <ol class="flex items-center space-x-2 text-noir-600">
+          <li><a href="/" class="hover:text-gold-600 transition-colors">Inicio</a></li>
+          <li>/</li>
+          <li><a href="/productos" class="hover:text-gold-600 transition-colors">Productos</a></li>
+          <li>/</li>
+          <li class="text-noir-900 font-medium">{category.name}</li>
+        </ol>
+      </nav>
+
+      <h1 class="text-display-md font-serif font-light text-noir-900 mb-4">
+        {category.name}
+      </h1>
+      {category.description && (
+        <p class="text-lg text-noir-600 max-w-3xl">
+          {category.description}
+        </p>
+      )}
+    </div>
+
+    <!-- Products Grid -->
+    {products && products.length > 0 ? (
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {products.map((product) => (
+          <ProductCard 
+            product={product} 
+            fallbackImage={`/assets/products/${
+              slug === 'maquillaje' ? 'makeup-default.png' :
+              slug === 'cabello' ? 'hair-default.png' :
+              slug === 'cuerpo' ? 'body-default.png' :
+              slug === 'perfumes' ? 'perfume-default.png' :
+              'makeup-default.png'
+            }`}
+          />
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-20">
+        <p class="text-lg text-noir-600">
+          No hay productos disponibles en esta categoría en este momento.
+        </p>
+        <a
+          href="/productos"
+          class="inline-block mt-6 px-6 py-3 bg-noir-900 text-cream-50 rounded-lg font-medium hover:bg-noir-800 transition-colors"
+        >
+          Ver Todos los Productos
+        </a>
+      </div>
+    )}
+  </div>
+</PublicLayout>

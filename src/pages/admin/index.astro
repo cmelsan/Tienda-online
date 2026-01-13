@@ -1,0 +1,152 @@
+---
+export const prerender = false; // SSR
+
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { supabase } from '@/lib/supabase';
+
+// Fetch statistics
+const { count: productCount } = await supabase
+  .from('products')
+  .select('*', { count: 'exact', head: true });
+
+const { count: categoryCount } = await supabase
+  .from('categories')
+  .select('*', { count: 'exact', head: true });
+
+// Fetch recent products
+const { data: recentProducts } = await supabase
+  .from('products')
+  .select('*')
+  .order('created_at', { ascending: false })
+  .limit(5);
+---
+
+<AdminLayout title="Panel de Control">
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+    <div class="bg-white border border-gray-200 p-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Total Productos</p>
+          <p class="text-4xl font-light text-black">{productCount || 0}</p>
+        </div>
+        <div class="opacity-10">
+          <svg class="w-10 h-10 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-gray-200 p-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Categorías</p>
+          <p class="text-4xl font-light text-black">{categoryCount || 0}</p>
+        </div>
+        <div class="opacity-10">
+          <svg class="w-10 h-10 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-gray-200 p-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Inventario Total</p>
+          <p class="text-4xl font-light text-black">
+            {recentProducts?.reduce((sum, p) => sum + p.stock, 0) || 0}
+          </p>
+        </div>
+        <div class="opacity-10">
+          <svg class="w-10 h-10 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+    <a
+      href="/admin/productos/nuevo"
+      class="group flex items-center space-x-4 p-8 border border-gray-200 hover:border-black transition-all bg-white"
+    >
+      <div class="bg-black text-white p-3 rounded-none group-hover:scale-110 transition-transform">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+      </div>
+      <div>
+        <p class="text-lg font-bold text-black uppercase tracking-wider">Nuevo Producto</p>
+        <p class="text-sm text-gray-500">Añadir item al catálogo</p>
+      </div>
+    </a>
+
+    <a
+      href="/admin/productos"
+      class="group flex items-center space-x-4 p-8 border border-gray-200 hover:border-black transition-all bg-white"
+    >
+      <div class="bg-black text-white p-3 rounded-none group-hover:scale-110 transition-transform">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+        </svg>
+      </div>
+      <div>
+        <p class="text-lg font-bold text-black uppercase tracking-wider">Gestionar Productos</p>
+        <p class="text-sm text-gray-500">Ver inventario completo</p>
+      </div>
+    </a>
+  </div>
+
+  <!-- Recent Products -->
+  {recentProducts && recentProducts.length > 0 && (
+    <div class="bg-white border border-gray-200">
+      <div class="p-6 border-b border-gray-100">
+        <h2 class="text-lg font-bold text-black uppercase tracking-wider">Últimos Productos Añadidos</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="text-left py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Producto</th>
+              <th class="text-left py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Precio</th>
+              <th class="text-left py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Stock</th>
+              <th class="text-right py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Estado</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {recentProducts.map((product) => (
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-6">
+                  <div class="flex items-center space-x-4">
+                    <img
+                      src={product.images[0] || '/placeholder-product.jpg'}
+                      alt={product.name}
+                      class="w-12 h-12 object-cover border border-gray-200"
+                    />
+                    <span class="text-sm font-medium text-black">{product.name}</span>
+                  </div>
+                </td>
+                <td class="py-4 px-6 text-sm font-light text-black">
+                  €{(product.price / 100).toFixed(2)}
+                </td>
+                <td class="py-4 px-6 text-sm font-light text-black">{product.stock}</td>
+                <td class="py-4 px-6 text-right">
+                   <span class={`inline-block px-2 py-1 text-xs font-bold uppercase tracking-wider ${
+                      product.stock > 0 ? 'text-green-600 bg-green-50' : 'text-rose-600 bg-rose-50'
+                   }`}>
+                      {product.stock > 0 ? 'Activo' : 'Agotado'}
+                   </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )}
+</AdminLayout>

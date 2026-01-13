@@ -1,0 +1,131 @@
+---
+import PublicLayout from '@/layouts/PublicLayout.astro';
+---
+
+<PublicLayout title="Crear Cuenta - ÉCLAT">
+  <div class="min-h-[80vh] flex items-center justify-center bg-white px-4 py-12">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-10">
+        <h1 class="text-3xl font-serif font-bold text-black uppercase tracking-wider mb-4">
+          Crear Cuenta
+        </h1>
+        <p class="text-sm text-gray-500">
+          Únete a ÉCLAT para disfrutar de beneficios exclusivos.
+        </p>
+      </div>
+
+      <form class="space-y-6" id="register-form">
+        <div>
+          <label for="name" class="sr-only">Nombre Completo</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            required
+            placeholder="NOMBRE Y APELLIDO"
+            class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 uppercase rounded-none"
+          />
+        </div>
+
+        <div>
+          <label for="email" class="sr-only">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            placeholder="EMAIL"
+            class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 uppercase rounded-none"
+          />
+        </div>
+
+        <div>
+          <label for="password" class="sr-only">Contraseña</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            required
+            placeholder="CONTRASEÑA"
+            class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 uppercase rounded-none"
+          />
+          <p class="mt-2 text-xs text-gray-400">Mínimo 6 caracteres</p>
+        </div>
+
+        <div class="flex items-start space-x-2 text-xs text-gray-500">
+          <input type="checkbox" required class="mt-1 form-checkbox text-black rounded-none border-gray-300 focus:ring-black h-4 w-4" />
+          <span>
+            Al crear una cuenta, acepto los <a href="#" class="underline text-black">Términos y Condiciones</a> y la <a href="#" class="underline text-black">Política de Privacidad</a> de ÉCLAT.
+          </span>
+        </div>
+
+        <div id="error-message" class="hidden text-rose-600 text-sm text-center"></div>
+        <div id="success-message" class="hidden text-green-600 text-sm text-center">
+          ¡Cuenta creada con éxito! Redirigiendo...
+        </div>
+
+        <button
+          type="submit"
+          class="w-full bg-black text-white py-4 text-sm font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+        >
+          Crear Cuenta
+        </button>
+      </form>
+
+      <div class="mt-8 text-center">
+        <p class="text-sm text-gray-500">
+          ¿Ya tienes cuenta? 
+          <a href="/login" class="text-black font-bold uppercase underline tracking-wider ml-1">
+            Iniciar Sesión
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</PublicLayout>
+
+<script>
+  import { supabase } from '@/lib/supabase';
+
+  const form = document.getElementById('register-form') as HTMLFormElement;
+  const errorMessage = document.getElementById('error-message');
+  const successMessage = document.getElementById('success-message');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (errorMessage) errorMessage.classList.add('hidden');
+    if (successMessage) successMessage.classList.add('hidden');
+
+    const formData = new FormData(form);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const name = formData.get('name') as string;
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      if (successMessage) successMessage.classList.remove('hidden');
+      
+      // Auto login or redirect
+      setTimeout(() => {
+        window.location.href = '/mi-cuenta';
+      }, 1500);
+
+    } catch (error) {
+      if (errorMessage) {
+        errorMessage.textContent = error instanceof Error ? error.message : 'Error al crear la cuenta';
+        errorMessage.classList.remove('hidden');
+      }
+    }
+  });
+</script>

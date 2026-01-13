@@ -1,0 +1,69 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { supabase } from '@/lib/supabase';
+
+let message = '';
+
+// Fetch current config
+let { data: config } = await supabase
+  .from('app_settings')
+  .select('value')
+  .eq('key', 'site_config')
+  .single();
+
+let showOffers = config?.value?.show_offers ?? true;
+
+// Handle Update
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const showOffersValue = formData.get('show_offers') === 'on';
+
+  const { error } = await supabase
+    .from('app_settings')
+    .upsert({ 
+      key: 'site_config', 
+      value: { show_offers: showOffersValue },
+      updated_at: new Date().toISOString()
+    });
+
+  if (error) {
+    message = 'Error al guardar la configuración: ' + error.message;
+  } else {
+    message = 'Configuración actualizada correctamente.';
+    showOffers = showOffersValue;
+  }
+}
+---
+
+<AdminLayout title="Configuración del Sitio">
+  <div class="max-w-2xl bg-white border border-gray-200 p-8 shadow-sm">
+    <h2 class="text-lg font-bold text-black uppercase tracking-wider mb-6">Ajustes Generales</h2>
+
+    {message && (
+      <div class={`mb-6 p-4 text-xs font-bold uppercase tracking-wide text-center border ${message.includes('Error') ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-green-50 border-green-200 text-green-600'}`}>
+        {message}
+      </div>
+    )}
+
+    <form method="POST" class="space-y-6">
+      <div class="flex items-center justify-between border-b border-gray-100 pb-6">
+        <div>
+          <label for="show_offers" class="text-sm font-bold text-black uppercase tracking-wide">Sección de Ofertas</label>
+          <p class="text-xs text-gray-500 mt-1">Mostrar u ocultar el banner de promociones en la página de inicio.</p>
+        </div>
+        
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" name="show_offers" id="show_offers" class="sr-only peer" checked={showOffers}>
+          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+        </label>
+      </div>
+
+      <div class="pt-4">
+        <button type="submit" class="bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors">
+          Guardar Cambios
+        </button>
+      </div>
+    </form>
+  </div>
+</AdminLayout>

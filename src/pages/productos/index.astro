@@ -1,0 +1,65 @@
+---
+import PublicLayout from '@/layouts/PublicLayout.astro';
+import ProductCard from '@/components/product/ProductCard.astro';
+import { supabase } from '@/lib/supabase';
+
+// Fetch all products
+const { data: products } = await supabase
+  .from('products')
+  .select('*')
+  .order('created_at', { ascending: false });
+
+// Fetch categories for filter
+const { data: categories } = await supabase
+  .from('categories')
+  .select('*')
+  .order('name');
+---
+
+<PublicLayout
+  title="Productos - ÉCLAT"
+  description="Explora nuestra colección completa de productos de belleza premium."
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Page Header -->
+    <div class="mb-12">
+      <h1 class="text-display-md font-serif font-light text-noir-900 mb-4">
+        Todos los Productos
+      </h1>
+      <p class="text-lg text-noir-600">
+        Explora nuestra colección completa de belleza premium
+      </p>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="mb-8 flex flex-wrap gap-3">
+      <a
+        href="/productos"
+        class="px-6 py-2 rounded-full bg-noir-900 text-cream-50 text-sm font-medium transition-colors"
+      >
+        Todos
+      </a>
+      {categories?.map((category) => (
+        <a
+          href={`/categoria/${category.slug}`}
+          class="px-6 py-2 rounded-full border border-noir-300 text-noir-700 hover:border-noir-900 hover:bg-noir-900 hover:text-cream-50 text-sm font-medium transition-colors"
+        >
+          {category.name}
+        </a>
+      ))}
+    </div>
+
+    <!-- Products Grid -->
+    {products && products.length > 0 ? (
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {products.map((product) => (
+          <ProductCard product={product} />
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-20">
+        <p class="text-lg text-noir-600">No hay productos disponibles en este momento.</p>
+      </div>
+    )}
+  </div>
+</PublicLayout>

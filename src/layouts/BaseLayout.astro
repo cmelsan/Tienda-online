@@ -1,0 +1,71 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'ÉCLAT - Belleza Premium y Cuidado Personal' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    
+    <!-- SEO Meta Tags -->
+    <meta name="author" content="ÉCLAT Beauty" />
+    <meta name="keywords" content="belleza, maquillaje, cuidado personal, perfumes, cosmética premium" />
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    
+    <title>{title}</title>
+  </head>
+  <body class="bg-white-off text-black font-sans antialiased">
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+
+  @layer base {
+    * {
+      @apply border-gray-500;
+    }
+    
+    body {
+      @apply min-h-screen;
+    }
+    
+    h1, h2 {
+      @apply font-serif font-bold text-black uppercase tracking-tight;
+    }
+
+    h3, h4, h5, h6 {
+      @apply font-sans font-bold text-black uppercase tracking-tight;
+    }
+  }
+
+  @layer utilities {
+    .text-balance {
+      text-wrap: balance;
+    }
+  }
+</style>

@@ -1,0 +1,59 @@
+---
+import Card from '@/components/ui/Card.astro';
+import { formatPrice } from '@/lib/utils';
+import type { Product } from '@/lib/supabase';
+
+interface Props {
+  product: Product;
+  fallbackImage?: string;
+}
+
+const { product, fallbackImage } = Astro.props;
+let imageUrl = product.images?.[0];
+
+// Si la imagen es un placeholder roto o no existe, usar el fallback de categoría
+if (!imageUrl || imageUrl.includes('placeholder')) {
+  imageUrl = fallbackImage || '/placeholder-product.jpg';
+}
+---
+
+<Card>
+  <a href={`/productos/${product.slug}`} class="block group">
+    <!-- Product Image -->
+    <div class="aspect-square overflow-hidden bg-white-off">
+      <img
+        src={imageUrl}
+        alt={product.name}
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        loading="lazy"
+        onerror={`this.onerror=null; this.src='${fallbackImage || '/placeholder-product.jpg'}'`}
+      />
+    </div>
+
+    <!-- Product Info -->
+    <div class="p-4 space-y-2 bg-white">
+      <h3 class="font-bold text-sm text-black group-hover:text-beauty-red transition-colors uppercase tracking-wide line-clamp-2">
+        {product.name}
+      </h3>
+      
+      <div class="flex items-center justify-between">
+        <p class="text-lg font-bold text-black">
+          {formatPrice(product.price)}
+        </p>
+        
+        {product.stock > 0 ? (
+          <span class="text-xs text-gray-medium font-semibold uppercase">En stock</span>
+        ) : (
+          <span class="text-xs text-beauty-red font-semibold uppercase">Agotado</span>
+        )}
+      </div>
+      
+      <!-- CTA Link - MAC Style -->
+      <div class="pt-2">
+        <span class="text-xs font-semibold text-black underline group-hover:text-beauty-red transition-colors uppercase tracking-wider">
+          Ver producto
+        </span>
+      </div>
+    </div>
+  </a>
+</Card>

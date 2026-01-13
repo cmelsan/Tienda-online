@@ -1,0 +1,106 @@
+---
+import PublicLayout from '@/layouts/PublicLayout.astro';
+---
+
+<PublicLayout title="Iniciar Sesión - ÉCLAT">
+  <div class="min-h-[80vh] flex items-center justify-center bg-white px-4">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-10">
+        <h1 class="text-3xl font-serif font-bold text-black uppercase tracking-wider mb-4">
+          Iniciar Sesión
+        </h1>
+        <p class="text-sm text-gray-500">
+          Accede a tu cuenta para gestionar tus pedidos y favoritos.
+        </p>
+      </div>
+
+      <form class="space-y-6" id="login-form">
+        <div>
+          <label for="email" class="sr-only">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            placeholder="EMAIL"
+            class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 uppercase rounded-none"
+          />
+        </div>
+
+        <div>
+          <label for="password" class="sr-only">Contraseña</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            required
+            placeholder="CONTRASEÑA"
+            class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 uppercase rounded-none"
+          />
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-gray-500">
+          <label class="flex items-center space-x-2 cursor-pointer">
+            <input type="checkbox" class="form-checkbox text-black rounded-none border-gray-300 focus:ring-black h-4 w-4" />
+            <span>RECORDARME</span>
+          </label>
+          <a href="#" class="hover:text-black underline">¿OLVIDASTE TU CONTRASEÑA?</a>
+        </div>
+
+        <div id="error-message" class="hidden text-rose-600 text-sm text-center"></div>
+
+        <button
+          type="submit"
+          class="w-full bg-black text-white py-4 text-sm font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+        >
+          Iniciar Sesión
+        </button>
+      </form>
+
+      <div class="mt-12 pt-8 border-t border-gray-100 text-center">
+        <h2 class="text-lg font-bold text-black uppercase tracking-wider mb-4">
+          ¿No tienes cuenta?
+        </h2>
+        <a
+          href="/registro"
+          class="inline-block border border-black text-black px-12 py-3 text-sm font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-colors"
+        >
+          Crear Cuenta
+        </a>
+      </div>
+    </div>
+  </div>
+</PublicLayout>
+
+<script>
+  import { supabase } from '@/lib/supabase';
+
+  const form = document.getElementById('login-form') as HTMLFormElement;
+  const errorMessage = document.getElementById('error-message');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (errorMessage) errorMessage.classList.add('hidden');
+
+    const formData = new FormData(form);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      // Check if user is admin or customer (optional logic, for now assumes all can login)
+      window.location.href = '/mi-cuenta';
+    } catch (error) {
+      if (errorMessage) {
+        errorMessage.textContent = 'Credenciales inválidas. Por favor, inténtalo de nuevo.';
+        errorMessage.classList.remove('hidden');
+      }
+    }
+  });
+</script>

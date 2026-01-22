@@ -1,11 +1,54 @@
 import { atom, map, computed } from 'nanostores';
 import { persistentMap } from '@nanostores/persistent';
 import type { Product } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
+import { getOrCreateSessionId } from '@/lib/sessionManager';
 
 // Cart Item Interface
 export interface CartItem {
     product: Product;
     quantity: number;
+}
+
+// Helper to sync with backend (optimistic, no-blocking)
+async function syncToBackend(items: Record<string, CartItem>) {
+    try {
+        const sessionId = getOrCreateSessionId();
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+
+        const itemsArray = Object.values(items);
+
+        // Find existing cart
+        let query = supabase.from('carts').select('id');
+        if (userId) {
+            query = query.eq('user_id', userId);
+        } else {
+            query = query.eq('session_id', sessionId);
+        }
+
+        const { data: carts, error: fetchError } = await query;
+        if (fetchError) throw fetchError;
+
+        const existingCart = carts && carts[0];
+
+        if (existingCart) {
+            const { error } = await supabase.from('carts').update({
+                items: itemsArray,
+                updated_at: new Date().toISOString()
+            }).eq('id', existingCart.id);
+            if (error) console.error('Error updating cart:', error);
+        } else {
+            const { error } = await supabase.from('carts').insert({
+                user_id: userId || null,
+                session_id: userId ? null : sessionId,
+                items: itemsArray
+            });
+            if (error) console.error('Error creating cart:', error);
+        }
+    } catch (err) {
+        console.error('Cart sync failed:', err);
+    }
 }
 
 // Persistent cart store (saved to localStorage)
@@ -67,6 +110,9 @@ export function addToCart(product: Product, quantity: number = 1) {
             quantity,
         });
     }
+
+    // Sync to backend
+    syncToBackend(cartItems.get());
 }
 
 /**
@@ -76,6 +122,9 @@ export function removeFromCart(productId: string) {
     const currentItems = cartItems.get();
     const { [productId]: removed, ...rest } = currentItems;
     cartItems.set(rest);
+
+    // Sync to backend
+    syncToBackend(rest);
 }
 
 /**
@@ -101,6 +150,9 @@ export function updateQuantity(productId: string, quantity: number) {
         ...item,
         quantity,
     });
+
+    // Sync to backend
+    syncToBackend(cartItems.get());
 }
 
 /**
@@ -108,6 +160,8 @@ export function updateQuantity(productId: string, quantity: number) {
  */
 export function clearCart() {
     cartItems.set({});
+    // Sync to backend (clear)
+    syncToBackend({});
 }
 
 /**

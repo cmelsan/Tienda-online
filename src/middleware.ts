@@ -2,7 +2,7 @@ import { defineMiddleware } from 'astro:middleware';
 import { createServerSupabaseClient } from './lib/supabase';
 
 export const onRequest = defineMiddleware(async (context, next) => {
-    const { url, redirect, request } = context;
+    const { url, redirect } = context;
 
     // Check if the route is an admin route
     if (url.pathname.startsWith('/admin')) {
@@ -12,7 +12,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         }
 
         // Create Supabase client
-        const supabase = createServerSupabaseClient(context);
+        const supabase = await createServerSupabaseClient(context);
 
         // Get session
         const { data: { session } } = await supabase.auth.getSession();
@@ -22,16 +22,27 @@ export const onRequest = defineMiddleware(async (context, next) => {
             return redirect('/admin/login');
         }
 
-        // Optional: Check for admin role
-        // const userRole = session.user.user_metadata?.role;
-        // if (userRole !== 'admin') {
-        //   return redirect('/admin/login');
-        // }
+        // Check for admin role in profiles table
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', session.user.id)
+            .single();
+
+        if (error) {
+            console.error('Error querying profiles:', error);
+            return redirect('/admin/login?error=database');
+        }
+
+        if (!profile || !profile.is_admin) {
+            console.log('User is not admin, redirecting to home');
+            return redirect('/');
+        }
     }
 
     // Check if the route is a customer protected route
     if (url.pathname.startsWith('/mi-cuenta')) {
-        const supabase = createServerSupabaseClient(context);
+        const supabase = await createServerSupabaseClient(context);
         const { data: { session } } = await supabase.auth.getSession();
 
         if (!session) {

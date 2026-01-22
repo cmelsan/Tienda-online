@@ -10,29 +10,30 @@ const mainImage = images[0] || '/placeholder-product.jpg';
 
 <div class="space-y-4">
   <!-- Main Image -->
-  <div class="aspect-square overflow-hidden rounded-lg bg-cream-100">
+  <div class="aspect-[4/5] overflow-hidden bg-gray-50 border border-gray-100 relative group">
     <img
       id="main-product-image"
       src={mainImage}
       alt={productName}
-      class="w-full h-full object-cover"
+      class="w-full h-full object-cover object-center"
     />
+    <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
   </div>
 
   <!-- Thumbnail Gallery -->
   {images.length > 1 && (
-    <div class="grid grid-cols-4 gap-4">
+    <div class="flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
       {images.map((image, index) => (
         <button
           type="button"
-          class="aspect-square overflow-hidden rounded-lg bg-cream-100 border-2 border-transparent hover:border-gold-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gold-500"
+          class="flex-shrink-0 w-20 h-20 aspect-square overflow-hidden bg-gray-50 border border-transparent hover:border-black transition-all duration-200"
           data-image={image}
           onclick="document.getElementById('main-product-image').src = this.dataset.image"
         >
           <img
             src={image}
             alt={`${productName} - Vista ${index + 1}`}
-            class="w-full h-full object-cover"
+            class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity"
           />
         </button>
       ))}

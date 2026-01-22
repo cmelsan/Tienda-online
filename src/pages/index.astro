@@ -1,256 +1,182 @@
 ---
 import PublicLayout from '@/layouts/PublicLayout.astro';
-import Button from '@/components/ui/Button.astro';
 import ProductCard from '@/components/product/ProductCard.astro';
 import { supabase } from '@/lib/supabase';
 
-// Fetch featured products
-const { data: featuredProducts } = await supabase
+// Fetch latest products for slider
+const { data: newProducts } = await supabase
   .from('products')
-  .select('*')
-  .limit(4)
-  .order('created_at', { ascending: false });
+  .select('*, brand:brands(name)')
+  .order('created_at', { ascending: false })
+  .limit(8);
 
-// Fetch categories
-const { data: categories } = await supabase
-  .from('categories')
+const { data: brands } = await supabase
+  .from('brands')
   .select('*')
-  .order('name');
+  .limit(6);
 ---
 
-<PublicLayout
-  title="ÉCLAT - Belleza Premium y Cuidado Personal"
-  description="Descubre productos de belleza premium: maquillaje, cuidado capilar, productos corporales y perfumes exclusivos."
->
-  <!-- Hero Section - MAC Style: Full-width, high impact -->
-  <section class="relative h-[700px] flex items-center justify-center overflow-hidden bg-black">
-    <!-- Background Image -->
-    <div class="absolute inset-0 z-0">
-      <img 
-        src="/assets/hero-bg.png" 
-        alt="ÉCLAT Beauty Campaign" 
-        class="w-full h-full object-cover opacity-60"
-      />
+<PublicLayout title="ÉCLAT - Perfumes, Maquillaje, Tratamiento" description="Descubre lo último en belleza: maquillaje, tratamiento, perfumes y cabello.">
+  
+  {/* 1. HERO CAROUSEL: "The Next Big Thing" Style */}
+  <section class="relative w-full h-[500px] md:h-[600px] bg-gray-100 overflow-hidden cursor-pointer group">
+    <img src="/assets/hero-home.jpg" alt="Hero Campaign" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
+    <div class="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
+    <div class="absolute bottom-12 md:bottom-20 left-6 md:left-20 max-w-lg text-white">
+        <h2 class="text-4xl md:text-6xl font-bold uppercase tracking-tight mb-4 leading-none">The Next<br/>Big Thing</h2>
+        <p class="text-lg md:text-xl font-medium mb-8">Descubre la nueva revolución en cuidado de la piel. Solo en Éclat.</p>
+        <a href="/productos" class="inline-block bg-white text-black px-8 py-3 font-bold uppercase tracking-widest text-sm hover:bg-black hover:text-white transition-colors">
+            Descubrir
+        </a>
+    </div>
+  </section>
+
+  {/* 2. DOUBLE BANNER GRID (Rebajas / Novedades) */}
+  <section class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Banner 1: Rebajas */}
+        <div class="relative h-[300px] md:h-[400px] bg-[#ffecf0] flex items-center justify-center overflow-hidden group cursor-pointer">
+             <div class="text-center z-10 p-6">
+                <h3 class="text-3xl md:text-5xl font-bold uppercase tracking-tight text-beauty-red mb-2">Rebajas</h3>
+                <p class="text-black font-bold text-lg mb-6">Hasta -50% en favoritos</p>
+                <a href="/ofertas" class="inline-block border-b-2 border-black text-black font-bold uppercase tracking-widest text-xs pb-1 hover:text-beauty-red hover:border-beauty-red transition-colors">
+                    Ver Ofertas
+                </a>
+             </div>
+             {/* Decorational element */}
+             <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-beauty-red/10 rounded-full blur-3xl"></div>
+        </div>
+
+        {/* Banner 2: Novedades */}
+        <div class="relative h-[300px] md:h-[400px] bg-gray-100 overflow-hidden group cursor-pointer">
+            <img src="/assets/banner-new.jpg" alt="Novedades" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+             <div class="absolute bottom-8 left-8 text-white">
+                <h3 class="text-3xl font-bold uppercase tracking-tight mb-2">Novedades</h3>
+                <p class="font-medium mb-6">Lo último de tus marcas favoritas</p>
+                <a href="/productos" class="bg-white text-black px-6 py-2 font-bold uppercase tracking-widest text-xs hover:bg-black hover:text-white transition-colors">
+                    Comprar
+                </a>
+             </div>
+        </div>
+    </div>
+  </section>
+
+  {/* 3. PRODUCT SLIDER: "Recién aterrizados" */}
+  <section class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-bold uppercase tracking-widest">Recién aterrizados</h2>
+        <a href="/productos" class="text-sm font-bold border-b border-black pb-0.5 hover:text-gray-600 transition-colors">Ver todo</a>
     </div>
     
-    <!-- Gradient Overlay -->
-    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30 z-10"></div>
-    
-    <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-20">
-      <div class="max-w-3xl mx-auto">
-        <h1 class="text-display-xl font-bold text-white mb-6 uppercase tracking-tight shadow-xl">
-          Descubre tu Belleza Natural
-        </h1>
-        <p class="text-xl text-white mb-10 leading-relaxed font-light tracking-wide max-w-xl mx-auto drop-shadow-md">
-          Productos premium de maquillaje, cuidado capilar, corporal y perfumes exclusivos.
-        </p>
-        <div class="flex items-center justify-center space-x-6">
-          <Button href="/productos" variant="primary" size="lg" class="min-w-[200px]">
-            Explorar Productos
-          </Button>
-          <Button href="/categoria/maquillaje" variant="outline" size="lg" class="!border-white !text-white hover:!bg-white hover:!text-black min-w-[200px]">
-            Ver Maquillaje
-          </Button>
-        </div>
+    {/* Horizontal Scroll Container */}
+    <div class="flex overflow-x-auto gap-6 pb-8 snap-x scrollbar-hide">
+        {newProducts?.map(product => (
+            <div class="min-w-[200px] md:min-w-[280px] snap-start">
+               <ProductCard product={{
+                   ...product,
+                   brand: product.brand?.name || 'Marca'
+               }} />
+            </div>
+        ))}
+    </div>
+  </section>
+
+  {/* 4. BRAND SPOTLIGHT (Mosaic) */}
+  <section class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-black text-white">
+    <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold uppercase tracking-tight mb-2">Marcas Estrella</h2>
+        <p class="text-gray-400">Las marcas de las que todo el mundo habla</p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {['Rare Beauty', 'Fenty Beauty', 'Dior', 'Charlotte Tilbury'].map((brand, i) => (
+            <div class={`relative h-64 md:h-96 bg-gray-900 group overflow-hidden cursor-pointer ${i === 0 ? 'md:col-span-2' : ''}`}>
+                {/* Placeholder visual if no image */}
+                <div class="absolute inset-0 flex items-center justify-center bg-gray-800 text-gray-700 font-bold text-4xl uppercase opacity-20 group-hover:opacity-10 transition-opacity">
+                    {brand}
+                </div>
+                
+                <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black to-transparent">
+                    <h3 class="text-xl font-bold uppercase tracking-widest mb-2">{brand}</h3>
+                    <span class="text-xs font-bold border-b border-white pb-1">Descubrir marca</span>
+                </div>
+            </div>
+        ))}
+    </div>
+  </section>
+
+  {/* 5. EXCLUSIVES BANNER */}
+  <section class="py-12">
+      <div class="relative h-[400px] w-full bg-[#f5f5f5] flex items-center">
+         <div class="max-w-[1920px] mx-auto px-4 w-full grid grid-cols-1 md:grid-cols-2">
+            <div class="order-2 md:order-1 flex flex-col justify-center items-start md:pl-20">
+                <span class="text-beauty-red font-bold uppercase tracking-widest text-xs mb-4">Solo en Éclat</span>
+                <h2 class="text-4xl md:text-5xl font-bold uppercase tracking-tight mb-6">Éclat Collection</h2>
+                <p class="text-gray-600 max-w-md mb-8">Descubre nuestra propia línea de maquillaje, diseñada para realzar tu belleza natural con fórmulas premium.</p>
+                <a href="/marcas/eclat-collection" class="bg-black text-white px-8 py-3 font-bold uppercase tracking-widest text-xs hover:bg-gray-800 transition-colors">
+                    Ver colección
+                </a>
+            </div>
+            <div class="order-1 md:order-2 h-full min-h-[300px] relative">
+                 <img src="/assets/exclusive-promo.jpg" alt="Éclat Collection" class="absolute inset-0 w-full h-full object-cover" />
+            </div>
+         </div>
       </div>
-    </div>
   </section>
 
-  <!-- Categories Section - MAC Style: Clean grid -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-    <div class="text-center mb-16">
-      <h2 class="text-display-md font-bold text-black mb-4 uppercase tracking-tight">
-        Nuestras Categorías
-      </h2>
-      <p class="text-base text-gray-medium max-w-2xl mx-auto uppercase tracking-wide">
-        Explora nuestra selección curada
-      </p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <!-- Category 1: Maquillaje -->
-      <a href="/categoria/maquillaje" class="group relative h-[420px] overflow-hidden">
-        <img 
-          src="/assets/category-makeup.png" 
-          alt="Maquillaje" 
-          class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-        />
-        <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300"></div>
-        <div class="absolute bottom-8 left-0 right-0 text-center">
-          <h3 class="text-2xl font-bold text-white uppercase tracking-wider mb-2 drop-shadow-lg">Maquillaje</h3>
-          <span class="text-xs font-bold text-white underline decoration-2 underline-offset-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0">EXPLORAR</span>
-        </div>
-      </a>
-
-      <!-- Category 2: Cabello -->
-      <a href="/categoria/cabello" class="group relative h-[420px] overflow-hidden">
-        <img 
-          src="/assets/category-hair.png" 
-          alt="Cabello" 
-          class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-        />
-        <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300"></div>
-        <div class="absolute bottom-8 left-0 right-0 text-center">
-          <h3 class="text-2xl font-bold text-white uppercase tracking-wider mb-2 drop-shadow-lg">Cabello</h3>
-          <span class="text-xs font-bold text-white underline decoration-2 underline-offset-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0">EXPLORAR</span>
-        </div>
-      </a>
-
-      <!-- Category 3: Cuerpo -->
-      <a href="/categoria/cuerpo" class="group relative h-[420px] overflow-hidden">
-        <img 
-          src="/assets/category-body.png" 
-          alt="Cuerpo" 
-          class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-        />
-        <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300"></div>
-        <div class="absolute bottom-8 left-0 right-0 text-center">
-          <h3 class="text-2xl font-bold text-white uppercase tracking-wider mb-2 drop-shadow-lg">Cuerpo</h3>
-          <span class="text-xs font-bold text-white underline decoration-2 underline-offset-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0">EXPLORAR</span>
-        </div>
-      </a>
-
-      <!-- Category 4: Perfumes -->
-      <a href="/categoria/perfumes" class="group relative h-[420px] overflow-hidden">
-        <img 
-          src="/assets/category-perfume.png" 
-          alt="Perfumes" 
-          class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-        />
-        <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300"></div>
-        <div class="absolute bottom-8 left-0 right-0 text-center">
-          <h3 class="text-2xl font-bold text-white uppercase tracking-wider mb-2 drop-shadow-lg">Perfumes</h3>
-          <span class="text-xs font-bold text-white underline decoration-2 underline-offset-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0">EXPLORAR</span>
-        </div>
-      </a>
-    </div>
+  {/* 6. SERVICES MOSAIC */}
+  <section class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-gray-100">
+     <h2 class="text-center text-2xl font-bold uppercase tracking-widest mb-12">Servicios Éclat</h2>
+     <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+        {[
+            { title: 'Tarjeta Regalo', icon: '🎁', desc: 'El regalo perfecto' },
+            { title: 'App Éclat', icon: '📱', desc: 'Descarga nuestra App' },
+            { title: 'Brow Bar', icon: '👁️', desc: 'Servicio de cejas' },
+            { title: 'Maquillaje', icon: '💄', desc: 'Servicios en tienda' },
+        ].map(service => (
+            <div class="text-center group cursor-pointer hover:bg-gray-50 p-4 rounded-lg transition-colors">
+                <div class="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{service.icon}</div>
+                <h3 class="font-bold uppercase tracking-widest text-sm mb-2">{service.title}</h3>
+                <p class="text-xs text-gray-500">{service.desc}</p>
+            </div>
+        ))}
+     </div>
   </section>
 
-  <!-- Featured Products - MAC Style -->
-  {featuredProducts && featuredProducts.length > 0 && (
-    <section class="bg-white-off py-20">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-          <h2 class="text-display-md font-bold text-black mb-4 uppercase tracking-tight">
-            Productos Destacados
-          </h2>
-          <p class="text-base text-gray-medium uppercase tracking-wide">
-            Descubre nuestras últimas incorporaciones
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredProducts.map((product) => {
-            // Find category to determine fallback
-            const category = categories?.find(c => c.id === product.category_id);
-            const slug = category?.slug || 'maquillaje'; // default to makeup if unknown
-            
-            const fallbackImage = `/assets/products/${
-              slug === 'maquillaje' ? 'makeup-default.png' :
-              slug === 'cabello' ? 'hair-default.png' :
-              slug === 'cuerpo' ? 'body-default.png' :
-              slug === 'perfumes' ? 'perfume-default.png' :
-              'makeup-default.png'
-            }`;
-
-            return (
-              <ProductCard 
-                product={product} 
-                fallbackImage={fallbackImage}
-              />
-            );
-          })}
-        </div>
-
-        <div class="text-center mt-12">
-          <Button href="/productos" variant="secondary" size="lg">
-            Ver Todos los Productos
-          </Button>
-        </div>
-      </div>
-    </section>
-  )}
-
-  <!-- Brand Story - MAC Style: Minimal, centered -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-    <div class="max-w-3xl mx-auto text-center">
-      <h2 class="text-display-sm font-bold text-black mb-6 uppercase tracking-tight">
-        La Esencia de ÉCLAT
-      </h2>
-      <p class="text-base text-gray-dark leading-relaxed mb-6">
-        En ÉCLAT, creemos que la belleza es un arte que merece los mejores productos.
-        Nuestra selección curada combina elegancia, calidad y sofisticación para
-        ofrecerte una experiencia de cuidado personal única.
-      </p>
-      <p class="text-base text-gray-dark leading-relaxed">
-        Cada producto es cuidadosamente seleccionado para garantizar resultados
-        excepcionales y una experiencia sensorial inolvidable.
-      </p>
-    </div>
-  </section>
-
-  <!-- Why Buy Online - MAC Style -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-    <h2 class="text-display-sm font-bold text-black mb-8 uppercase tracking-tight text-left">
-      Por Qué Comprar Online
-    </h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <!-- Card 1: Free Shipping -->
-      <div class="group">
-        <div class="relative aspect-[16/9] bg-black rounded-3xl overflow-hidden mb-6">
-          <img 
-            src="/assets/promo-shipping.png" 
-            alt="Envío Gratis" 
-            class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-          />
-          <div class="absolute top-4 right-4 bg-white rounded-full p-2">
-            <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-            </svg>
+  {/* 8. TRUST SIGNALS */}
+  <section class="bg-black text-white py-8">
+      <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-gray-800">
+            <div>
+                <p class="font-bold uppercase tracking-widest text-xs mb-1">Envío Gratis</p>
+                <p class="text-[10px] text-gray-400">En pedidos +30€</p>
+            </div>
+             <div>
+                <p class="font-bold uppercase tracking-widest text-xs mb-1">Muestras Gratis</p>
+                <p class="text-[10px] text-gray-400">3 muestras en cada pedido</p>
+            </div>
+             <div>
+                <p class="font-bold uppercase tracking-widest text-xs mb-1">Devoluciones</p>
+                <p class="text-[10px] text-gray-400">Gratuitas y sencillas</p>
+            </div>
+             <div>
+                <p class="font-bold uppercase tracking-widest text-xs mb-1">Click & Collect</p>
+                <p class="text-[10px] text-gray-400">Recogida en tienda 2h</p>
+            </div>
           </div>
-        </div>
-        <h3 class="text-xl font-bold text-black mb-2 uppercase tracking-tight">Envío Gratis con +39€</h3>
-        <a href="/productos" class="text-xs font-bold text-black underline uppercase tracking-wider hover:text-beauty-red transition-colors">Compra Ahora</a>
       </div>
-
-      <!-- Card 2: Subscribe -->
-      <div class="group">
-        <div class="relative aspect-[16/9] bg-black rounded-3xl overflow-hidden mb-6">
-          <img 
-            src="/assets/promo-subscribe.png" 
-            alt="Suscríbete" 
-            class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-          />
-          <div class="absolute top-4 right-4 bg-white rounded-full p-2">
-            <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </div>
-        </div>
-        <h3 class="text-xl font-bold text-black mb-2 uppercase tracking-tight">Suscríbete y obtén -15%</h3>
-        <a href="/productos" class="text-xs font-bold text-black underline uppercase tracking-wider hover:text-beauty-red transition-colors">Compra Ahora</a>
-      </div>
-
-      <!-- Card 3: Online Promos -->
-      <div class="group">
-        <div class="relative aspect-[16/9] bg-black rounded-3xl overflow-hidden mb-6">
-          <img 
-            src="/assets/promo-online.png" 
-            alt="Promociones Online" 
-            class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-          />
-          <div class="absolute top-4 right-4 bg-white rounded-full p-2">
-            <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </div>
-        </div>
-        <h3 class="text-xl font-bold text-black mb-2 uppercase tracking-tight">Promociones Online</h3>
-        <a href="/productos" class="text-xs font-bold text-black underline uppercase tracking-wider hover:text-beauty-red transition-colors">Compra Ahora</a>
-      </div>
-    </div>
   </section>
+
 </PublicLayout>
+
+<style>
+  /* Hide scrollbar for Product Slider */
+  .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+  }
+  .scrollbar-hide {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+  }
+</style>

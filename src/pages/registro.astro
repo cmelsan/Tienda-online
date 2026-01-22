@@ -86,6 +86,7 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
 
 <script>
   import { supabase } from '@/lib/supabase';
+  import { getOrCreateSessionId, clearSessionId } from '@/lib/sessionManager';
 
   const form = document.getElementById('register-form') as HTMLFormElement;
   const errorMessage = document.getElementById('error-message');
@@ -114,12 +115,36 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
 
       if (error) throw error;
 
+      if (data.user) {
+        // Migrate Guest Cart if exists
+        const sessionId = getOrCreateSessionId();
+        const { error: migrationError } = await supabase.rpc('migrate_guest_cart_to_user', {
+            p_session_id: sessionId,
+            p_user_id: data.user.id
+        });
+        
+        if (migrationError) {
+          console.warn('Cart migration warning:', migrationError);
+          // Don't block registration success on migration error
+        } else {
+          // Clear local session ID only if migration (or attempt) happened
+          clearSessionId();
+        }
+      }
+
+      if (data.session) {
+          const { access_token, refresh_token } = data.session;
+          const maxAge = 60 * 60 * 24 * 7; // 7 days
+          document.cookie = `sb-access-token=${access_token}; path=/; max-age=${maxAge}; SameSite=Lax`;
+          document.cookie = `sb-refresh-token=${refresh_token}; path=/; max-age=${maxAge}; SameSite=Lax`;
+      }
+
       if (successMessage) successMessage.classList.remove('hidden');
       
       // Auto login or redirect
       setTimeout(() => {
         window.location.href = '/mi-cuenta';
-      }, 1500);
+      }, 500);
 
     } catch (error) {
       if (errorMessage) {

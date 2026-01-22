@@ -26,7 +26,12 @@ const { data: categories } = await supabase
   .select('*')
   .order('name');
 
-let errorMessage = '';
+// Fetch brands
+// Fetch subcategories
+const { data: subcategories } = await supabase
+  .from('subcategories')
+  .select('*')
+  .order('name');
 
 // Handle form submission
 if (Astro.request.method === 'POST') {
@@ -50,6 +55,8 @@ if (Astro.request.method === 'POST') {
     const price = parseFloat(formData.get('price')?.toString() || '0');
     const stock = parseInt(formData.get('stock')?.toString() || '0');
     const category_id = formData.get('category_id')?.toString();
+    const subcategory_id = formData.get('subcategory_id')?.toString() || null;
+    const brand_id = formData.get('brand_id')?.toString() || null;
     const images = formData.get('images')?.toString().split('\n').filter(Boolean) || [];
 
     if (name && description && category_id) {
@@ -65,6 +72,8 @@ if (Astro.request.method === 'POST') {
           price: priceInCents,
           stock,
           category_id,
+          subcategory_id, // Added
+          brand_id,
           images,
         })
         .eq('id', id);
@@ -82,7 +91,7 @@ if (Astro.request.method === 'POST') {
 ---
 
 <AdminLayout title={`Editar: ${product.name}`}>
-  <div class="max-w-3xl">
+  <div class="max-w-3xl" x-data={`{ selectedCategory: '${product.category_id}' }`}>
     <div class="mb-6">
       <a
         href="/admin/productos"
@@ -153,12 +162,55 @@ if (Astro.request.method === 'POST') {
           <select
             id="category_id"
             name="category_id"
+            x-model="selectedCategory"
             required
             class="w-full px-4 py-3 border border-noir-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all duration-200 bg-white text-noir-900"
           >
             {categories?.map((category) => (
               <option value={category.id} selected={category.id === product.category_id}>
                 {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <!-- SUBCATEGORY SELECTOR -->
+        <div class="space-y-2" x-show="selectedCategory">
+             <label for="subcategory_id" class="block text-sm font-medium text-noir-900">
+               Subcategoría
+             </label>
+             <select
+               id="subcategory_id"
+               name="subcategory_id"
+               class="w-full px-4 py-3 border border-noir-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all duration-200 bg-white text-noir-900"
+             >
+               <option value="">Seleccionar Subcategoría</option>
+               {subcategories?.map(sub => (
+                   <option 
+                        value={sub.id} 
+                        data-cat={sub.category_id} 
+                        x-show={`'${sub.category_id}' == selectedCategory`}
+                        selected={sub.id === product.subcategory_id}
+                   >
+                      {sub.name}
+                   </option>
+               ))}
+             </select>
+        </div>
+
+        <div class="space-y-2">
+          <label for="brand_id" class="block text-sm font-medium text-noir-900">
+            Marca
+          </label>
+          <select
+            id="brand_id"
+            name="brand_id"
+            class="w-full px-4 py-3 border border-noir-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all duration-200 bg-white text-noir-900"
+          >
+            <option value="">SIN MARCA / GENÉRICO</option>
+            {brands?.map((brand) => (
+              <option value={brand.id} selected={brand.id === product.brand_id}>
+                {brand.name}
               </option>
             ))}
           </select>
@@ -173,7 +225,7 @@ if (Astro.request.method === 'POST') {
             name="images"
             rows="3"
             class="w-full px-4 py-3 border border-noir-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all duration-200 bg-white text-noir-900 font-mono text-sm"
-          >{product.images.join('\n')}</textarea>
+          >{product.images && product.images.join('\n')}</textarea>
           <p class="text-xs text-noir-600">Una URL por línea.</p>
         </div>
 
@@ -207,7 +259,7 @@ if (Astro.request.method === 'POST') {
     <div class="mt-6 bg-cream-50 rounded-lg p-6">
       <h3 class="font-medium text-noir-900 mb-4">Vista Previa</h3>
       <div class="flex items-center space-x-4">
-        {product.images[0] && (
+        {product.images && product.images[0] && (
           <img
             src={product.images[0]}
             alt={product.name}

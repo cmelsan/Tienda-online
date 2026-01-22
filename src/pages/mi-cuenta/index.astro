@@ -13,6 +13,33 @@ if (!session) {
 
 const user = session.user;
 const userName = user.user_metadata?.full_name || 'Cliente';
+
+// Fetch recent orders (limit 3)
+const { data: recentOrders } = await supabase
+    .from('orders')
+    .select(`
+        *,
+        items:order_items (
+            quantity,
+            price_at_purchase,
+            product:products (name, images, slug)
+        )
+    `)
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(3);
+
+const formatDate = (dateUnformated: string) => {
+    return new Date(dateUnformated).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+};
+
+const formatPrice = (amount: number) => {
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount / 100);
+}
 ---
 
 <PublicLayout title="Mi Cuenta - ÉCLAT">
@@ -31,13 +58,16 @@ const userName = user.user_metadata?.full_name || 'Cliente';
           <a href="/mi-cuenta" class="block py-2 text-sm font-bold text-black border-l-2 border-black pl-3 uppercase tracking-wide">
             Panel Principal
           </a>
-          <a href="#" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">
+          <a href="/mi-cuenta/deseos" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">
+            Lista de Deseos
+          </a>
+          <a href="/mi-cuenta/pedidos" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">
             Mis Pedidos
           </a>
-          <a href="#" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">
+          <a href="/mi-cuenta/direcciones" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">
             Direcciones
           </a>
-          <a href="#" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">
+          <a href="/mi-cuenta/detalles" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">
             Detalles de la Cuenta
           </a>
           <button id="logout-btn" class="block w-full text-left py-2 text-sm text-rose-600 hover:text-rose-800 border-l-2 border-transparent hover:border-rose-200 pl-3 transition-colors uppercase tracking-wide mt-8">
@@ -48,35 +78,73 @@ const userName = user.user_metadata?.full_name || 'Cliente';
 
       <!-- Main Content -->
       <div class="lg:col-span-3">
-        <h1 class="text-2xl font-serif font-medium text-black mb-8 uppercase tracking-wide">
-          Mis Pedidos Recientes
-        </h1>
-
-        <!-- Empty State (Placeholder) -->
-        <div class="bg-gray-50 text-center py-16 border border-gray-100">
-          <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-          </svg>
-          <h3 class="text-lg font-medium text-gray-900 mb-2">Aún no tienes pedidos</h3>
-          <p class="text-gray-500 mb-6 max-w-sm mx-auto">
-            Explora nuestra colección y encuentra tus nuevos favoritos de belleza.
-          </p>
-          <a href="/productos" class="inline-block bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors">
-            Ir a la Tienda
-          </a>
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-serif font-medium text-black uppercase tracking-wide">
+            Mis Pedidos Recientes
+            </h1>
+            {recentOrders && recentOrders.length > 0 && (
+                <a href="/mi-cuenta/pedidos" class="text-xs font-bold underline uppercase tracking-wider hover:text-beauty-red">
+                    Ver todos
+                </a>
+            )}
         </div>
+
+        {(!recentOrders || recentOrders.length === 0) ? (
+            <div class="bg-gray-50 text-center py-16 border border-gray-100">
+            <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Aún no tienes pedidos</h3>
+            <p class="text-gray-500 mb-6 max-w-sm mx-auto">
+                Explora nuestra colección y encuentra tus nuevos favoritos de belleza.
+            </p>
+            <a href="/productos" class="inline-block bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors">
+                Ir a la Tienda
+            </a>
+            </div>
+        ) : (
+            <div class="space-y-6">
+                {recentOrders.map((order) => (
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                            <div>
+                                <span class="block text-xs text-gray-500 font-bold uppercase tracking-wider">Pedido N.º</span>
+                                <span class="text-sm font-bold text-gray-900">#{order.id.slice(0, 8)}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="block text-xs text-gray-500 font-bold uppercase tracking-wider">Fecha</span>
+                                <span class="text-sm text-gray-900">{formatDate(order.created_at)}</span>
+                            </div>
+                        </div>
+                        <div class="px-6 py-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-sm text-gray-600">
+                                        <span class="font-bold text-black">{order.items.length}</span> {order.items.length === 1 ? 'artículo' : 'artículos'}
+                                    </p>
+                                    <p class="text-lg font-serif font-bold text-black mt-1">{formatPrice(order.total_amount)}</p>
+                                </div>
+                                <a href="/mi-cuenta/pedidos" class="bg-white border border-black text-black px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-colors">
+                                    Ver Detalles
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        )}
 
         <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="border border-gray-200 p-6">
             <h3 class="font-bold text-black uppercase tracking-wider mb-4 text-sm">Dirección de Envío</h3>
             <p class="text-sm text-gray-600 mb-4 italic">No has establecido una dirección predeterminada.</p>
-            <a href="#" class="text-xs font-bold underline uppercase tracking-wider hover:text-beauty-red">Editar</a>
+            <a href="/mi-cuenta/direcciones" class="text-xs font-bold underline uppercase tracking-wider hover:text-beauty-red">Editar</a>
           </div>
           <div class="border border-gray-200 p-6">
             <h3 class="font-bold text-black uppercase tracking-wider mb-4 text-sm">Detalles Personales</h3>
             <p class="text-sm text-gray-600 mb-1">{userName}</p>
             <p class="text-sm text-gray-600 mb-4">{user.email}</p>
-            <a href="#" class="text-xs font-bold underline uppercase tracking-wider hover:text-beauty-red">Editar Contraseña</a>
+            <a href="/mi-cuenta/detalles" class="text-xs font-bold underline uppercase tracking-wider hover:text-beauty-red">Editar Contraseña</a>
           </div>
         </div>
       </div>

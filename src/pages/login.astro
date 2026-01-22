@@ -73,7 +73,7 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
 </PublicLayout>
 
 <script>
-  import { supabase } from '@/lib/supabase';
+  import { getOrCreateSessionId, clearSessionId } from '@/lib/sessionManager';
 
   const form = document.getElementById('login-form') as HTMLFormElement;
   const errorMessage = document.getElementById('error-message');
@@ -87,18 +87,46 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
     const password = formData.get('password') as string;
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Call server-side login API that sets cookies properly
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (error) throw error;
+      const data = await response.json();
 
-      // Check if user is admin or customer (optional logic, for now assumes all can login)
-      window.location.href = '/mi-cuenta';
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+
+      if (data.user) {
+        // Migrate Guest Cart if exists
+        const { supabase } = await import('@/lib/supabase');
+        const sessionId = getOrCreateSessionId();
+        const { error: migrationError } = await supabase.rpc('migrate_guest_cart_to_user', {
+          p_session_id: sessionId,
+          p_user_id: data.user.id
+        });
+        
+        if (migrationError) {
+          console.warn('Cart migration warning:', migrationError);
+        } else {
+          clearSessionId();
+        }
+      }
+
+      // Server has set cookies, now redirect
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirect = urlParams.get('redirect');
+      
+      // Immediate redirect since cookies are already set by server
+      window.location.href = redirect || '/mi-cuenta';
     } catch (error) {
       if (errorMessage) {
-        errorMessage.textContent = 'Credenciales inválidas. Por favor, inténtalo de nuevo.';
+        errorMessage.textContent = error instanceof Error ? error.message : 'Credenciales inválidas. Por favor, inténtalo de nuevo.';
         errorMessage.classList.remove('hidden');
       }
     }

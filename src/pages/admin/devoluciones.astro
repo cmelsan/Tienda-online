@@ -1,0 +1,166 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import AdminReturnRow from '@/components/admin/AdminReturnRow';
+import { createServerSupabaseClient } from '@/lib/supabase';
+
+// Fetch all orders with return_requested status
+const supabase = createServerSupabaseClient(Astro);
+
+const { data: returnRequests } = await supabase
+  .from('orders')
+  .select(`
+    id,
+    created_at,
+    status,
+    total_amount,
+    user_id,
+    guest_email,
+    delivered_at,
+    order_items (
+      id,
+      product_id,
+      quantity,
+      price_at_purchase,
+      products (
+        name,
+        images
+      )
+    ),
+    order_status_history!order_status_history_order_id_fkey (
+      notes,
+      created_at
+    )
+  `)
+  .eq('status', 'return_requested')
+  .order('created_at', { ascending: false });
+
+const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+};
+
+const formatPrice = (amount: number) => {
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount / 100);
+};
+---
+
+<AdminLayout title="Gestión de Devoluciones" description="Procesar solicitudes de devolución">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+      <div>
+        <h2 class="text-2xl font-bold uppercase tracking-wide">Solicitudes de Devolución</h2>
+        <p class="text-sm text-gray-600 mt-1">Revisa y aprobar/rechazar devoluciones de clientes</p>
+      </div>
+      <div class="bg-blue-50 px-4 py-2 rounded-full border border-blue-200">
+        <span class="text-sm font-bold text-blue-600">{returnRequests?.length || 0} solicitudes pendientes</span>
+      </div>
+    </div>
+
+    {/* Empty State */}
+    {(!returnRequests || returnRequests.length === 0) ? (
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-50 mb-4">
+          <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">No hay solicitudes pendientes</h3>
+        <p class="text-gray-600">Todas las devoluciones han sido procesadas</p>
+      </div>
+    ) : (
+      <div class="space-y-4">
+        {returnRequests.map((order: any) => {
+          // Get return reason from status history
+          const returnHistory = order.order_status_history?.find((h: any) => h.notes);
+          const returnReason = returnHistory?.notes || 'Sin motivo especificado';
+          const requestDate = returnHistory?.created_at || order.created_at;
+
+          return (
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              {/* Request Header */}
+              <div class="bg-orange-50 px-6 py-4 border-b border-orange-200">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div class="flex gap-8 text-sm">
+                    <div>
+                      <span class="block text-gray-600 font-medium text-xs uppercase">Pedido</span>
+                      <span class="font-bold text-gray-900">#{order.id.slice(0, 8)}</span>
+                    </div>
+                    <div>
+                      <span class="block text-gray-600 font-medium text-xs uppercase">Cliente</span>
+                      <span class="font-medium text-gray-900">{order.guest_email || order.user_id?.slice(0, 8) || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span class="block text-gray-600 font-medium text-xs uppercase">Total</span>
+                      <span class="font-bold text-gray-900">{formatPrice(order.total_amount)}</span>
+                    </div>
+                    <div>
+                      <span class="block text-gray-600 font-medium text-xs uppercase">Solicitado</span>
+                      <span class="text-gray-900">{formatDate(requestDate)}</span>
+                    </div>
+                  </div>
+                  
+                  <span class="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-full border border-orange-300">
+                    Devolución Solicitada
+                  </span>
+                </div>
+              </div>
+
+              {/* Return Details */}
+              <div class="px-6 py-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Products */}
+                <div>
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Productos</h4>
+                  <div class="space-y-3">
+                    {order.order_items?.map((item: any) => (
+                      <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                          {item.products?.images?.[0] && (
+                            <img src={item.products.images[0]} alt={item.products.name} class="w-full h-full object-cover" />
+                          )}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-sm font-medium text-gray-900 truncate">{item.products?.name}</p>
+                          <p class="text-xs text-gray-500">Cantidad: {item.quantity} × {formatPrice(item.price_at_purchase)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Reason */}
+                <div>
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Motivo de Devolución</h4>
+                  <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                    <p class="text-sm text-gray-700">{returnReason}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions (Using Client Component) */}
+              <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <AdminReturnRow 
+                  client:visible 
+                  orderId={order.id}
+                  orderTotal={formatPrice(order.total_amount)}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+  </div>
+</AdminLayout>
+
+<script>
+  declare global {
+    interface Window {
+      AdminReturnRow: any;
+    }
+  }
+</script>

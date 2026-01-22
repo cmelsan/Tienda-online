@@ -1,0 +1,57 @@
+---
+import PublicLayout from '@/layouts/PublicLayout.astro';
+import Button from '@/components/ui/Button.astro';
+
+// This page would ideally receive order details via URL params or session storage
+// For now, it's a generic success page
+const { searchParams } = Astro.url;
+const email = searchParams.get('email');
+const orderId = searchParams.get('orderId');
+---
+
+<PublicLayout title="Compra Realizada | ÉCLAT" description="Gracias por tu compra">
+  <div class="min-h-[60vh] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100 text-center">
+      
+      <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6">
+        <svg class="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+
+      <div>
+        <h2 class="mt-2 text-3xl font-extrabold text-gray-900 font-serif tracking-tight">
+          ¡Gracias por tu compra!
+        </h2>
+        <p class="mt-4 text-sm text-gray-500">
+          Tu pedido ha sido procesado correctamente.
+          {email && (
+            <span> Hemos enviado un correo de confirmación a <strong class="text-black">{email}</strong>.</span>
+          )}
+        </p>
+        {orderId && (
+            <div class="mt-4 inline-block bg-gray-50 px-4 py-2 rounded-md border border-gray-200">
+                <p class="text-xs text-gray-500 uppercase tracking-widest font-bold">Referencia del Pedido</p>
+                <p class="text-lg font-mono text-black">#{orderId.slice(0, 8)}</p>
+            </div>
+        )}
+      </div>
+
+      <div class="mt-8 space-y-4">
+        <a href="/" class="block w-full bg-black text-white px-8 py-4 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+            Volver a la Tienda
+        </a>
+        <a href="/mi-cuenta/pedidos" class="block w-full text-black px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors border border-gray-200">
+            Ver Mis Pedidos
+        </a>
+      </div>
+      
+      <div class="pt-6 mt-6 border-t border-gray-100">
+          <p class="text-xs text-gray-400">
+              ¿No has recibido el email? Revisa tu carpeta de spam o <a href="/contacto" class="underline hover:text-black">contáctanos</a>.
+          </p>
+      </div>
+
+    </div>
+  </div>
+</PublicLayout>

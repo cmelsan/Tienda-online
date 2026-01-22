@@ -1,0 +1,250 @@
+---
+import PublicLayout from '@/layouts/PublicLayout.astro';
+import ProductCard from '@/components/product/ProductCard.astro';
+import ProductFilters from '@/components/product/ProductFilters';
+import { supabase } from '@/lib/supabase';
+
+export async function getStaticPaths() {
+  const { data: categories } = await supabase.from('categories').select('slug');
+  return categories?.map((cat) => ({
+    params: { slug: cat.slug },
+  })) || [];
+}
+
+const { slug } = Astro.params;
+const [parentCategorySlug, subCategorySlug] = (slug || '').split('/');
+
+// 1. Define Subcategories Map for Side Filters
+const SUBCATEGORIES: Record<string, { id: string; name: string }[]> = {
+    'maquillaje': [
+        { id: 'rostro', name: 'Rostro' },
+        { id: 'labios', name: 'Labios' },
+        { id: 'ojos', name: 'Ojos' },
+        { id: 'cejas', name: 'Cejas' },
+        { id: 'paletas', name: 'Paletas de Maquillaje' },
+        { id: 'brochas', name: 'Brochas y Pinceles' }
+    ],
+    'cabello': [
+        { id: 'champu', name: 'Champú' },
+        { id: 'acondicionador', name: 'Acondicionador' },
+        { id: 'mascarilla', name: 'Mascarilla' },
+        { id: 'tratamiento', name: 'Tratamientos' },
+        { id: 'fijacion', name: 'Fijación y Acabado' }
+    ],
+    'cuerpo': [
+        { id: 'hidratacion', name: 'Hidratación' },
+        { id: 'exfoliante', name: 'Exfoliante' },
+        { id: 'bano', name: 'Baño y Ducha' },
+        { id: 'solar', name: 'Protección Solar' }
+    ],
+    'perfumes': [
+        { id: 'mujer', name: 'Para Ella' },
+        { id: 'hombre', name: 'Para Él' },
+        { id: 'unisex', name: 'Unisex' },
+        { id: 'hogar', name: 'Hogar' }
+    ]
+};
+
+// 2. Fetch Parent Category
+const { data: category } = await supabase
+  .from('categories')
+  .select('*')
+  .eq('slug', parentCategorySlug)
+  .single();
+
+if (!category) {
+  return Astro.redirect('/404');
+}
+
+// 3. Filter Params
+const searchParams = Astro.url.searchParams;
+const minPrice = parseInt(searchParams.get('min_price') || '0');
+const maxPrice = parseInt(searchParams.get('max_price') || '500'); 
+const selectedBrandIds = searchParams.get('brands')?.split(',').filter(Boolean) || [];
+// Get selected categories from URL OR from subCategorySlug (if routed via /category/subcategory)
+const urlSelectedCategories = searchParams.get('categories')?.split(',').filter(Boolean) || [];
+const activeSubCats = subCategorySlug ? [subCategorySlug, ...urlSelectedCategories] : urlSelectedCategories;
+
+const sortOption = searchParams.get('sort') || 'newest';
+
+// 4. Build Query
+let query = supabase
+  .from('products')
+  .select('*, brand:brands(name, id)')
+  .eq('category_id', category.id);
+
+// A. Filter by Brand
+if (selectedBrandIds.length > 0) {
+    query = query.in('brand_id', selectedBrandIds);
+}
+
+// B. Filter by Subcategory 
+// Note: Since we don't have a subcategory column, we replicate the "Search by Name/Desc" logic
+// B. Filter by Subcategory 
+// Now using real 'subcategory_id' column or slug lookup
+if (activeSubCats.length > 0) {
+    // We need to resolve slugs to IDs if we are filtering by URL slugs
+    // Or if activeSubCats contains slugs. 
+    // Optimization: filtering by IDs is better, but URL has slugs.
+    // We can do a subquery or fetch IDs first.
+    // Let's assume activeSubCats are SLUGS from the URL.
+    
+    // We need to find the UUIDs for these slugs
+    const { data: subCatIds } = await supabase
+        .from('subcategories')
+        .select('id')
+        .in('slug', activeSubCats);
+        
+    if (subCatIds && subCatIds.length > 0) {
+        const ids = subCatIds.map(s => s.id);
+         query = query.in('subcategory_id', ids);
+    } else {
+        // If no matching subcats found (maybe invalid slugs), show nothing or ignore?
+        // Let's force zero results to be safe if provided slugs don't exist
+        query = query.eq('id', '00000000-0000-0000-0000-000000000000'); 
+    }
+}
+// Special Case: If we are on a Subcategory Page (e.g. /categoria/maquillaje/rostro)
+if (subCategorySlug) {
+    const { data: currentSubPage } = await supabase
+        .from('subcategories')
+        .select('id')
+        .eq('slug', subCategorySlug)
+        .eq('category_id', category.id)
+        .single();
+        
+    if (currentSubPage) {
+        query = query.eq('subcategory_id', currentSubPage.id);
+    }
+}
+
+// C. Price
+if (minPrice > 0) query = query.gte('price', minPrice * 100);
+if (maxPrice < 500) query = query.lte('price', maxPrice * 100);
+
+// D. Sort
+if (sortOption === 'price_asc') query = query.order('price', { ascending: true });
+else if (sortOption === 'price_desc') query = query.order('price', { ascending: false });
+else query = query.order('created_at', { ascending: false });
+
+const { data: products } = await query;
+const displayProducts = products || [];
+
+// 5. Fetch Brands for Sidebar
+const { data: allBrands } = await supabase.from('brands').select('id, name').order('name'); 
+
+// 6. Get Available Subcategories for Sidebar
+// 6. Get Available Subcategories for Sidebar
+// Ensure we use lowercase for map lookup
+const availableSubcats = SUBCATEGORIES[parentCategorySlug?.toLowerCase()] || [];
+
+// Breadcrumbs
+const breadcrumbs = [
+  { label: 'Inicio', href: '/' },
+  { label: 'Productos', href: '/productos' }, // Added to match user expectation
+  { label: category.name, href: `/categoria/${category.slug}` },
+];
+if (subCategorySlug) breadcrumbs.push({ label: subCategorySlug.replace(/-/g, ' '), href: '#' });
+---
+
+<PublicLayout title={`${category.name} | ÉCLAT`} description={category.description}>
+    <!-- Premium Header Area -->
+    <div class="bg-[#fcfcfc] border-b border-gray-200">
+        <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 py-12 lg:py-20 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div class="max-w-2xl">
+                 <nav class="flex text-xs text-gray-400 mb-6 uppercase tracking-widest space-x-2 font-medium">
+                    {breadcrumbs.map((crumb, index) => (
+                        <div class="flex items-center">
+                            {index > 0 && <span class="mx-2">/</span>}
+                            <a href={crumb.href} class="hover:text-black transition-colors">{crumb.label}</a>
+                        </div>
+                    ))}
+                </nav>
+                <h1 class="text-5xl lg:text-7xl font-serif font-medium text-black mb-6 uppercase tracking-tight">
+                    {category.name}
+                </h1>
+                <p class="text-gray-500 text-lg font-light leading-relaxed max-w-xl">
+                    {category.description}
+                </p>
+            </div>
+            {/* Optional Specific Category Image could go here */}
+        </div>
+    </div>
+
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
+        <div class="flex flex-col lg:flex-row gap-12 lg:gap-16">
+            
+        {/* Sidebar */}
+        <aside class="w-full lg:w-64 hidden lg:block space-y-6">
+            <div class="sticky top-32">
+                <div class="flex items-center justify-between lg:hidden mb-4 p-4 border border-gray-200 cursor-pointer" onclick="document.getElementById('mobile-filters').classList.toggle('hidden')">
+                        <span class="font-bold uppercase tracking-widest text-sm">Filtros</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                
+                <div id="mobile-filters" class="hidden lg:block space-y-8">
+                    {/* Reuse ProductFilters component */}
+                    <ProductFilters
+                        client:load
+                        minPriceObj={0}
+                        maxPriceObj={500}
+                        currentMinPrice={minPrice}
+                        currentMaxPrice={maxPrice}
+                        brands={allBrands || []}
+                        categories={!subCategorySlug ? availableSubcats : []} // Only show Category filters on Main Page
+                        selectedBrands={selectedBrandIds}
+                        selectedCategories={activeSubCats}
+                    />
+                </div>
+            </div>
+        </aside>
+
+            {/* Grid */}
+            <div class="flex-1">
+                 {/* Toolbar */}
+                 <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-10 pb-4 border-b border-gray-100 gap-4">
+                    <p class="text-sm text-gray-500 font-medium">
+                        <span class="text-black font-bold">{displayProducts.length}</span> resultados
+                    </p>
+                    
+                    <div class="flex items-center gap-4">
+                        <label class="text-xs font-bold uppercase tracking-widest text-black">Ordenar por:</label>
+                        <select 
+                            class="text-sm bg-transparent border-none p-0 pr-8 focus:ring-0 cursor-pointer font-medium text-gray-600 hover:text-black transition-colors"
+                            onchange="const url = new URL(window.location); url.searchParams.set('sort', this.value); window.location.href = url.toString();"
+                        >
+                            <option value="newest" selected={sortOption === 'newest'}>Lo más nuevo</option>
+                            <option value="price_asc" selected={sortOption === 'price_asc'}>Precio: Bajo a Alto</option>
+                            <option value="price_desc" selected={sortOption === 'price_desc'}>Precio: Alto a Bajo</option>
+                        </select>
+                    </div>
+                </div>
+
+                {displayProducts.length > 0 ? (
+                    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
+                        {displayProducts.map(product => (
+                             <ProductCard 
+                                product={{
+                                    ...product, 
+                                    brand: product.brand?.name || 'ÉCLAT'
+                                }} 
+                                fallbackImage={`/assets/products/${category.slug === 'maquillaje' ? 'makeup-default.png' : 'body-default.png'}`} 
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div class="py-24 text-center border-t border-b border-dashed border-gray-200">
+                        <h3 class="text-lg font-bold uppercase tracking-widest mb-2">Sin Resultados</h3>
+                        <p class="text-gray-500 mb-6">No hay productos que coincidan con tu selección.</p>
+                        <button 
+                            onclick="window.location.href=window.location.pathname"
+                            class="bg-black text-white px-6 py-2 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors"
+                        >
+                            Limpiar Filtros
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    </div>
+</PublicLayout>

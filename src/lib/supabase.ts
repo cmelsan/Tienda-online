@@ -63,6 +63,64 @@ export interface Database {
                     created_at?: string;
                 };
             };
+            carts: {
+                Row: {
+                    id: string;
+                    user_id: string | null;
+                    session_id: string | null;
+                    items: any; // JSONB
+                    created_at: string;
+                    updated_at: string;
+                    expires_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    user_id?: string | null;
+                    session_id?: string | null;
+                    items?: any;
+                    created_at?: string;
+                    updated_at?: string;
+                    expires_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    user_id?: string | null;
+                    session_id?: string | null;
+                    items?: any;
+                    created_at?: string;
+                    updated_at?: string;
+                    expires_at?: string;
+                };
+            };
+            user_addresses: {
+                Row: {
+                    id: string;
+                    user_id: string;
+                    address_data: any; // JSONB
+                    address_type: 'shipping' | 'billing';
+                    is_default: boolean;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    user_id: string;
+                    address_data: any;
+                    address_type: 'shipping' | 'billing';
+                    is_default?: boolean;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    user_id?: string;
+                    address_data?: any;
+                    address_type?: 'shipping' | 'billing';
+                    is_default?: boolean;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
         };
     };
 }
@@ -84,9 +142,9 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
 );
 
 // Server-side Supabase client (for SSR pages)
-export function createServerSupabaseClient(
+export async function createServerSupabaseClient(
     Astro: any
-): SupabaseClient<Database> {
+): Promise<SupabaseClient<Database>> {
     const accessToken = Astro.cookies.get("sb-access-token")?.value;
     const refreshToken = Astro.cookies.get("sb-refresh-token")?.value;
 
@@ -98,17 +156,33 @@ export function createServerSupabaseClient(
                 flowType: 'pkce',
                 autoRefreshToken: false,
                 detectSessionInUrl: false,
-                persistSession: true,
+                persistSession: false,
             },
         }
     );
 
     if (accessToken && refreshToken) {
-        client.auth.setSession({
+        await client.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
         });
     }
 
     return client;
+}
+
+// Order Management Helpers
+export async function cancelOrder(orderId: string) {
+    const { data, error } = await supabase.rpc('cancel_order', { p_order_id: orderId });
+    if (error) throw error;
+    return data;
+}
+
+export async function requestReturn(orderId: string, reason: string) {
+    const { data, error } = await supabase.rpc('request_return', {
+        p_order_id: orderId,
+        p_reason: reason
+    });
+    if (error) throw error;
+    return data;
 }

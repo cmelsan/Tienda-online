@@ -1,0 +1,194 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useStore } from '@nanostores/react';
+import { cartItems, cartTotal } from '@/stores/cart';
+import { getOrCreateSessionId, clearSessionId } from '@/lib/sessionManager';
+import EmailStep from './EmailStep';
+import AddressStep from './AddressStep';
+
+// Steps definition
+type CheckoutStep = 'email' | 'address' | 'shipping' | 'payment';
+
+export default function CheckoutFlow() {
+    const [step, setStep] = useState<CheckoutStep>('email');
+    const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [processing, setProcessing] = useState(false);
+
+    // Checkout State
+    const [email, setEmail] = useState('');
+    const [isGuest, setIsGuest] = useState(true);
+    const [shippingAddress, setShippingAddress] = useState<any>(null);
+
+    const items = useStore(cartItems);
+    const total = useStore(cartTotal);
+
+    useEffect(() => {
+        checkSession();
+    }, []);
+
+    const checkSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            setUser(session.user);
+            setEmail(session.user.email || '');
+            setIsGuest(false);
+            setStep('address'); // Skip email step if logged in
+        }
+        setLoading(false);
+    };
+
+    const handleEmailContinue = async (inputEmail: string, registerData?: { password: string }) => {
+        setEmail(inputEmail);
+
+        if (registerData) {
+            setProcessing(true);
+            try {
+                // 1. Sign Up
+                const { data: authData, error } = await supabase.auth.signUp({
+                    email: inputEmail,
+                    password: registerData.password,
+                    options: {
+                        data: {
+                            full_name: '', // Can ask later
+                        }
+                    }
+                });
+
+                if (error) throw error;
+
+                if (authData.user) {
+                    // 2. Migrate Cart
+                    const sessionId = getOrCreateSessionId();
+                    const { error: migrationError } = await supabase.rpc('migrate_guest_cart_to_user', {
+                        p_session_id: sessionId,
+                        p_user_id: authData.user.id
+                    });
+
+                    if (migrationError) console.error('Migration error:', migrationError);
+
+                    // 3. Clear session locally
+                    clearSessionId();
+
+                    setUser(authData.user);
+                    setIsGuest(false);
+                }
+            } catch (err: any) {
+                alert('Error al crear cuenta: ' + err.message);
+                setProcessing(false);
+                return;
+            }
+            setProcessing(false);
+        }
+
+        setStep('address');
+    };
+
+    const handleAddressContinue = (address: any) => {
+        setShippingAddress(address);
+        setStep('payment');
+    };
+
+    const handleLogin = () => {
+        window.location.href = `/login?redirect=/checkout`;
+    };
+
+    if (loading) return <div className="p-12 text-center">Cargando checkout...</div>;
+
+    if (Object.keys(items).length === 0) {
+        return (
+            <div className="text-center py-12">
+                <h2 className="text-2xl font-bold mb-4">Tu carrito está vacío</h2>
+                <a href="/productos" className="text-blue-600 underline">Volver a la tienda</a>
+            </div>
+        );
+    }
+
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            {/* Steps Column */}
+            <div className="lg:col-span-2 space-y-8">
+
+                {/* Email Step */}
+                <div className={`border p-6 rounded ${step === 'email' ? 'border-black' : 'border-gray-200'}`}>
+                    <h3 className="font-bold text-lg mb-4 flex items-center">
+                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm mr-2 ${step === 'email' ? 'border-black bg-black text-white' : 'bg-green-600 text-white'}`}>
+                            {step === 'email' ? '1' : '✓'}
+                        </span>
+                        Contacto
+                        {step !== 'email' && <span className="ml-auto text-sm font-normal text-gray-500">{email}</span>}
+                        {step !== 'email' && !user && <button onClick={() => setStep('email')} className="ml-4 text-sm underline text-black">Editar</button>}
+                    </h3>
+
+                    {step === 'email' && (
+                        <EmailStep
+                            initialEmail={email}
+                            onContinue={handleEmailContinue}
+                            onLogin={handleLogin}
+                        />
+                    )}
+                    {processing && step === 'email' && <p className="text-sm text-center mt-2">Creando cuenta...</p>}
+                </div>
+
+                {/* Address Step */}
+                <div className={`border p-6 rounded ${step === 'address' ? 'border-black' : 'border-gray-200 opacity-50'}`}>
+                    <h3 className="font-bold text-lg mb-4 flex items-center">
+                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm mr-2 ${step === 'address' ? 'bg-black text-white' : step === 'email' ? 'bg-gray-200' : 'bg-green-600 text-white'}`}>
+                            {step === 'address' ? '2' : (step === 'email' ? '2' : '✓')}
+                        </span>
+                        Envío
+                        {shippingAddress && step !== 'address' && <span className="ml-auto text-sm font-normal text-gray-500">{shippingAddress.street}, {shippingAddress.city}</span>}
+                        {step !== 'address' && step !== 'email' && <button onClick={() => setStep('address')} className="ml-4 text-sm underline text-black">Editar</button>}
+                    </h3>
+                    {step === 'address' && (
+                        <AddressStep
+                            user={user}
+                            onContinue={handleAddressContinue}
+                            onBack={() => setStep('email')}
+                        />
+                    )}
+                </div>
+
+                {/* Payment Step */}
+                <div className={`border p-6 rounded ${step === 'payment' ? 'border-black' : 'border-gray-200 opacity-50'}`}>
+                    <h3 className="font-bold text-lg mb-4 flex items-center">
+                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm mr-2 ${step === 'payment' ? 'bg-black text-white' : 'bg-gray-200'}`}>3</span>
+                        Pago
+                    </h3>
+                    {step === 'payment' && (
+                        <div>
+                            <p>Formulario de pago...</p>
+                        </div>
+                    )}
+                </div>
+
+            </div>
+
+            {/* Summary Column */}
+            <div className="bg-gray-50 p-6 rounded h-fit">
+                <h3 className="font-bold text-lg mb-4">Resumen del Pedido</h3>
+                <div className="space-y-4">
+                    {Object.values(items).map((item: any) => (
+                        <div key={item.product.id} className="flex gap-4">
+                            <div className="w-16 h-16 bg-white rounded border overflow-hidden">
+                                {item.product.images?.[0] && <img src={item.product.images[0]} className="w-full h-full object-cover" />}
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm font-medium">{item.product.name}</p>
+                                <p className="text-sm text-gray-500">Cant: {item.quantity}</p>
+                            </div>
+                            <p className="text-sm font-bold">{(item.product.price * item.quantity / 100).toFixed(2)}€</p>
+                        </div>
+                    ))}
+
+                    <div className="border-t pt-4 mt-4">
+                        <div className="flex justify-between font-bold text-lg">
+                            <span>Total</span>
+                            <span>{(total / 100).toFixed(2)}€</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

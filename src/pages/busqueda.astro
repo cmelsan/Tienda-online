@@ -1,0 +1,93 @@
+---
+import PublicLayout from '@/layouts/PublicLayout.astro';
+import ProductCard from '@/components/product/ProductCard.astro';
+import { supabase } from '@/lib/supabase';
+
+const q = Astro.url.searchParams.get('q') || '';
+const queryClean = q.trim();
+
+let products = [];
+let error = null;
+
+if (queryClean) {
+    // Basic search: Name or Description matches
+    // Note: To search relations (Brand Name, Category Name), it's more complex with standard PostgREST.
+    // For now, we search Product Name and Description.
+    // We also fetch Brand and Category to display card properly.
+    
+    // Attempt to find if query matches a Brand or Category specifically?
+    // Let's stick to product search for MVP.
+    
+    const { data, error: err } = await supabase
+        .from('products')
+        .select('*, brand:brands(name), category:categories(slug)')
+        .or(`name.ilike.%${queryClean}%,description.ilike.%${queryClean}%`)
+        .order('created_at', { ascending: false });
+        
+    if (err) {
+        console.error('Search error:', err);
+        error = "Hubo un error al realizar la búsqueda.";
+    } else {
+        products = data || [];
+    }
+}
+
+const pageTitle = queryClean ? `Resultados para "${queryClean}"` : 'Búsqueda';
+---
+
+<PublicLayout title={`${pageTitle} | ÉCLAT`} description="Resultados de búsqueda">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
+        
+        <header class="mb-12 text-center">
+            <h1 class="text-3xl lg:text-5xl font-bold uppercase tracking-tight mb-4">
+                {queryClean ? 'Resultados de Búsqueda' : 'Buscar Productos'}
+            </h1>
+            {queryClean && (
+                 <p class="text-gray-500 text-lg">
+                    Se han encontrado <span class="font-bold text-black">{products.length}</span> resultados para "<span class="italic text-black">{queryClean}</span>"
+                </p>
+            )}
+        </header>
+
+        {products.length > 0 ? (
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+                {products.map((product) => {
+                     // Determine fallback image based on category
+                    const catSlug = product.category?.slug || 'maquillaje';
+                    const fallbackImage = `/assets/products/${
+                        catSlug === 'maquillaje' ? 'makeup-default.png' :
+                        catSlug === 'cabello' ? 'hair-default.png' :
+                        catSlug === 'cuerpo' ? 'body-default.png' :
+                        catSlug === 'perfumes' ? 'perfume-default.png' :
+                        'makeup-default.png'
+                    }`;
+
+                    return (
+                        <ProductCard 
+                            product={{
+                                ...product,
+                                brand: product.brand?.name || 'ÉCLAT'
+                            }}
+                            fallbackImage={fallbackImage}
+                        />
+                    );
+                })}
+            </div>
+        ) : (
+            <div class="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                <div class="mb-6 text-gray-300">
+                    <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <h2 class="text-xl font-bold mb-2 uppercase tracking-widest">No encontramos nada</h2>
+                <p class="text-gray-500 mb-8 max-w-md text-center">
+                    Lo sentimos, no hemos encontrado productos que coincidan con "<strong>{queryClean}</strong>". 
+                    Intenta con otra palabra clave o revisa la ortografía.
+                </p>
+                <a href="/" class="bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors">
+                    Volver al Inicio
+                </a>
+            </div>
+        )}
+
+    </div>
+</PublicLayout>

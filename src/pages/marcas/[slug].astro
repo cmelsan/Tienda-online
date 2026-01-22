@@ -1,0 +1,172 @@
+---
+import PublicLayout from '@/layouts/PublicLayout.astro';
+import ProductCard from '@/components/product/ProductCard.astro';
+import ProductFilters from '@/components/product/ProductFilters.tsx';
+import { supabase } from '@/lib/supabase';
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect('/marcas');
+}
+
+// 1. Fetch brand
+const { data: brand } = await supabase
+  .from('brands')
+  .select('*')
+  .eq('slug', slug)
+  .single();
+
+if (!brand) {
+  return Astro.redirect('/404');
+}
+
+// --- FILTERING LOGIC ---
+const searchParams = Astro.url.searchParams;
+const minPrice = parseInt(searchParams.get('min_price') || '0');
+const maxPrice = parseInt(searchParams.get('max_price') || '1000');
+const selectedCategoryIds = searchParams.get('categories')?.split(',') || [];
+const sortOption = searchParams.get('sort') || 'newest';
+
+// 2. Build Query
+let query = supabase
+  .from('products')
+  .select('*, brand:brands(name)')
+  .eq('brand_id', brand.id);
+
+// Apply Category Filter
+if (selectedCategoryIds.length > 0) {
+    query = query.in('category_id', selectedCategoryIds);
+}
+
+// Apply Price Filter
+if (minPrice > 0) {
+    query = query.gte('price', minPrice * 100);
+}
+if (maxPrice < 1000) { 
+    query = query.lte('price', maxPrice * 100);
+}
+
+// Apply Sorting
+if (sortOption === 'price_asc') {
+    query = query.order('price', { ascending: true });
+} else if (sortOption === 'price_desc') {
+    query = query.order('price', { ascending: false });
+} else {
+    query = query.order('created_at', { ascending: false });
+}
+
+// Execute Query
+const { data: products } = await query;
+
+// 3. Fetch All Categories for Filter List
+const { data: allCategories } = await supabase
+  .from('categories')
+  .select('id, name')
+  .order('name');
+
+// Fetch categories mapping for fallback images (same logic as before)
+// We already fetched them above in `allCategories` but let's keep it simple
+const displayProducts = products || [];
+
+---
+
+<PublicLayout
+  title={`${brand.name} - ÉCLAT`}
+  description={`Compra productos de ${brand.name} en ÉCLAT. ${brand.description || ''}`}
+>
+  {/* Brand Hero */}
+  <div class="bg-gray-50 py-16 border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        {brand.logo_url && (
+            <img 
+                src={brand.logo_url} 
+                alt={brand.name} 
+                class="h-24 mx-auto mb-6 object-contain"
+            />
+        )}
+        <h1 class={`text-display-md font-bold text-black uppercase tracking-tight mb-4 ${!brand.logo_url ? 'block' : 'sr-only'}`}>
+            {brand.name}
+        </h1>
+        {brand.description && (
+            <p class="text-lg text-gray-600 font-serif max-w-3xl mx-auto italic">
+            "{brand.description}"
+            </p>
+        )}
+    </div>
+  </div>
+
+  <section class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <div class="flex flex-col lg:flex-row gap-8">
+        
+        {/* Sidebar Filters */}
+        <aside class="w-full lg:w-64 hidden lg:block space-y-6">
+            <ProductFilters 
+                client:visible
+                minPriceObj={0}
+                maxPriceObj={200}
+                currentMinPrice={minPrice}
+                currentMaxPrice={maxPrice}
+                categories={allCategories || []}
+                selectedCategories={selectedCategoryIds}
+            />
+        </aside>
+
+        <div class="flex-1">
+             {/* Toolbar */}
+             <div class="mb-6 flex justify-between items-center text-sm border border-gray-200 p-4 bg-white sticky top-20 z-10 shadow-sm">
+                <span class="font-bold tracking-wide">{displayProducts.length} Productos</span>
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-500 hidden sm:inline">Ordenar por:</span>
+                        <select 
+                            class="border-none bg-transparent font-bold focus:ring-0 cursor-pointer text-xs sm:text-sm uppercase tracking-wider p-0"
+                            onchange="window.location.href = this.value"
+                        >
+                            <option value={`?sort=newest`} selected={sortOption === 'newest'}>Novedades</option>
+                            <option value={`?sort=price_asc`} selected={sortOption === 'price_asc'}>Precio: - a +</option>
+                            <option value={`?sort=price_desc`} selected={sortOption === 'price_desc'}>Precio: + a -</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+            {displayProducts.map((product) => {
+                // Determine fallback image based on category
+                // We use allCategories to look it up
+                const category = allCategories?.find(c => c.id === product.category_id);
+                const catSlug = category?.slug || 'maquillaje';
+                
+                const fallbackImage = `/assets/products/${
+                    catSlug === 'maquillaje' ? 'makeup-default.png' :
+                    catSlug === 'cabello' ? 'hair-default.png' :
+                    catSlug === 'cuerpo' ? 'body-default.png' :
+                    catSlug === 'perfumes' ? 'perfume-default.png' :
+                    'makeup-default.png'
+                }`;
+
+                return (
+                <ProductCard 
+                    product={{
+                        ...product,
+                        brand: brand.name // Ensure we pass the brand name for the card
+                    }}
+                    fallbackImage={fallbackImage}
+                />
+                );
+            })}
+            </div>
+
+            {displayProducts.length === 0 && (
+            <div class="text-center py-20 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                <p class="text-gray-500 mb-4">No hay productos disponibles con estos filtros.</p>
+                <a href="/marcas" class="text-xs font-bold text-black underline uppercase tracking-wider">
+                    Ver todas las marcas
+                </a>
+            </div>
+            )}
+        </div>
+    </div>
+  </section>
+</PublicLayout>

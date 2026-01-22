@@ -1,0 +1,158 @@
+---
+import PublicLayout from '../layouts/PublicLayout.astro';
+
+const topBrands = [
+  { name: 'Éclat Collection', image: '/assets/brands/eclat-collection.png', color: 'bg-black text-white' },
+  { name: 'Benefit Cosmetics', image: '/assets/brands/benefit.png', color: 'bg-pink-500 text-white' },
+  { name: 'Dior', image: '/assets/brands/dior.png', color: 'bg-white text-black border border-gray-200' },
+  { name: 'Rare Beauty', image: '/assets/brands/rare.png', color: 'bg-red-100 text-red-800' },
+  { name: 'Fenty Beauty', image: '/assets/brands/fenty.png', color: 'bg-neutral-200 text-neutral-800' }
+];
+
+const brands = [
+  "Adolfo Domínguez", "AESTURA", "Amika", "Anastasia Beverly Hills", "Armani", "Augustinus Bader", "Aveda",
+  "Benefit Cosmetics", "Biodance", "Biotherm", "Bobbi Brown", "Byoma",
+  "Carolina Herrera", "CeraVe", "Chanel", "Charlotte Tilbury", "Clarins", "Clinique", "Color Wow",
+  "Dior", "Dolce & Gabbana", "Drunk Elephant", "Dyson",
+  "Éclat Collection", "Erborian", "Estée Lauder",
+  "Fenty Beauty", "Fenty Skin", "Fresh",
+  "Garnier", "Gisou", "Givenchy", "Glow Recipe", "Gucci", "Guerlain",
+  "Haus Labs", "Huda Beauty",
+  "The Inkey List", "Innisfree", "Isle of Paradise",
+  "Jo Malone London", "Juliette Has A Gun",
+  "K18", "Kayali", "Kérastase", "Kiehl's", "Kosas",
+  "La Mer", "La Roche-Posay", "Laneige", "Laura Mercier", "Les Secrets de Loly", "Living Proof", "Loewe",
+  "MAC Cosmetics", "Maison Margiela", "Makeup by Mario", "Milk Makeup", "Moroccanoil",
+  "NARS", "Natasha Denona", "Nivea", "Nooance",
+  "Olaplex", "Ole Henriksen", "One/Size", "The Ordinary", "Origins", "OUAI",
+  "Paco Rabanne", "Pat McGrath Labs", "Paula's Choice", "Pixi", "Prada",
+  "Rare Beauty", "Redken", "Rem Beauty", "Rituals",
+  "Saint Laurent", "Sephora Collection", "Shiseido", "Sisley", "Sol de Janeiro", "Sunday Riley", "Supergoop!",
+  "Tarte", "Tatcha", "The Ordinary", "Tom Ford", "Too Faced",
+  "Urban Decay",
+  "Valentino", "Versace", "Vichy",
+  "Youth to the People", "YSL Beauty"
+];
+
+// Group brands by first letter
+const brandsByLetter = brands.reduce((acc, brand) => {
+  const letter = brand.charAt(0).toUpperCase();
+  if (!acc[letter]) acc[letter] = [];
+  acc[letter].push(brand);
+  return acc;
+}, {});
+
+const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ#".split("");
+---
+
+<PublicLayout title="Marcas | ÉCLAT" description="Descubre todas nuestras marcas de belleza">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    
+    <!-- Breadcrumb simple -->
+    <nav class="text-sm mb-8 text-gray-500">
+      <a href="/" class="hover:text-black hover:underline">Página de inicio</a>
+      <span class="mx-2">/</span>
+      <span class="text-black font-bold">Marcas</span>
+    </nav>
+
+    <!-- Marcas Top Section -->
+    <section class="mb-20">
+      <h2 class="text-3xl font-bold uppercase tracking-wider mb-12">Marcas Top</h2>
+      
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        {topBrands.map((brand) => (
+          <a href="#" class={`aspect-[4/3] flex items-center justify-center p-6 transition-transform hover:-translate-y-1 duration-300 group ${brand.color}`}>
+             <!-- Placeholder for logo if image fails or doesn't exist -->
+             <div class="text-center">
+                <span class="text-xl font-bold uppercase tracking-widest">{brand.name}</span>
+             </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- Marcas A-Z Filter Section -->
+    <section>
+      <div class="text-center mb-16">
+        <h2 class="text-3xl font-bold uppercase tracking-wider mb-12">MARCAS DE LA A A LA Z</h2>
+        
+        <!-- Filter Bar -->
+        <div class="flex flex-wrap justify-center gap-4 md:gap-6 text-sm md:text-base font-medium border-b border-gray-200 pb-8">
+          <button class="filter-btn active hover:text-beauty-red transition-colors" data-letter="ALL">Ver todas</button>
+          {letters.map((letter) => (
+            <button class="filter-btn hover:text-beauty-red transition-colors disabled:text-gray-300 disabled:cursor-not-allowed" 
+                    data-letter={letter}
+                    disabled={!brandsByLetter[letter]}>
+              {letter}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Brands Grid -->
+      <div id="brands-container" class="space-y-16 min-h-[500px]">
+        {Object.entries(brandsByLetter).sort().map(([letter, brandsList]) => (
+            <div class="brand-group scroll-mt-32" id={`letter-${letter}`} data-letter={letter}>
+              <h3 class="text-4xl font-bold mb-8 border-b-2 border-black inline-block">{letter}</h3>
+              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-4 gap-x-8">
+                {(brandsList as string[]).map((brand) => (
+                  <a href="#" class="text-sm text-gray-600 hover:text-black hover:underline transition-colors block py-1">
+                    {brand}
+                  </a>
+                ))}
+              </div>
+            </div>
+        ))}
+      </div>
+    </section>
+  </div>
+</PublicLayout>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    initBrandFilter();
+  });
+
+  // Fallback for non-ViewTransitions navigation
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBrandFilter);
+  } else {
+    initBrandFilter();
+  }
+
+  function initBrandFilter() {
+    const buttons = document.querySelectorAll('.filter-btn');
+    const brandGroups = document.querySelectorAll('.brand-group');
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Remove active class from all buttons
+        buttons.forEach(b => {
+            b.classList.remove('text-beauty-red', 'font-bold', 'scale-110');
+            b.classList.add('text-black');
+        });
+        
+        // Add active style
+        btn.classList.remove('text-black');
+        btn.classList.add('text-beauty-red', 'font-bold', 'scale-110');
+
+        const letter = btn.getAttribute('data-letter');
+
+        if (letter === 'ALL') {
+             brandGroups.forEach(group => {
+                (group as HTMLElement).style.display = 'block';
+             });
+        } else {
+            brandGroups.forEach(group => {
+                const groupLetter = group.getAttribute('data-letter');
+                if (groupLetter === letter) {
+                     (group as HTMLElement).style.display = 'block';
+                } else {
+                     (group as HTMLElement).style.display = 'none';
+                }
+            });
+        }
+      });
+    });
+  }
+</script>

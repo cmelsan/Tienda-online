@@ -36,26 +36,32 @@ import CheckoutButton from '@/components/checkout/CheckoutButton';
 </PublicLayout>
 
 <script>
-  import { cartItemsArray, cartTotal, cartSubtotal } from '@/stores/cart';
+  import { cartItemsArray, appliedCoupon } from '@/stores/cart';
   import { formatPrice } from '@/lib/utils';
 
   const container = document.getElementById('cart-container');
   const checkoutSection = document.getElementById('checkout-section');
   
-  let currentTotal = 0;
-  
-  // Subscribe to total updates
-  cartTotal.subscribe((total) => {
-    currentTotal = total;
-    renderCart();
-  });
-
-  cartItemsArray.subscribe((items) => {
-    renderCart();
-  });
+  function calculateTotal() {
+    const items = cartItemsArray.get();
+    const coupon = appliedCoupon.get();
+    
+    // Calcular subtotal
+    const subtotal = items.reduce((sum, item) => {
+      return sum + (item.product.price * item.quantity);
+    }, 0);
+    
+    // Aplicar descuento si existe
+    if (coupon) {
+      return Math.max(0, subtotal - coupon.discount_amount);
+    }
+    
+    return subtotal;
+  }
 
   function renderCart() {
     const items = cartItemsArray.get();
+    const coupon = appliedCoupon.get();
     
     if (!container) return;
 
@@ -75,6 +81,10 @@ import CheckoutButton from '@/components/checkout/CheckoutButton';
       `;
     } else {
       if (checkoutSection) checkoutSection.style.display = 'block';
+      
+      const subtotal = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+      const total = calculateTotal();
+      
       container.innerHTML = `
         <div class="bg-white">
           <h2 class="text-sm font-bold uppercase tracking-widest mb-6 border-b border-black pb-2">Resumen de tu bolsa (${items.length})</h2>
@@ -105,14 +115,33 @@ import CheckoutButton from '@/components/checkout/CheckoutButton';
             `).join('')}
           </div>
           
-          <div class="mt-8 flex justify-between items-center text-lg font-bold border-t border-black pt-6">
+          <div class="space-y-2 mt-8 pt-6 border-t border-black">
+            <div class="flex justify-between text-sm text-gray-600">
+              <span>Subtotal</span>
+              <span class="font-semibold">${formatPrice(subtotal)}</span>
+            </div>
+            ${coupon ? `
+              <div class="flex justify-between text-sm text-green-600">
+                <span>Descuento (${coupon.code})</span>
+                <span class="font-semibold">-${formatPrice(coupon.discount_amount)}</span>
+              </div>
+            ` : ''}
+            <div class="flex justify-between items-center text-lg font-bold">
               <span class="uppercase tracking-widest text-sm">Total Estimado</span>
-              <span>${formatPrice(currentTotal)}</span>
+              <span>${formatPrice(total)}</span>
+            </div>
           </div>
         </div>
       `;
     }
   }
+
+  // Subscribe to changes
+  cartItemsArray.subscribe(() => renderCart());
+  appliedCoupon.subscribe(() => renderCart());
+  
+  // Initial render
+  renderCart();
 </script>
 
 </PublicLayout>

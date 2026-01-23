@@ -120,7 +120,7 @@ import CheckoutButton from '@/components/checkout/CheckoutButton';
               <span>Subtotal</span>
               <span class="font-semibold">${formatPrice(subtotal)}</span>
             </div>
-            ${coupon ? `
+            ${coupon && coupon.code && coupon.discount_amount ? `
               <div class="flex justify-between text-sm text-green-600">
                 <span>Descuento (${coupon.code})</span>
                 <span class="font-semibold">-${formatPrice(coupon.discount_amount)}</span>

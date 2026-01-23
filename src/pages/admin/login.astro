@@ -4,7 +4,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import { createServerSupabaseClient } from '@/lib/supabase';
 
 // Redirect if already logged in
-const supabase = createServerSupabaseClient(Astro);
+const supabase = await createServerSupabaseClient(Astro);
 const { data: { session } } = await supabase.auth.getSession();
 if (session) {
   return Astro.redirect('/admin');

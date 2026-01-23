@@ -25,7 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const stripe = new Stripe(stripeSecretKey, {
-        apiVersion: '2024-12-18.acacia',
+        apiVersion: '2025-12-15.clover',
     });
 
     const signature = request.headers.get('stripe-signature');

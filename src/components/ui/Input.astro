@@ -2,12 +2,15 @@
 interface Props {
   label: string;
   name: string;
-  type?: string;
+  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'date' | 'time' | 'datetime-local' | 'month' | 'week' | 'color' | 'file' | 'hidden' | 'checkbox' | 'radio' | 'range' | 'search';
   placeholder?: string;
   required?: boolean;
-  value?: string;
+  value?: string | number;
   error?: string;
   class?: string;
+  min?: string | number;
+  max?: string | number;
+  step?: string | number;
 }
 
 const {
@@ -19,6 +22,9 @@ const {
   value = '',
   error = '',
   class: className = '',
+  min,
+  max,
+  step,
 } = Astro.props;
 ---
 
@@ -34,6 +40,9 @@ const {
     value={value}
     placeholder={placeholder}
     required={required}
+    min={min}
+    max={max}
+    step={step}
     class="w-full px-4 py-3 border border-gray-dark rounded-none focus:ring-2 focus:ring-beauty-red focus:border-transparent transition-all duration-200 bg-white text-black placeholder-gray-medium"
   />
   {error && (

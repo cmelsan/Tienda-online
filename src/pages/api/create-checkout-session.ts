@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro';
 import Stripe from 'stripe';
-import { supabase } from '@/lib/supabase';
 
 const YOUR_DOMAIN = 'http://localhost:4321'; // TODO: Update for production
 
@@ -11,7 +10,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const stripe = new Stripe(stripeSecretKey, {
-        apiVersion: '2024-12-18.acacia', // Use latest API version or pinned one
+        apiVersion: '2025-12-15.clover',
     });
 
     try {

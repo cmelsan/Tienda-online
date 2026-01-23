@@ -61,6 +61,9 @@ export const cartItems = persistentMap<Record<string, CartItem>>(
     }
 );
 
+// Cart UI state
+export const isCartOpen = atom<boolean>(false);
+
 // Computed: Total items in cart
 export const cartCount = computed(cartItems, (items) => {
     return Object.values(items).reduce((total, item) => total + item.quantity, 0);

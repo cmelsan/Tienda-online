@@ -1,7 +1,7 @@
-import { defineMiddleware } from 'astro:middleware';
+import { defineMiddleware } from 'astro/middleware';
 import { createServerSupabaseClient } from './lib/supabase';
 
-export const onRequest = defineMiddleware(async (context, next) => {
+export const onRequest = defineMiddleware(async (context: any, next: any) => {
     const { url, redirect } = context;
 
     // Check if the route is an admin route

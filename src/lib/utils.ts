@@ -10,7 +10,10 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Format price from cents to currency string
  */
-export function formatPrice(cents: number, locale: string = 'es-ES'): string {
+export function formatPrice(cents: number | undefined | null, locale: string = 'es-ES'): string {
+    if (!cents || isNaN(cents) || cents < 0) {
+        return '0,00 €';
+    }
     return new Intl.NumberFormat(locale, {
         style: 'currency',
         currency: 'EUR',

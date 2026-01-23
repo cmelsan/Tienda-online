@@ -47,12 +47,18 @@ import CheckoutButton from '@/components/checkout/CheckoutButton';
     const coupon = appliedCoupon.get();
     
     // Calcular subtotal
-    const subtotal = items.reduce((sum, item) => {
-      return sum + (item.product.price * item.quantity);
-    }, 0);
+    let subtotal = 0;
+    if (items && items.length > 0) {
+      subtotal = items.reduce((sum, item) => {
+        if (item?.product?.price && item?.quantity) {
+          return sum + (item.product.price * item.quantity);
+        }
+        return sum;
+      }, 0);
+    }
     
     // Aplicar descuento si existe
-    if (coupon) {
+    if (coupon && coupon.discount_amount && coupon.discount_amount > 0) {
       return Math.max(0, subtotal - coupon.discount_amount);
     }
     
@@ -65,7 +71,7 @@ import CheckoutButton from '@/components/checkout/CheckoutButton';
     
     if (!container) return;
 
-    if (items.length === 0) {
+    if (!items || items.length === 0) {
       if (checkoutSection) checkoutSection.style.display = 'none';
       container.innerHTML = `
         <div class="text-center py-20 bg-gray-50 rounded-lg">
@@ -82,7 +88,16 @@ import CheckoutButton from '@/components/checkout/CheckoutButton';
     } else {
       if (checkoutSection) checkoutSection.style.display = 'block';
       
-      const subtotal = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+      let subtotal = 0;
+      if (items && items.length > 0) {
+        subtotal = items.reduce((sum, item) => {
+          if (item?.product?.price && item?.quantity) {
+            return sum + (item.product.price * item.quantity);
+          }
+          return sum;
+        }, 0);
+      }
+      
       const total = calculateTotal();
       
       container.innerHTML = `
@@ -120,7 +135,7 @@ import CheckoutButton from '@/components/checkout/CheckoutButton';
               <span>Subtotal</span>
               <span class="font-semibold">${formatPrice(subtotal)}</span>
             </div>
-            ${coupon && coupon.code && coupon.discount_amount ? `
+            ${coupon && coupon.code && coupon.discount_amount && coupon.discount_amount > 0 ? `
               <div class="flex justify-between text-sm text-green-600">
                 <span>Descuento (${coupon.code})</span>
                 <span class="font-semibold">-${formatPrice(coupon.discount_amount)}</span>

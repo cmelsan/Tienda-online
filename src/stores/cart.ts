@@ -64,18 +64,39 @@ export const cartItems = persistentMap<Record<string, CartItem>>(
 // Cart UI state
 export const isCartOpen = atom<boolean>(false);
 
+// Coupon state - stores applied coupon info
+export const appliedCoupon = persistentMap<{
+    code: string;
+    id: string;
+    discount_value: number;
+    discount_type: 'percentage' | 'fixed';
+    discount_amount: number;
+} | null>('eclat-coupon:', null, {
+    encode: JSON.stringify,
+    decode: JSON.parse,
+});
+
 // Computed: Total items in cart
 export const cartCount = computed(cartItems, (items) => {
     return Object.values(items).reduce((total, item) => total + item.quantity, 0);
 });
 
-// Computed: Total price in cents
-export const cartTotal = computed(cartItems, (items) => {
+// Computed: Total price in cents (before discount)
+export const cartSubtotal = computed(cartItems, (items) => {
     return Object.values(items).reduce(
         (total, item) => total + item.product.price * item.quantity,
         0
     );
 });
+
+// Computed: Total price with discount applied
+export const cartTotal = computed(
+    [cartSubtotal, appliedCoupon],
+    (subtotal, coupon) => {
+        if (!coupon) return subtotal;
+        return Math.max(0, subtotal - coupon.discount_amount);
+    }
+);
 
 // Computed: Cart items as array
 export const cartItemsArray = computed(cartItems, (items) => {
@@ -163,8 +184,29 @@ export function updateQuantity(productId: string, quantity: number) {
  */
 export function clearCart() {
     cartItems.set({});
+    appliedCoupon.set(null);
     // Sync to backend (clear)
     syncToBackend({});
+}
+
+/**
+ * Apply a coupon code
+ */
+export function applyCoupon(coupon: {
+    code: string;
+    id: string;
+    discount_value: number;
+    discount_type: 'percentage' | 'fixed';
+    discount_amount: number;
+}) {
+    appliedCoupon.set(coupon);
+}
+
+/**
+ * Remove applied coupon
+ */
+export function removeCoupon() {
+    appliedCoupon.set(null);
 }
 
 /**

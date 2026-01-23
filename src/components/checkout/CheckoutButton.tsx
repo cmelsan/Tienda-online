@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { cartItemsArray, cartTotal, clearCart } from '@/stores/cart';
+import { cartItemsArray, cartTotal, clearCart, appliedCoupon } from '@/stores/cart';
 import { supabase } from '@/lib/supabase';
 
 export default function CheckoutButton() {
     const items = useStore(cartItemsArray);
     const total = useStore(cartTotal);
+    const coupon = useStore(appliedCoupon);
     const [isLoading, setIsLoading] = useState(false);
 
     // UI State
@@ -69,7 +70,9 @@ export default function CheckoutButton() {
                     zip: '28000', // Placeholder, replace with actual addressSteps.shipping.zip
                     country: 'Spain' // Placeholder, replace with actual addressSteps.shipping.country
                 },
-                p_guest_email: emailToUse
+                p_guest_email: emailToUse,
+                p_coupon_id: coupon?.id || null,
+                p_discount_amount: coupon?.discount_amount || 0
             });
 
             if (error) throw error;

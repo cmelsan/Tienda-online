@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useStore } from '@nanostores/react';
-import { cartItems, cartTotal } from '@/stores/cart';
+import { cartItems, cartTotal, cartSubtotal, appliedCoupon, applyCoupon, removeCoupon } from '@/stores/cart';
 import { getOrCreateSessionId, clearSessionId } from '@/lib/sessionManager';
 import EmailStep from './EmailStep';
 import AddressStep from './AddressStep';
+import { formatPrice } from '@/lib/utils';
 
 // Steps definition
 type CheckoutStep = 'email' | 'address' | 'shipping' | 'payment';
@@ -20,8 +21,15 @@ export default function CheckoutFlow() {
     const [isGuest, setIsGuest] = useState(true);
     const [shippingAddress, setShippingAddress] = useState<any>(null);
 
+    // Coupon State
+    const [couponCode, setCouponCode] = useState('');
+    const [couponLoading, setCouponLoading] = useState(false);
+    const [couponError, setCouponError] = useState('');
+
     const items = useStore(cartItems);
+    const subtotal = useStore(cartSubtotal);
     const total = useStore(cartTotal);
+    const coupon = useStore(appliedCoupon);
 
     useEffect(() => {
         checkSession();
@@ -91,6 +99,55 @@ export default function CheckoutFlow() {
 
     const handleLogin = () => {
         window.location.href = `/login?redirect=/checkout`;
+    };
+
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim()) {
+            setCouponError('Ingresa un código de descuento');
+            return;
+        }
+
+        setCouponLoading(true);
+        setCouponError('');
+
+        try {
+            const response = await fetch('/api/checkout/validate-coupon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    code: couponCode,
+                    totalAmount: subtotal
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setCouponError(data.error || 'Código inválido');
+                return;
+            }
+
+            if (data.valid) {
+                applyCoupon({
+                    code: data.coupon.code,
+                    id: data.coupon.id,
+                    discount_value: data.coupon.discount_value,
+                    discount_type: data.coupon.discount_type,
+                    discount_amount: data.coupon.discount_amount
+                });
+                setCouponCode('');
+                setCouponError('');
+            }
+        } catch (error: any) {
+            setCouponError('Error al validar el código: ' + error.message);
+        } finally {
+            setCouponLoading(false);
+        }
+    };
+
+    const handleRemoveCoupon = () => {
+        removeCoupon();
+        setCouponCode('');
     };
 
     if (loading) return <div className="p-12 text-center">Cargando checkout...</div>;
@@ -182,9 +239,59 @@ export default function CheckoutFlow() {
                     ))}
 
                     <div className="border-t pt-4 mt-4">
-                        <div className="flex justify-between font-bold text-lg">
-                            <span>Total</span>
-                            <span>{(total / 100).toFixed(2)}€</span>
+                        {/* Coupon Section */}
+                        {!coupon ? (
+                            <div className="mb-4">
+                                <label className="text-sm font-medium text-gray-700 block mb-2">Código de Descuento</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Ingresa tu código"
+                                        value={couponCode}
+                                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
+                                    />
+                                    <button
+                                        onClick={handleApplyCoupon}
+                                        disabled={couponLoading}
+                                        className="px-4 py-2 bg-black text-white rounded text-sm hover:bg-gray-800 disabled:bg-gray-400"
+                                    >
+                                        {couponLoading ? 'Validando...' : 'Aplicar'}
+                                    </button>
+                                </div>
+                                {couponError && <p className="text-red-600 text-xs mt-1">{couponError}</p>}
+                            </div>
+                        ) : (
+                            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded">
+                                <div className="flex justify-between items-center mb-2">
+                                    <p className="text-sm font-medium text-green-900">✓ Descuento aplicado</p>
+                                    <button
+                                        onClick={handleRemoveCoupon}
+                                        className="text-xs text-green-600 hover:text-green-800 underline"
+                                    >
+                                        Remover
+                                    </button>
+                                </div>
+                                <p className="text-xs text-green-700">{coupon.code} - Descuento: {formatPrice(coupon.discount_amount)}</p>
+                            </div>
+                        )}
+
+                        {/* Totals */}
+                        <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                                <span>Subtotal</span>
+                                <span>{formatPrice(subtotal)}</span>
+                            </div>
+                            {coupon && (
+                                <div className="flex justify-between text-sm text-green-600">
+                                    <span>Descuento</span>
+                                    <span>-{formatPrice(coupon.discount_amount)}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between font-bold text-lg border-t pt-2">
+                                <span>Total</span>
+                                <span>{formatPrice(total)}</span>
+                            </div>
                         </div>
                     </div>
                 </div>

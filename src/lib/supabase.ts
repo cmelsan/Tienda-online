@@ -121,12 +121,66 @@ export interface Database {
                     updated_at?: string;
                 };
             };
+            coupons: {
+                Row: {
+                    id: string;
+                    code: string;
+                    description: string | null;
+                    discount_type: 'percentage' | 'fixed';
+                    discount_value: number;
+                    max_uses: number | null;
+                    current_uses: number;
+                    min_purchase_amount: number;
+                    max_discount_amount: number | null;
+                    applicable_categories: string[] | null;
+                    is_active: boolean;
+                    valid_from: string;
+                    valid_until: string | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    code: string;
+                    description?: string | null;
+                    discount_type?: 'percentage' | 'fixed';
+                    discount_value: number;
+                    max_uses?: number | null;
+                    current_uses?: number;
+                    min_purchase_amount?: number;
+                    max_discount_amount?: number | null;
+                    applicable_categories?: string[] | null;
+                    is_active?: boolean;
+                    valid_from?: string;
+                    valid_until?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    code?: string;
+                    description?: string | null;
+                    discount_type?: 'percentage' | 'fixed';
+                    discount_value?: number;
+                    max_uses?: number | null;
+                    current_uses?: number;
+                    min_purchase_amount?: number;
+                    max_discount_amount?: number | null;
+                    applicable_categories?: string[] | null;
+                    is_active?: boolean;
+                    valid_from?: string;
+                    valid_until?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
         };
     };
 }
 
 export type Category = Database['public']['Tables']['categories']['Row'];
 export type Product = Database['public']['Tables']['products']['Row'];
+export type Coupon = Database['public']['Tables']['coupons']['Row'];
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;

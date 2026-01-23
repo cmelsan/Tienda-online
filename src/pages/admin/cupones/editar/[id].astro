@@ -1,0 +1,277 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { supabase } from '@/lib/supabase';
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/admin/cupones');
+}
+
+// Fetch coupon
+const { data: coupon } = await supabase
+  .from('coupons')
+  .select('*')
+  .eq('id', id)
+  .single();
+
+if (!coupon) {
+  return Astro.redirect('/admin/cupones');
+}
+
+let message = '';
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const action = formData.get('action');
+
+  if (action === 'update') {
+    const code = formData.get('code') as string;
+    const description = formData.get('description') as string;
+    const discountValue = parseFloat(formData.get('discountValue') as string);
+    const maxUses = formData.get('maxUses') ? parseInt(formData.get('maxUses') as string) : null;
+    const minPurchaseAmount = parseFloat(formData.get('minPurchaseAmount') as string) || 0;
+    const maxDiscountAmount = formData.get('maxDiscountAmount') 
+      ? parseFloat(formData.get('maxDiscountAmount') as string) * 100 
+      : null;
+    const validUntil = formData.get('validUntil') || null;
+    const isActive = formData.get('isActive') === 'on';
+
+    if (!code || !discountValue) {
+      error = 'El código y el valor de descuento son requeridos';
+    } else {
+      const finalDiscountValue = coupon.discount_type === 'fixed' ? discountValue * 100 : discountValue;
+
+      const { error: updateError } = await supabase
+        .from('coupons')
+        .update({
+          code: code.toUpperCase(),
+          description: description || null,
+          discount_value: finalDiscountValue,
+          max_uses: maxUses,
+          min_purchase_amount: minPurchaseAmount * 100,
+          max_discount_amount: maxDiscountAmount,
+          is_active: isActive,
+          valid_until: validUntil ? new Date(validUntil).toISOString() : null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+      if (updateError) {
+        error = `Error: ${updateError.message}`;
+      } else {
+        message = 'Cupón actualizado exitosamente';
+      }
+    }
+  }
+}
+
+const validUntilDate = coupon.valid_until 
+  ? new Date(coupon.valid_until).toISOString().split('T')[0]
+  : '';
+---
+
+<AdminLayout title={`Editar Cupón: ${coupon.code}`}>
+  <div class="max-w-2xl mx-auto">
+    <a href="/admin/cupones" class="text-blue-600 hover:text-blue-800 text-sm font-semibold mb-6 inline-block">
+      ← Volver a cupones
+    </a>
+
+    <div class="bg-white border border-gray-200 p-8">
+      <h1 class="text-2xl font-bold text-gray-900 mb-8">Editar Cupón: {coupon.code}</h1>
+
+      {message && (
+        <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-800 text-sm rounded">
+          ✓ {message}
+        </div>
+      )}
+
+      {error && (
+        <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 text-sm rounded">
+          ✗ {error}
+        </div>
+      )}
+
+      {/* Estadísticas */}
+      <div class="grid grid-cols-3 gap-4 mb-8 p-4 bg-gray-50 rounded">
+        <div>
+          <p class="text-xs text-gray-500 uppercase tracking-wider">Usos</p>
+          <p class="text-2xl font-bold text-black">
+            {coupon.max_uses ? `${coupon.current_uses} / ${coupon.max_uses}` : 'Ilimitado'}
+          </p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 uppercase tracking-wider">Descuento</p>
+          <p class="text-2xl font-bold text-black">
+            {coupon.discount_type === 'percentage' 
+              ? `${coupon.discount_value}%` 
+              : `€${(coupon.discount_value / 100).toFixed(2)}`}
+          </p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 uppercase tracking-wider">Estado</p>
+          <p class={`text-2xl font-bold ${coupon.is_active ? 'text-green-600' : 'text-red-600'}`}>
+            {coupon.is_active ? 'Activo' : 'Inactivo'}
+          </p>
+        </div>
+      </div>
+
+      <form method="POST" class="space-y-6">
+        <input type="hidden" name="action" value="update" />
+
+        {/* Código */}
+        <div>
+          <label class="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">
+            Código del Cupón
+          </label>
+          <input
+            type="text"
+            name="code"
+            value={coupon.code}
+            placeholder="ej: SUMMER2024"
+            class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+            required
+          />
+        </div>
+
+        {/* Descripción */}
+        <div>
+          <label class="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">
+            Descripción
+          </label>
+          <input
+            type="text"
+            name="description"
+            value={coupon.description || ''}
+            placeholder="ej: Descuento de verano 2024"
+            class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          {/* Tipo de Descuento (read-only) */}
+          <div>
+            <label class="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">
+              Tipo de Descuento
+            </label>
+            <input
+              type="text"
+              value={coupon.discount_type === 'percentage' ? 'Porcentaje (%)' : 'Monto Fijo (€)'}
+              class="w-full px-4 py-2 border border-gray-300 rounded bg-gray-100 text-gray-700"
+              disabled
+            />
+            <p class="text-xs text-gray-500 mt-1">No se puede cambiar después de crear</p>
+          </div>
+
+          {/* Valor del Descuento */}
+          <div>
+            <label class="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">
+              Valor del Descuento
+            </label>
+            <input
+              type="number"
+              name="discountValue"
+              value={coupon.discount_type === 'fixed' 
+                ? (coupon.discount_value / 100).toFixed(2) 
+                : coupon.discount_value}
+              step="0.01"
+              class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          {/* Monto Mínimo */}
+          <div>
+            <label class="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">
+              Compra Mínima (€)
+            </label>
+            <input
+              type="number"
+              name="minPurchaseAmount"
+              value={(coupon.min_purchase_amount / 100).toFixed(2)}
+              step="0.01"
+              class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+            />
+          </div>
+
+          {/* Descuento Máximo */}
+          <div>
+            <label class="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">
+              Descuento Máximo (€)
+            </label>
+            <input
+              type="number"
+              name="maxDiscountAmount"
+              value={coupon.max_discount_amount ? (coupon.max_discount_amount / 100).toFixed(2) : ''}
+              step="0.01"
+              class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          {/* Máximo de Usos */}
+          <div>
+            <label class="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">
+              Máximo de Usos
+            </label>
+            <input
+              type="number"
+              name="maxUses"
+              value={coupon.max_uses || ''}
+              placeholder="Dejar vacío para ilimitado"
+              class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+            />
+          </div>
+
+          {/* Válido Hasta */}
+          <div>
+            <label class="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">
+              Válido Hasta
+            </label>
+            <input
+              type="date"
+              name="validUntil"
+              value={validUntilDate}
+              class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black"
+            />
+          </div>
+        </div>
+
+        {/* Estado */}
+        <div class="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="isActive"
+            name="isActive"
+            checked={coupon.is_active}
+            class="w-4 h-4 rounded border-gray-300 text-black focus:ring-2 focus:ring-black"
+          />
+          <label for="isActive" class="text-sm font-bold text-gray-700 uppercase tracking-wider">
+            Cupón activo
+          </label>
+        </div>
+
+        {/* Botones */}
+        <div class="flex gap-4 pt-6 border-t border-gray-200">
+          <button
+            type="submit"
+            class="flex-1 bg-black text-white py-3 text-sm font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors"
+          >
+            Guardar Cambios
+          </button>
+          <a
+            href="/admin/cupones"
+            class="flex-1 bg-gray-200 text-black py-3 text-sm font-bold uppercase tracking-widest hover:bg-gray-300 transition-colors text-center"
+          >
+            Cancelar
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>

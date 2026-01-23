@@ -1,0 +1,137 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { supabase } from '@/lib/supabase';
+
+// Fetch all coupons
+const { data: coupons } = await supabase
+  .from('coupons')
+  .select('*')
+  .order('created_at', { ascending: false });
+
+let message = '';
+
+// Handle delete
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const action = formData.get('action');
+  const couponId = formData.get('id');
+
+  if (action === 'delete') {
+    const { error } = await supabase
+      .from('coupons')
+      .delete()
+      .eq('id', couponId);
+
+    if (error) {
+      message = 'Error al eliminar cupón';
+    } else {
+      message = 'Cupón eliminado correctamente';
+    }
+  }
+}
+---
+
+<AdminLayout title="Gestión de Cupones">
+  <div class="mb-8 flex justify-between items-center">
+    <div>
+      <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest">Ventas</h3>
+      <p class="text-xs text-gray-400 mt-1">Gestiona códigos de descuento</p>
+    </div>
+    <a
+      href="/admin/cupones/nuevo"
+      class="bg-black text-white px-6 py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors"
+    >
+      Nuevo Cupón
+    </a>
+  </div>
+
+  {message && (
+    <div class="mb-4 p-4 bg-green-50 border border-green-200 text-green-800 text-sm rounded">
+      {message}
+    </div>
+  )}
+
+  {coupons && coupons.length > 0 ? (
+    <div class="bg-white border border-gray-200">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Código</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Descripción</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Tipo</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Valor</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Uso</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Vigencia</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Estado</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            {coupons.map((coupon) => (
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="py-3 px-4 text-sm font-bold text-black">{coupon.code}</td>
+                <td class="py-3 px-4 text-sm text-gray-600">{coupon.description || '-'}</td>
+                <td class="py-3 px-4 text-sm text-gray-600">
+                  <span class="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-semibold">
+                    {coupon.discount_type === 'percentage' ? '%' : '€'}
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-sm font-medium text-black">
+                  {coupon.discount_type === 'percentage' 
+                    ? `${coupon.discount_value}%` 
+                    : `€${(coupon.discount_value / 100).toFixed(2)}`}
+                </td>
+                <td class="py-3 px-4 text-sm text-gray-600">
+                  {coupon.max_uses ? `${coupon.current_uses} / ${coupon.max_uses}` : 'Ilimitado'}
+                </td>
+                <td class="py-3 px-4 text-sm text-gray-600">
+                  {new Date(coupon.valid_until || '2099-12-31').toLocaleDateString('es-ES')}
+                </td>
+                <td class="py-3 px-4">
+                  <span class={`inline-block px-2 py-1 rounded text-xs font-semibold ${
+                    coupon.is_active 
+                      ? 'bg-green-50 text-green-700' 
+                      : 'bg-red-50 text-red-700'
+                  }`}>
+                    {coupon.is_active ? 'Activo' : 'Inactivo'}
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-sm space-x-2">
+                  <a
+                    href={`/admin/cupones/editar/${coupon.id}`}
+                    class="text-blue-600 hover:text-blue-800 font-semibold"
+                  >
+                    Editar
+                  </a>
+                  <form method="POST" class="inline">
+                    <input type="hidden" name="action" value="delete" />
+                    <input type="hidden" name="id" value={coupon.id} />
+                    <button
+                      type="submit"
+                      onclick="return confirm('¿Seguro que quieres eliminar este cupón?')"
+                      class="text-red-600 hover:text-red-800 font-semibold"
+                    >
+                      Eliminar
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  ) : (
+    <div class="bg-white border border-gray-200 p-12 text-center">
+      <p class="text-gray-500">No hay cupones creados</p>
+      <a
+        href="/admin/cupones/nuevo"
+        class="mt-4 inline-block text-blue-600 hover:text-blue-800 font-semibold"
+      >
+        Crear el primer cupón
+      </a>
+    </div>
+  )}
+</AdminLayout>

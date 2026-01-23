@@ -36,13 +36,27 @@ import CheckoutButton from '@/components/checkout/CheckoutButton';
 </PublicLayout>
 
 <script>
-  import { cartItemsArray, cartTotal } from '@/stores/cart';
+  import { cartItemsArray, cartTotal, cartSubtotal } from '@/stores/cart';
   import { formatPrice } from '@/lib/utils';
 
   const container = document.getElementById('cart-container');
   const checkoutSection = document.getElementById('checkout-section');
   
+  let currentTotal = 0;
+  
+  // Subscribe to total updates
+  cartTotal.subscribe((total) => {
+    currentTotal = total;
+    renderCart();
+  });
+
   cartItemsArray.subscribe((items) => {
+    renderCart();
+  });
+
+  function renderCart() {
+    const items = cartItemsArray.get();
+    
     if (!container) return;
 
     if (items.length === 0) {
@@ -61,7 +75,6 @@ import CheckoutButton from '@/components/checkout/CheckoutButton';
       `;
     } else {
       if (checkoutSection) checkoutSection.style.display = 'block';
-      const total = cartTotal.get();
       container.innerHTML = `
         <div class="bg-white">
           <h2 class="text-sm font-bold uppercase tracking-widest mb-6 border-b border-black pb-2">Resumen de tu bolsa (${items.length})</h2>
@@ -94,12 +107,12 @@ import CheckoutButton from '@/components/checkout/CheckoutButton';
           
           <div class="mt-8 flex justify-between items-center text-lg font-bold border-t border-black pt-6">
               <span class="uppercase tracking-widest text-sm">Total Estimado</span>
-              <span>${formatPrice(total)}</span>
+              <span>${formatPrice(currentTotal)}</span>
           </div>
         </div>
       `;
     }
-  });
+  }
 </script>
 
 </PublicLayout>

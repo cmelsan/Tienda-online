@@ -223,6 +223,8 @@ export default function CheckoutFlow() {
             }
 
             // Step 3: Redirect to Stripe
+            // NOTA: El carrito y cupón se limpiarán en /checkout/success después del pago
+            console.log('[Checkout] Redirigiendo a Stripe - URL:', stripeData.url);
             window.location.href = stripeData.url;
         } catch (error: any) {
             alert('Error: ' + error.message);

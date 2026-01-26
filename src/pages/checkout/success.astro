@@ -11,23 +11,69 @@ const orderId = searchParams.get('orderId');
 
 <PublicLayout title="Compra Realizada | ÉCLAT" description="Gracias por tu compra">
   <script>
-    // Clear applied coupon and cart after successful payment
+    // Limpiar carrito y cupón después de pago exitoso
     if (typeof window !== 'undefined') {
-      const appliedCoupon = localStorage.getItem('eclat-coupon:');
+      // Registrar en console que se va a limpiar
+      const cartData = localStorage.getItem('eclat-cart:');
+      const couponData = localStorage.getItem('eclat-coupon:');
       
-      localStorage.removeItem('eclat-coupon:');
-      localStorage.removeItem('eclat-cart:');
-      
-      console.log('[Success Page] Cleared cart and coupon', { appliedCoupon });
-      
-      // Optionally log to track coupon usage
-      if (appliedCoupon) {
+      console.log('[Success Page] Datos antes de limpiar:', {
+        hasCart: !!cartData,
+        hasCoupon: !!couponData
+      });
+
+      let itemsCount = 0;
+      let discountApplied = 0;
+
+      // Limpiar carrito
+      if (cartData) {
         try {
-          const coupon = JSON.parse(appliedCoupon);
-          console.log('[Success Page] Coupon was applied:', coupon.code);
+          const cart = JSON.parse(cartData);
+          itemsCount = Object.keys(cart).length;
+          console.log('[Success Page] Carrito vaciado - Items:', itemsCount);
         } catch (e) {
-          console.warn('[Success Page] Could not parse coupon data');
+          console.warn('[Success Page] No se pudo parsear carrito');
         }
+      }
+      localStorage.removeItem('eclat-cart:');
+
+      // Limpiar cupón
+      if (couponData) {
+        try {
+          const coupon = JSON.parse(couponData);
+          console.log('[Success Page] Cupón eliminado:', coupon.code);
+          discountApplied = coupon.discount_amount || 0;
+        } catch (e) {
+          console.warn('[Success Page] No se pudo parsear cupón');
+        }
+      }
+      localStorage.removeItem('eclat-coupon:');
+
+      // Verificar que todo está limpio
+      const cartAfter = localStorage.getItem('eclat-cart:');
+      const couponAfter = localStorage.getItem('eclat-coupon:');
+      
+      console.log('[Success Page] VERIFICACIÓN FINAL - Todo limpio:', {
+        cartLimpio: !cartAfter,
+        couponLimpio: !couponAfter,
+        timestamp: new Date().toISOString()
+      });
+
+      // Confirmar al servidor que se limpió el carrito
+      const orderId = new URLSearchParams(window.location.search).get('orderId');
+      const email = new URLSearchParams(window.location.search).get('email');
+      
+      if (orderId) {
+        fetch('/api/checkout/confirm-clear', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId,
+            email,
+            itemsCount,
+            discountApplied
+          })
+        }).catch(err => console.warn('[Success Page] No se pudo confirmar limpieza:', err));
       }
     }
   </script>

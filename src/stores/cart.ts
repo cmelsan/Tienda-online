@@ -181,13 +181,30 @@ export function updateQuantity(productId: string, quantity: number) {
 }
 
 /**
- * Clear entire cart
+ * Clear entire cart and coupon
  */
 export function clearCart() {
+    // Limpiar Nano Store
     cartItems.set({});
     appliedCoupon.set(null);
+    
+    // Limpiar localStorage
+    localStorage.removeItem('eclat-cart:');
+    localStorage.removeItem('eclat-coupon:');
+    
     // Sync to backend (clear)
     syncToBackend({});
+    
+    console.log('[Cart] Carrito y cupón vaciados completamente');
+}
+
+/**
+ * Clear only the applied coupon
+ */
+export function removeCoupon() {
+    appliedCoupon.set(null);
+    localStorage.removeItem('eclat-coupon:');
+    console.log('[Coupon] Cupón removido');
 }
 
 /**
@@ -201,13 +218,6 @@ export function applyCoupon(coupon: {
     discount_amount: number;
 }) {
     appliedCoupon.set(coupon);
-}
-
-/**
- * Remove applied coupon
- */
-export function removeCoupon() {
-    appliedCoupon.set(null);
 }
 
 /**

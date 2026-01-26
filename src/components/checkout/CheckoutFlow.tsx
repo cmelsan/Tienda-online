@@ -197,7 +197,9 @@ export default function CheckoutFlow() {
                 body: JSON.stringify({
                     items: itemsArray,
                     orderId: orderId,
-                    email: email
+                    email: email,
+                    discountAmount: coupon?.discount_amount || 0,
+                    finalTotal: total
                 })
             });
 

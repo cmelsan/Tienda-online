@@ -14,7 +14,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     try {
-        const { items, orderId, email } = await request.json();
+        const { items, orderId, email, discountAmount, finalTotal } = await request.json();
 
         if (!items || !orderId) {
             return new Response(JSON.stringify({ error: 'Missing required parameters' }), { status: 400 });
@@ -37,6 +37,20 @@ export const POST: APIRoute = async ({ request }) => {
                 quantity: item.quantity,
             };
         });
+
+        // If there's a discount, add it as a line item
+        if (discountAmount && discountAmount > 0) {
+            line_items.push({
+                price_data: {
+                    currency: 'eur',
+                    product_data: {
+                        name: 'Descuento aplicado',
+                    },
+                    unit_amount: -Math.round(discountAmount), // Negative amount for discount
+                },
+                quantity: 1,
+            });
+        }
 
         // Create Checkout Session
         const session = await stripe.checkout.sessions.create({

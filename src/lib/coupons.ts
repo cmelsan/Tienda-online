@@ -164,49 +164,39 @@ export function calculateDiscount(
 
 export async function incrementCouponUsage(couponId: string, orderId: string, userId: string | null, discountApplied: number) {
   try {
-    // Step 1: Incrementar el contador de usos
-    const { data: coupon, error: fetchError } = await supabase
-      .from('coupons')
-      .select('current_uses')
-      .eq('id', couponId)
-      .single();
+    // Use atomic RPC function to prevent race conditions
+    // The RPC function:
+    // 1. Locks the coupon row (FOR UPDATE)
+    // 2. Verifies max_uses limit hasn't been reached
+    // 3. Increments current_uses atomically
+    // 4. Records usage in coupon_usage table
+    // All in a single database transaction
+    
+    const { data, error } = await supabase.rpc('increment_coupon_usage_atomic', {
+      p_coupon_id: couponId,
+      p_order_id: orderId,
+      p_user_id: userId,
+      p_discount_applied: discountApplied,
+    });
 
-    if (fetchError) {
-      throw new Error(`Error fetching coupon: ${fetchError.message}`);
+    if (error) {
+      throw new Error(`Error incrementing coupon usage: ${error.message}`);
     }
 
-    if (!coupon) {
-      throw new Error(`Coupon not found: ${couponId}`);
+    if (!data || !data.success) {
+      const errorMsg = data?.error || 'Unknown error incrementing coupon usage';
+      console.warn('[Coupon] Usage increment rejected:', { couponId, error: errorMsg });
+      throw new Error(errorMsg);
     }
 
-    const { error: updateError } = await supabase
-      .from('coupons')
-      .update({ current_uses: coupon.current_uses + 1 })
-      .eq('id', couponId);
-
-    if (updateError) {
-      throw new Error(`Error updating coupon usage: ${updateError.message}`);
-    }
-
-    // Step 2: Registrar el uso en la tabla coupon_usage
-    const { error: insertError } = await supabase
-      .from('coupon_usage')
-      .insert([
-        {
-          coupon_id: couponId,
-          order_id: orderId,
-          user_id: userId,
-          discount_applied: discountApplied,
-          created_at: new Date().toISOString(),
-        },
-      ]);
-
-    if (insertError) {
-      throw new Error(`Error recording coupon usage: ${insertError.message}`);
-    }
-
-    console.log('[Coupon] Usage recorded successfully:', { couponId, orderId, userId, discountApplied });
-    return { success: true };
+    console.log('[Coupon] Usage recorded successfully (atomic):', { 
+      couponId, 
+      orderId, 
+      userId, 
+      discountApplied,
+      newUses: data.new_uses 
+    });
+    return { success: true, newUses: data.new_uses };
   } catch (err: any) {
     console.error('[Coupon] Error registering coupon usage:', err.message);
     throw err; // Re-throw to let caller handle it

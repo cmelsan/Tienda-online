@@ -150,6 +150,50 @@ export default function CheckoutFlow() {
         setCouponCode('');
     };
 
+    const handlePayment = async () => {
+        if (!email || !shippingAddress) {
+            alert('Por favor completa todos los pasos anteriores');
+            return;
+        }
+
+        setProcessing(true);
+        try {
+            const itemsArray = Object.values(items).map((item: any) => ({
+                product_id: item.product.id,
+                quantity: item.quantity,
+                price: item.product.price,
+            }));
+
+            const response = await fetch('/api/orders/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    items: itemsArray,
+                    email,
+                    shippingAddress,
+                    coupon_id: coupon?.id || null,
+                    total: total
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.error || 'Error al crear la orden');
+                setProcessing(false);
+                return;
+            }
+
+            // Redirect to Stripe checkout
+            if (data.checkout_url) {
+                window.location.href = data.checkout_url;
+            }
+        } catch (error: any) {
+            alert('Error: ' + error.message);
+            setProcessing(false);
+        }
+    };
+
     if (loading) return <div className="p-12 text-center">Cargando checkout...</div>;
 
     if (Object.keys(items).length === 0) {
@@ -214,7 +258,14 @@ export default function CheckoutFlow() {
                     </h3>
                     {step === 'payment' && (
                         <div>
-                            <p>Formulario de pago...</p>
+                            <button
+                                onClick={handlePayment}
+                                disabled={processing}
+                                className="w-full bg-black text-white py-3 rounded font-bold hover:bg-gray-800 disabled:bg-gray-400 mb-4"
+                            >
+                                {processing ? 'Procesando...' : 'Continuar a Pago Seguro (Stripe)'}
+                            </button>
+                            <p className="text-xs text-gray-500 text-center">Serás redirigido a Stripe para completar el pago de forma segura</p>
                         </div>
                     )}
                 </div>

@@ -22,21 +22,58 @@ if (session) {
       <div class="bg-white p-8 border border-gray-200 shadow-sm">
         <h2 class="text-lg font-bold text-black uppercase tracking-wider mb-8 text-center">Identificarse</h2>
 
-        <form action="/api/auth/signin" method="POST" class="space-y-6">
+        <form id="loginForm" class="space-y-6">
           <div>
             <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Usuario</label>
-            <input name="email" type="email" placeholder="ADMIN@ECLAT.COM" required class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-400 uppercase rounded-none" />
+            <input id="email" type="email" placeholder="ADMIN@ECLAT.COM" required class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-400 uppercase rounded-none" />
           </div>
 
           <div>
             <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Contraseña</label>
-            <input name="password" type="password" placeholder="••••••••" required class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-400 uppercase rounded-none" />
+            <input id="password" type="password" placeholder="••••••••" required class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-400 uppercase rounded-none" />
           </div>
 
           <button type="submit" class="w-full bg-black text-white py-4 text-sm font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors focus:outline-none">
             Entrar al Panel
           </button>
+          
+          <div id="error" class="text-red-500 text-xs text-center hidden mt-4"></div>
         </form>
+
+        <script>
+          const form = document.getElementById('loginForm');
+          const emailInput = document.getElementById('email');
+          const passwordInput = document.getElementById('password');
+          const errorDiv = document.getElementById('error');
+
+          form?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorDiv.classList.add('hidden');
+
+            try {
+              const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  email: emailInput.value,
+                  password: passwordInput.value,
+                }),
+              });
+
+              const data = await response.json();
+
+              if (response.ok) {
+                window.location.href = '/admin';
+              } else {
+                errorDiv.textContent = data.error || 'Error al iniciar sesión';
+                errorDiv.classList.remove('hidden');
+              }
+            } catch (error) {
+              errorDiv.textContent = 'Error de conexión';
+              errorDiv.classList.remove('hidden');
+            }
+          });
+        </script>
 
         <div class="mt-8 text-center border-t border-gray-100 pt-6">
           <a href="/" class="text-xs font-bold text-gray-400 hover:text-black transition-colors uppercase tracking-wider">← Volver a la Tienda</a>

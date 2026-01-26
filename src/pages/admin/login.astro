@@ -63,7 +63,23 @@ if (session) {
               const data = await response.json();
 
               if (response.ok) {
-                window.location.href = '/admin';
+                // Wait for cookies to be set before redirecting
+                let cookiesReady = false;
+                let attempts = 0;
+                const maxAttempts = 20;
+                
+                const checkCookies = () => {
+                  attempts++;
+                  const hasCookies = document.cookie.includes('sb-') || attempts >= maxAttempts;
+                  
+                  if (hasCookies || attempts >= maxAttempts) {
+                    window.location.href = '/admin';
+                  } else {
+                    setTimeout(checkCookies, 50);
+                  }
+                };
+                
+                checkCookies();
               } else {
                 errorDiv.textContent = data.error || 'Error al iniciar sesión';
                 errorDiv.classList.remove('hidden');

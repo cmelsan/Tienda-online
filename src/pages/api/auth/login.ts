@@ -20,14 +20,18 @@ export const POST: APIRoute = async ({ request, cookies, redirect: astroRedirect
         if (data.session) {
             // Set cookies on the server side
             // Note: httpOnly false allows client to read (needed for Supabase client)
-            // but cookies must be set from server response for SSR to see them
+            const isProduction = import.meta.env.PROD || process.env.NODE_ENV === 'production';
+            const isHttps = import.meta.env.PUBLIC_SITE_URL?.startsWith('https');
+            
             const cookieOptions = {
                 path: '/',
                 maxAge: 60 * 60 * 24 * 7, // 7 days
                 sameSite: 'lax' as const,
                 httpOnly: false,
-                secure: false, // Set to true in production with HTTPS
+                secure: isProduction || isHttps ? true : false, // Use secure in production/HTTPS
             };
+            
+            console.log('[Login] Setting cookies with secure:', cookieOptions.secure, 'isProduction:', isProduction, 'isHttps:', isHttps);
             
             cookies.set('sb-access-token', data.session.access_token, cookieOptions);
             cookies.set('sb-refresh-token', data.session.refresh_token, cookieOptions);

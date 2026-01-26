@@ -13,9 +13,22 @@ const orderId = searchParams.get('orderId');
   <script>
     // Clear applied coupon and cart after successful payment
     if (typeof window !== 'undefined') {
+      const appliedCoupon = localStorage.getItem('eclat-coupon:');
+      
       localStorage.removeItem('eclat-coupon:');
       localStorage.removeItem('eclat-cart:');
-      console.log('[Success Page] Coupon and cart cleared');
+      
+      console.log('[Success Page] Cleared cart and coupon', { appliedCoupon });
+      
+      // Optionally log to track coupon usage
+      if (appliedCoupon) {
+        try {
+          const coupon = JSON.parse(appliedCoupon);
+          console.log('[Success Page] Coupon was applied:', coupon.code);
+        } catch (e) {
+          console.warn('[Success Page] Could not parse coupon data');
+        }
+      }
     }
   </script>
   <div class="min-h-[60vh] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

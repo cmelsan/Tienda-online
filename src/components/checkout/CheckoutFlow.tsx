@@ -25,6 +25,7 @@ export default function CheckoutFlow() {
     const [couponCode, setCouponCode] = useState('');
     const [couponLoading, setCouponLoading] = useState(false);
     const [couponError, setCouponError] = useState('');
+    const [couponSuccess, setCouponSuccess] = useState('');
 
     const items = useStore(cartItems);
     const subtotal = useStore(cartSubtotal);
@@ -104,11 +105,13 @@ export default function CheckoutFlow() {
     const handleApplyCoupon = async () => {
         if (!couponCode.trim()) {
             setCouponError('Ingresa un código de descuento');
+            setCouponSuccess('');
             return;
         }
 
         setCouponLoading(true);
         setCouponError('');
+        setCouponSuccess('');
 
         try {
             const response = await fetch('/api/checkout/validate-coupon', {
@@ -124,6 +127,7 @@ export default function CheckoutFlow() {
 
             if (!response.ok) {
                 setCouponError(data.error || 'Código inválido');
+                setCouponSuccess('');
                 return;
             }
 
@@ -137,9 +141,14 @@ export default function CheckoutFlow() {
                 });
                 setCouponCode('');
                 setCouponError('');
+                // Show success message
+                setCouponSuccess(`✓ Cupón aplicado: ${formatPrice(data.coupon.discount_amount)} de descuento`);
+                // Auto-clear success message after 5 seconds
+                setTimeout(() => setCouponSuccess(''), 5000);
             }
         } catch (error: any) {
-            setCouponError('Error al validar el código: ' + error.message);
+            setCouponError('Error de conexión: ' + error.message);
+            setCouponSuccess('');
         } finally {
             setCouponLoading(false);
         }
@@ -148,6 +157,9 @@ export default function CheckoutFlow() {
     const handleRemoveCoupon = () => {
         removeCoupon();
         setCouponCode('');
+        setCouponError('');
+        setCouponSuccess('');
+    };
     };
 
     const handlePayment = async () => {
@@ -325,17 +337,27 @@ export default function CheckoutFlow() {
                                         placeholder="Ingresa tu código"
                                         value={couponCode}
                                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
+                                        disabled={couponLoading}
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm disabled:bg-gray-100"
                                     />
                                     <button
                                         onClick={handleApplyCoupon}
                                         disabled={couponLoading}
-                                        className="px-4 py-2 bg-black text-white rounded text-sm hover:bg-gray-800 disabled:bg-gray-400"
+                                        className="px-4 py-2 bg-black text-white rounded text-sm hover:bg-gray-800 disabled:bg-gray-400 transition-colors"
                                     >
                                         {couponLoading ? 'Validando...' : 'Aplicar'}
                                     </button>
                                 </div>
-                                {couponError && <p className="text-red-600 text-xs mt-1">{couponError}</p>}
+                                {couponError && (
+                                    <div className="text-red-600 text-xs mt-2 p-2 bg-red-50 rounded border border-red-200">
+                                        {couponError}
+                                    </div>
+                                )}
+                                {couponSuccess && (
+                                    <div className="text-green-600 text-xs mt-2 p-2 bg-green-50 rounded border border-green-200">
+                                        {couponSuccess}
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded">

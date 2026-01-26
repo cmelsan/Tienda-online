@@ -1,0 +1,189 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+
+// This page will display coupon usage statistics
+---
+
+<AdminLayout title="Gestión de Cupones y Descuentos" isAdmin>
+  <div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 mb-2">Gestión de Cupones</h1>
+      <p class="text-gray-600">Visualiza el rendimiento de tus códigos de descuento</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white rounded-lg shadow p-6 border-t-4 border-blue-500">
+        <div class="text-sm text-gray-500 mb-1">Cupones Activos</div>
+        <div id="active-coupons-count" class="text-3xl font-bold text-gray-900">-</div>
+      </div>
+      <div class="bg-white rounded-lg shadow p-6 border-t-4 border-green-500">
+        <div class="text-sm text-gray-500 mb-1">Total Cupones</div>
+        <div id="total-coupons-count" class="text-3xl font-bold text-gray-900">-</div>
+      </div>
+      <div class="bg-white rounded-lg shadow p-6 border-t-4 border-purple-500">
+        <div class="text-sm text-gray-500 mb-1">Total Usos</div>
+        <div id="total-usage-count" class="text-3xl font-bold text-gray-900">-</div>
+      </div>
+      <div class="bg-white rounded-lg shadow p-6 border-t-4 border-orange-500">
+        <div class="text-sm text-gray-500 mb-1">Descuento Total</div>
+        <div id="total-discount-amount" class="text-3xl font-bold text-gray-900">-</div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <h2 class="text-xl font-bold text-gray-900">Detalle de Cupones</h2>
+        <a href="/admin/cupones/nueva" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">
+          + Nuevo Cupón
+        </a>
+      </div>
+
+      <div id="coupons-container" class="overflow-x-auto">
+        <div class="p-6 text-center text-gray-500">Cargando datos de cupones...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    interface CouponUsage {
+      id: string;
+      user_id: string | null;
+      discount_applied: number;
+      created_at: string;
+    }
+
+    interface Coupon {
+      id: string;
+      code: string;
+      discount_type: 'percentage' | 'fixed';
+      discount_value: number;
+      max_uses: number | null;
+      current_uses: number;
+      is_active: boolean;
+      valid_from: string;
+      valid_until: string | null;
+      usage: CouponUsage[];
+      total_discount_amount: number;
+      usage_count: number;
+    }
+
+    async function loadCoupons() {
+      try {
+        const response = await fetch('/api/admin/coupons-usage');
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.error('Error loading coupons:', data);
+          document.getElementById('coupons-container')!.innerHTML = 
+            '<div class="p-6 text-center text-red-600">Error al cargar los cupones</div>';
+          return;
+        }
+
+        const coupons: Coupon[] = data.coupons;
+
+        // Update statistics
+        const activeCoupons = coupons.filter(c => c.is_active).length;
+        const totalCoupons = coupons.length;
+        const totalUsage = coupons.reduce((sum, c) => sum + c.usage_count, 0);
+        const totalDiscount = coupons.reduce((sum, c) => sum + c.total_discount_amount, 0);
+
+        document.getElementById('active-coupons-count')!.textContent = String(activeCoupons);
+        document.getElementById('total-coupons-count')!.textContent = String(totalCoupons);
+        document.getElementById('total-usage-count')!.textContent = String(totalUsage);
+        document.getElementById('total-discount-amount')!.textContent = '€' + (totalDiscount / 100).toFixed(2);
+
+        // Build table
+        if (coupons.length === 0) {
+          document.getElementById('coupons-container')!.innerHTML = 
+            '<div class="p-6 text-center text-gray-500">No hay cupones creados aún</div>';
+          return;
+        }
+
+        let html = `
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-gray-200 bg-gray-50">
+                <th class="px-6 py-3 text-left text-sm font-bold text-gray-700">Código</th>
+                <th class="px-6 py-3 text-left text-sm font-bold text-gray-700">Descuento</th>
+                <th class="px-6 py-3 text-left text-sm font-bold text-gray-700">Vigencia</th>
+                <th class="px-6 py-3 text-center text-sm font-bold text-gray-700">Usos</th>
+                <th class="px-6 py-3 text-right text-sm font-bold text-gray-700">Descuento Total</th>
+                <th class="px-6 py-3 text-center text-sm font-bold text-gray-700">Estado</th>
+                <th class="px-6 py-3 text-right text-sm font-bold text-gray-700">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        coupons.forEach(coupon => {
+          const isExpired = coupon.valid_until && new Date(coupon.valid_until) < new Date();
+          const discountText = coupon.discount_type === 'percentage' 
+            ? `${coupon.discount_value}%` 
+            : `€${(coupon.discount_value / 100).toFixed(2)}`;
+          
+          const validFromDate = new Date(coupon.valid_from).toLocaleDateString('es-ES');
+          const validUntilDate = coupon.valid_until ? new Date(coupon.valid_until).toLocaleDateString('es-ES') : 'Sin fecha';
+          
+          const usagePercentage = coupon.max_uses ? Math.round((coupon.current_uses / coupon.max_uses) * 100) : 'ilimitado';
+          const usageText = coupon.max_uses 
+            ? `${coupon.current_uses}/${coupon.max_uses}` 
+            : `${coupon.current_uses} (ilimitado)`;
+
+          const statusClass = coupon.is_active && !isExpired ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+          const statusText = coupon.is_active && !isExpired ? 'Activo' : isExpired ? 'Expirado' : 'Inactivo';
+
+          html += `
+            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+              <td class="px-6 py-4 text-sm font-mono font-bold text-gray-900">${coupon.code}</td>
+              <td class="px-6 py-4 text-sm text-gray-700">${discountText}</td>
+              <td class="px-6 py-4 text-sm text-gray-600">
+                <div>${validFromDate}</div>
+                <div class="text-xs text-gray-500">hasta ${validUntilDate}</div>
+              </td>
+              <td class="px-6 py-4 text-center">
+                <div class="text-sm font-bold text-gray-900">${usageText}</div>
+                <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                  <div 
+                    class="bg-blue-600 h-2 rounded-full" 
+                    style="width: ${coupon.max_uses ? Math.min(100, usagePercentage as number) : 50}%"
+                  ></div>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-right text-sm font-bold text-gray-900">€${(coupon.total_discount_amount / 100).toFixed(2)}</td>
+              <td class="px-6 py-4 text-center">
+                <span class="px-3 py-1 text-xs font-bold rounded-full ${statusClass}">
+                  ${statusText}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-right text-sm">
+                <button onclick="showCouponDetails('${coupon.id}')" class="text-blue-600 hover:text-blue-800 underline mr-4">
+                  Detalles
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+
+        html += `
+            </tbody>
+          </table>
+        `;
+
+        document.getElementById('coupons-container')!.innerHTML = html;
+
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('coupons-container')!.innerHTML = 
+          '<div class="p-6 text-center text-red-600">Error al cargar los cupones</div>';
+      }
+    }
+
+    function showCouponDetails(couponId: string) {
+      console.log('Showing details for coupon:', couponId);
+      // TODO: Implement modal or detail page
+    }
+
+    // Load coupons on page load
+    loadCoupons();
+  </script>
+</AdminLayout>

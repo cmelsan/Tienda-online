@@ -2,32 +2,62 @@ import type { APIRoute } from 'astro';
 import { supabase } from '@/lib/supabase';
 import { validateCoupon, calculateDiscount } from '@/lib/coupons';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
     try {
         const { code, totalAmount } = await request.json();
 
-        if (!code || totalAmount === undefined) {
-            return new Response(JSON.stringify({ error: 'Missing code or totalAmount' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
-
-        // Validate coupon
-        const validation = await validateCoupon(code, totalAmount);
-
-        if (!validation.valid || !validation.coupon) {
-            return new Response(JSON.stringify({
+        // Validate input
+        if (!code || totalAmount === undefined || totalAmount === null) {
+            return new Response(JSON.stringify({ 
                 valid: false,
-                error: validation.error
+                error: 'Faltan datos requeridos' 
             }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' }
             });
         }
 
-        // Calculate discount
-        const discount = calculateDiscount(validation.coupon, totalAmount);
+        // Try to get user ID from session (optional)
+        const supabaseClient = supabase;
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        const userId = session?.user?.id || null;
+
+        // Validate coupon with all checks
+        const validation = await validateCoupon(code.toUpperCase(), totalAmount, userId);
+
+        if (!validation.valid || !validation.coupon) {
+            return new Response(JSON.stringify({
+                valid: false,
+                error: validation.error || 'Código inválido'
+            }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        // Calculate actual discount amount
+        const discountAmount = calculateDiscount(validation.coupon, totalAmount);
+
+        // Validate that discount is positive and doesn't exceed purchase amount
+        if (discountAmount <= 0) {
+            return new Response(JSON.stringify({
+                valid: false,
+                error: 'El cupón no proporciona un descuento válido'
+            }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        if (discountAmount > totalAmount) {
+            return new Response(JSON.stringify({
+                valid: false,
+                error: 'El descuento no puede ser mayor que el total del carrito'
+            }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
 
         return new Response(JSON.stringify({
             valid: true,
@@ -36,7 +66,7 @@ export const POST: APIRoute = async ({ request }) => {
                 code: validation.coupon.code,
                 discount_type: validation.coupon.discount_type,
                 discount_value: validation.coupon.discount_value,
-                discount_amount: discount
+                discount_amount: discountAmount
             }
         }), {
             status: 200,
@@ -44,7 +74,11 @@ export const POST: APIRoute = async ({ request }) => {
         });
 
     } catch (error: any) {
-        return new Response(JSON.stringify({ error: error.message || 'Server error' }), {
+        console.error('[Validate Coupon API] Error:', error);
+        return new Response(JSON.stringify({ 
+            valid: false,
+            error: 'Error del servidor al validar el cupón' 
+        }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }
         });

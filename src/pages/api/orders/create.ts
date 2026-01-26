@@ -42,11 +42,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             // Register coupon usage if a coupon was applied
             if (couponId && discountAmount) {
                 try {
-                    await incrementCouponUsage(couponId, data.order_id, session?.user?.id, discountAmount);
-                    console.log('[Order API] Coupon usage registered');
-                } catch (couponErr) {
-                    console.error('[Order API] Failed to register coupon usage:', couponErr);
-                    // Don't fail the order if coupon logging fails
+                    await incrementCouponUsage(couponId, data.order_id, session?.user?.id || null, discountAmount);
+                    console.log('[Order API] Coupon usage registered successfully');
+                } catch (couponErr: any) {
+                    console.error('[Order API] Failed to register coupon usage:', couponErr.message);
+                    // Log the error but don't fail the order
+                    // The order was created successfully, only the usage tracking failed
+                    console.warn('[Order API] Coupon usage tracking failed, but order was created');
                 }
             }
 

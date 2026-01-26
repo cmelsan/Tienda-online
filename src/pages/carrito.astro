@@ -284,43 +284,57 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
     removeFromCart(e.detail.id);
   });
 
-  // Elemento para mostrar errores de cupón
+  // Elemento para mostrar mensajes de cupón (error y éxito)
   let couponErrorElement = document.getElementById('coupon-error');
+  let couponSuccessElement = document.getElementById('coupon-success');
   
-  window.addEventListener('apply-coupon', () => {
-    const input = document.getElementById('coupon-input') as HTMLInputElement;
+  function showCouponMessage(message: string, isError: boolean = false) {
     if (!couponErrorElement) {
       couponErrorElement = document.createElement('div');
       couponErrorElement.id = 'coupon-error';
-      input?.parentElement?.parentElement?.insertBefore(couponErrorElement, input.parentElement.nextSibling);
+      const input = document.getElementById('coupon-input');
+      input?.parentElement?.parentElement?.insertBefore(couponErrorElement, input?.parentElement?.nextSibling);
     }
     
-    // Limpiar mensaje previo
-    couponErrorElement.innerHTML = '';
-    couponErrorElement.className = '';
+    couponErrorElement.innerHTML = message;
+    couponErrorElement.className = isError 
+      ? 'text-red-600 text-xs mt-2 p-2 bg-red-50 rounded border border-red-200'
+      : 'text-green-600 text-xs mt-2 p-2 bg-green-50 rounded border border-green-200';
+    
+    // Auto-clear success message after 5 seconds
+    if (!isError) {
+      setTimeout(() => {
+        couponErrorElement!.innerHTML = '';
+        couponErrorElement!.className = '';
+      }, 5000);
+    }
+  }
+  
+  window.addEventListener('apply-coupon', () => {
+    const input = document.getElementById('coupon-input') as HTMLInputElement;
     
     if (!input || !input.value.trim()) {
-      couponErrorElement.innerHTML = 'Por favor ingresa un código';
-      couponErrorElement.className = 'text-red-500 text-xs mt-2';
+      showCouponMessage('Por favor ingresa un código de descuento', true);
       return;
     }
 
     const items = cartItemsArray.get();
     const subtotal = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
 
+    // Show loading state
+    showCouponMessage('Validando código...', false);
+
     fetch('/api/checkout/validate-coupon', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        code: input.value,
+        code: input.value.toUpperCase(),
         totalAmount: subtotal
       })
     })
     .then(res => res.json())
     .then(data => {
       if (data.valid) {
-        couponErrorElement.innerHTML = '';
-        couponErrorElement.className = '';
         applyCoupon({
           code: data.coupon.code,
           id: data.coupon.id,
@@ -328,20 +342,26 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
           discount_type: data.coupon.discount_type,
           discount_amount: data.coupon.discount_amount
         });
+        // Show success message with discount amount
+        const discountAmount = (data.coupon.discount_amount / 100).toFixed(2);
+        showCouponMessage(`✓ Cupón ${data.coupon.code} aplicado: €${discountAmount} de descuento`, false);
       } else {
-        couponErrorElement.innerHTML = data.error || 'Código inválido';
-        couponErrorElement.className = 'text-red-500 text-xs mt-2';
+        showCouponMessage(data.error || 'Código inválido', true);
       }
     })
     .catch(err => {
-      couponErrorElement.innerHTML = 'Error: ' + err.message;
-      couponErrorElement.className = 'text-red-500 text-xs mt-2';
+      showCouponMessage('Error de conexión: ' + err.message, true);
     });
   });
 
   window.addEventListener('remove-coupon', () => {
     const { removeCoupon } = require('@/stores/cart');
     removeCoupon();
+    // Clear messages when removing coupon
+    if (couponErrorElement) {
+      couponErrorElement.innerHTML = '';
+      couponErrorElement.className = '';
+    }
   });
 
   // Subscribe to changes

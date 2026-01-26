@@ -38,6 +38,18 @@ export const POST: APIRoute = async ({ request }) => {
             };
         });
 
+        // If there's a discount, apply it to the last item
+        if (discountAmount && discountAmount > 0 && line_items.length > 0) {
+            const lastIndex = line_items.length - 1;
+            const lastItem = line_items[lastIndex];
+            const currentAmount = lastItem.price_data.unit_amount * lastItem.quantity;
+            const discountAmountCents = Math.round(discountAmount);
+            const newAmount = Math.max(0, currentAmount - discountAmountCents);
+            
+            // Update the last item with the discounted price
+            line_items[lastIndex].price_data.unit_amount = Math.round(newAmount / lastItem.quantity);
+        }
+
         // Create Checkout Session
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],

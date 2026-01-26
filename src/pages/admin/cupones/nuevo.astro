@@ -1,61 +1,6 @@
 ---
 export const prerender = false;
 import AdminLayout from '@/layouts/AdminLayout.astro';
-import { supabase } from '@/lib/supabase';
-
-let message = '';
-let error = '';
-
-if (Astro.request.method === 'POST') {
-  const formData = await Astro.request.formData();
-  
-  const code = formData.get('code') as string;
-  const description = formData.get('description') as string;
-  const discountType = formData.get('discountType') as string;
-  const discountValue = parseFloat(formData.get('discountValue') as string);
-  const maxUses = formData.get('maxUses') ? parseInt(formData.get('maxUses') as string) : null;
-  const minPurchaseAmount = parseFloat(formData.get('minPurchaseAmount') as string) || 0;
-  const maxDiscountAmount = formData.get('maxDiscountAmount') 
-    ? parseFloat(formData.get('maxDiscountAmount') as string) * 100 
-    : null;
-  const validUntil = formData.get('validUntil') || null;
-  const isActive = formData.get('isActive') === 'on';
-
-  // Validación
-  if (!code || !discountValue) {
-    error = 'El código y el valor de descuento son requeridos';
-  } else {
-    // Convertir a centavos si es tipo fijo
-    const finalDiscountValue = discountType === 'fixed' ? discountValue * 100 : discountValue;
-
-    const { data: newCoupon, error: insertError } = await supabase
-      .from('coupons')
-      .insert([
-        {
-          code: code.toUpperCase(),
-          description: description || null,
-          discount_type: discountType,
-          discount_value: finalDiscountValue,
-          max_uses: maxUses,
-          min_purchase_amount: minPurchaseAmount * 100,
-          max_discount_amount: maxDiscountAmount,
-          is_active: isActive,
-          valid_until: validUntil ? new Date(validUntil).toISOString() : null,
-        }
-      ])
-      .select();
-
-    if (insertError) {
-      error = `Error: ${insertError.message}`;
-    } else {
-      message = 'Cupón creado exitosamente';
-      // Redirect después de 2 segundos
-      setTimeout(() => {
-        window.location.href = '/admin/cupones';
-      }, 1500);
-    }
-  }
-}
 ---
 
 <AdminLayout title="Crear Nuevo Cupón">
@@ -67,19 +12,15 @@ if (Astro.request.method === 'POST') {
     <div class="bg-white border border-gray-200 p-8">
       <h1 class="text-2xl font-bold text-gray-900 mb-8">Crear Nuevo Cupón</h1>
 
-      {message && (
-        <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-800 text-sm rounded">
-          ✓ {message}
-        </div>
-      )}
+      <div id="message" class="mb-6 p-4 bg-green-50 border border-green-200 text-green-800 text-sm rounded hidden">
+        <span id="messageText"></span>
+      </div>
 
-      {error && (
-        <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 text-sm rounded">
-          ✗ {error}
-        </div>
-      )}
+      <div id="error" class="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 text-sm rounded hidden">
+        <span id="errorText"></span>
+      </div>
 
-      <form method="POST" class="space-y-6">
+      <form id="couponForm" class="space-y-6">
         {/* Código */}
         <div>
           <label class="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">
@@ -235,11 +176,56 @@ if (Astro.request.method === 'POST') {
 </AdminLayout>
 
 <script>
-  // Auto-redirect después de crear
-  setTimeout(() => {
-    const successMsg = document.querySelector('[class*="green-50"]');
-    if (successMsg) {
-      window.location.href = '/admin/cupones';
+  const form = document.getElementById('couponForm') as HTMLFormElement;
+  const messageDiv = document.getElementById('message') as HTMLDivElement;
+  const errorDiv = document.getElementById('error') as HTMLDivElement;
+  const messageText = document.getElementById('messageText') as HTMLSpanElement;
+  const errorText = document.getElementById('errorText') as HTMLSpanElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Ocultar mensajes previos
+    messageDiv.classList.add('hidden');
+    errorDiv.classList.add('hidden');
+
+    // Recopilar datos del formulario
+    const formData = new FormData(form);
+    const data = {
+      code: formData.get('code'),
+      description: formData.get('description'),
+      discountType: formData.get('discountType'),
+      discountValue: formData.get('discountValue'),
+      maxUses: formData.get('maxUses'),
+      minPurchaseAmount: formData.get('minPurchaseAmount'),
+      maxDiscountAmount: formData.get('maxDiscountAmount'),
+      validUntil: formData.get('validUntil'),
+      isActive: (formData.get('isActive') as any) === 'on',
+    };
+
+    try {
+      const response = await fetch('/api/admin/coupons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        messageText.textContent = '✓ Cupón creado exitosamente';
+        messageDiv.classList.remove('hidden');
+        
+        setTimeout(() => {
+          window.location.href = '/admin/cupones';
+        }, 1500);
+      } else {
+        errorText.textContent = `✗ ${result.error || 'Error al crear el cupón'}`;
+        errorDiv.classList.remove('hidden');
+      }
+    } catch (error) {
+      errorText.textContent = '✗ Error de conexión';
+      errorDiv.classList.remove('hidden');
     }
-  }, 1500);
+  });
 </script>

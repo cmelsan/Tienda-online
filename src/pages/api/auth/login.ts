@@ -17,9 +17,29 @@ export const POST: APIRoute = async ({ request, cookies, redirect: astroRedirect
             });
         }
 
-        if (data.session) {
+        if (data.session && data.user) {
+            // Verify that the user is NOT an admin (admin should use /api/auth/admin-login)
+            const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('is_admin')
+                .eq('id', data.user.id)
+                .single();
+
+            if (profileError) {
+                console.error('[User Login] Error checking profile:', profileError);
+                return new Response(JSON.stringify({ error: 'Error al verificar perfil' }), {
+                    status: 500,
+                });
+            }
+
+            if (profile?.is_admin) {
+                console.log('[User Login] Admin tried to use user login:', data.user.id);
+                return new Response(JSON.stringify({ error: 'Los administradores deben usar el login de panel. Por favor ve a /admin/login' }), {
+                    status: 403,
+                });
+            }
+
             // Set cookies on the server side
-            // Detect if we're using HTTPS from the PUBLIC_SITE_URL variable
             const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'http://localhost:4321';
             const isSecure = siteUrl.startsWith('https');
             
@@ -31,7 +51,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect: astroRedirect
                 secure: isSecure,
             };
             
-            console.log('[Login] Setting cookies - Site URL:', siteUrl, 'Secure:', isSecure);
+            console.log('[User Login] Setting cookies - Site URL:', siteUrl, 'Secure:', isSecure);
             
             cookies.set('sb-access-token', data.session.access_token, cookieOptions);
             cookies.set('sb-refresh-token', data.session.refresh_token, cookieOptions);

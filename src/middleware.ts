@@ -8,6 +8,7 @@ export const onRequest = defineMiddleware(async (context: any, next: any) => {
     if (url.pathname.startsWith('/admin')) {
         // Allow login page without authentication
         if (url.pathname === '/admin/login') {
+            console.log('[Middleware] Allowing access to /admin/login (no auth required)');
             return next();
         }
 
@@ -20,6 +21,7 @@ export const onRequest = defineMiddleware(async (context: any, next: any) => {
 
             // Redirect to login if not authenticated
             if (!session) {
+                console.log('[Middleware] No session for admin route, redirecting to /admin/login');
                 return redirect('/admin/login');
             }
 
@@ -32,10 +34,13 @@ export const onRequest = defineMiddleware(async (context: any, next: any) => {
 
             // If not admin, redirect to home
             if (!profile?.is_admin) {
+                console.log('[Middleware] User is not admin, denying access to /admin:', session.user.id);
                 return redirect('/');
             }
+            
+            console.log('[Middleware] Admin access granted for user:', session.user.id);
         } catch (error) {
-            console.error('Middleware error:', error);
+            console.error('[Middleware] Error checking admin access:', error);
             return redirect('/admin/login');
         }
     }

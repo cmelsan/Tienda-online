@@ -120,10 +120,12 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
 
       // Server has set cookies, now redirect
       const urlParams = new URLSearchParams(window.location.search);
-      const redirect = urlParams.get('redirect');
+      const redirectUrl = urlParams.get('redirect') || '/mi-cuenta';
       
-      // Immediate redirect since cookies are already set by server
-      window.location.href = redirect || '/mi-cuenta';
+      // Small delay to ensure cookies are processed by the browser
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 100);
     } catch (error) {
       if (errorMessage) {
         errorMessage.textContent = error instanceof Error ? error.message : 'Credenciales inválidas. Por favor, inténtalo de nuevo.';

@@ -197,10 +197,18 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
 
 // Server-side Supabase client (for SSR pages)
 export async function createServerSupabaseClient(
-    Astro: any
+    context: any
 ): Promise<SupabaseClient<Database>> {
-    const accessToken = Astro.cookies.get("sb-access-token")?.value;
-    const refreshToken = Astro.cookies.get("sb-refresh-token")?.value;
+    // Handle both Astro context and plain cookie objects
+    const cookies = context.cookies || context;
+    
+    const accessToken = cookies.get ? 
+        cookies.get("sb-access-token")?.value : 
+        cookies["sb-access-token"];
+    
+    const refreshToken = cookies.get ? 
+        cookies.get("sb-refresh-token")?.value : 
+        cookies["sb-refresh-token"];
 
     const client = createClient<Database>(
         supabaseUrl,

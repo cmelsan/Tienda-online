@@ -199,16 +199,21 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
 export async function createServerSupabaseClient(
     context: any
 ): Promise<SupabaseClient<Database>> {
-    // Handle both Astro context and plain cookie objects
-    const cookies = context.cookies || context;
+    // Extract cookies object - handle both Astro context and request context
+    const cookies = context.cookies;
     
-    const accessToken = cookies.get ? 
-        cookies.get("sb-access-token")?.value : 
-        cookies["sb-access-token"];
+    if (!cookies || !cookies.get) {
+        console.error('[Supabase] Invalid context passed to createServerSupabaseClient');
+        throw new Error('cookies object required');
+    }
     
-    const refreshToken = cookies.get ? 
-        cookies.get("sb-refresh-token")?.value : 
-        cookies["sb-refresh-token"];
+    const accessTokenCookie = cookies.get("sb-access-token");
+    const refreshTokenCookie = cookies.get("sb-refresh-token");
+    
+    const accessToken = accessTokenCookie?.value;
+    const refreshToken = refreshTokenCookie?.value;
+    
+    console.log('[Supabase] Auth check - Access token present:', !!accessToken, 'Refresh token present:', !!refreshToken);
 
     const client = createClient<Database>(
         supabaseUrl,
@@ -224,6 +229,7 @@ export async function createServerSupabaseClient(
     );
 
     if (accessToken && refreshToken) {
+        console.log('[Supabase] Setting session from cookies');
         await client.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,

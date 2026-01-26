@@ -21,28 +21,21 @@ export const POST: APIRoute = async ({ request, cookies, redirect: astroRedirect
             // Set cookies on the server side
             // Note: httpOnly false allows client to read (needed for Supabase client)
             // but cookies must be set from server response for SSR to see them
-            cookies.set('sb-access-token', data.session.access_token, {
+            const cookieOptions = {
                 path: '/',
                 maxAge: 60 * 60 * 24 * 7, // 7 days
-                sameSite: 'lax',
+                sameSite: 'lax' as const,
                 httpOnly: false,
                 secure: false, // Set to true in production with HTTPS
-            });
-
-            cookies.set('sb-refresh-token', data.session.refresh_token, {
-                path: '/',
-                maxAge: 60 * 60 * 24 * 7,
-                sameSite: 'lax',
-                httpOnly: false,
-                secure: false,
-            });
+            };
+            
+            cookies.set('sb-access-token', data.session.access_token, cookieOptions);
+            cookies.set('sb-refresh-token', data.session.refresh_token, cookieOptions);
 
             // Return the session info for cart migration on the client
-            // Client will handle the actual redirect after migration
             return new Response(JSON.stringify({ 
                 success: true, 
                 user: data.user,
-                sessionToken: data.session.access_token // Send token for reference
             }), {
                 status: 200,
             });

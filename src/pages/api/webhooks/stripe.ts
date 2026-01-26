@@ -2,25 +2,16 @@ import type { APIRoute } from 'astro';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase Admin Client (to bypass RLS for status updates)
+// Initialize Supabase client for webhooks
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY; // Need a SERVICE ROLE KEY for admin updates bypassed RLS if needed, OR simply use the server client if RLS policies allow 'system' updates. 
-// Actually for this project we've been using client-side or server-side auth. 
-// To allow the webhook (which has no user session) to update an order, we strictly need the Service Role Key.
-// However, the user might not have set SUPABASE_SERVICE_ROLE_KEY. 
-// Let's assume user has it or we can use the RPC 'system_update_order_status' if we created one.
-// We previously used 'update orders set status...' via standard client but that requires RLS for 'auth.uid()'.
-// The public client won't work here since it's anonymous.
-
-// FALLBACK: If we don't have service role key, we might have issues. 
-// We will check if we can add a policy 'service_role' or just try standard update if RLS allows anon (which it shouldn't).
-// For now let's assume valid setup.
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
 export const POST: APIRoute = async ({ request }) => {
     const stripeSecretKey = import.meta.env.STRIPE_SECRET_KEY;
     const endpointSecret = import.meta.env.STRIPE_WEBHOOK_SECRET;
 
     if (!stripeSecretKey || !endpointSecret) {
+        console.error('Missing Stripe configuration');
         return new Response('Missing Stripe Keys', { status: 500 });
     }
 
@@ -48,32 +39,25 @@ export const POST: APIRoute = async ({ request }) => {
         const session = event.data.object as Stripe.Checkout.Session;
         const orderId = session.metadata?.orderId;
 
-        if (orderId) {
-            console.log(`Payment successful for Order ID: ${orderId}`);
+        console.log(`[Stripe Webhook] Payment successful for Order ID: ${orderId}`);
 
-            // We need to update the database. 
-            // Ideally use a Service Role client. 
-            // If we don't have it in env, this part will fail securely.
-            if (supabaseUrl && supabaseServiceKey) {
-                const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-                    auth: {
-                        autoRefreshToken: false,
-                        persistSession: false
-                    }
+        if (orderId && supabaseUrl && supabaseAnonKey) {
+            const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+            try {
+                // Call RPC to update order status
+                const { data, error } = await supabase.rpc('update_order_status', {
+                    p_order_id: orderId,
+                    p_status: 'paid'
                 });
 
-                const { error } = await supabaseAdmin
-                    .from('orders')
-                    .update({ status: 'paid', updated_at: new Date().toISOString() })
-                    .eq('id', orderId);
-
                 if (error) {
-                    console.error('Error updating order status in DB:', error);
-                    return new Response('Database Update Failed', { status: 500 });
+                    console.error('[Stripe Webhook] Error updating order status:', error);
+                } else {
+                    console.log('[Stripe Webhook] Order status updated successfully');
                 }
-            } else {
-                console.error('Missing SUPABASE_SERVICE_ROLE_KEY, cannot update order status automatically.');
-                // We still return 200 to Stripe so it doesn't retry indefinitely, but we log the error.
+            } catch (err: any) {
+                console.error('[Stripe Webhook] Exception updating order:', err.message);
             }
         }
     }

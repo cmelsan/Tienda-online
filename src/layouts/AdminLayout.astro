@@ -9,8 +9,8 @@ interface Props {
 
 const { title, description } = Astro.props;
 
-// Check authentication
-const supabase = await createServerSupabaseClient(Astro);
+// Check authentication (using admin cookies)
+const supabase = await createServerSupabaseClient(Astro, true);
 const { data: { session } } = await supabase.auth.getSession();
 
 if (!session) {

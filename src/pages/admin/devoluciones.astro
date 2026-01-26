@@ -5,7 +5,7 @@ import AdminReturnRow from '@/components/admin/AdminReturnRow';
 import { createServerSupabaseClient } from '@/lib/supabase';
 
 // Fetch all orders with return_requested status
-const supabase = createServerSupabaseClient(Astro);
+const supabase = await createServerSupabaseClient(Astro, true);
 
 const { data: returnRequests } = await supabase
   .from('orders')

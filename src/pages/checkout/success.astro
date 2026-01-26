@@ -10,6 +10,14 @@ const orderId = searchParams.get('orderId');
 ---
 
 <PublicLayout title="Compra Realizada | ÉCLAT" description="Gracias por tu compra">
+  <script>
+    // Clear applied coupon and cart after successful payment
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('eclat-coupon:');
+      localStorage.removeItem('eclat-cart:');
+      console.log('[Success Page] Coupon and cart cleared');
+    }
+  </script>
   <div class="min-h-[60vh] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100 text-center">
       

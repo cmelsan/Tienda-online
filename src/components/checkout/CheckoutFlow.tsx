@@ -160,7 +160,6 @@ export default function CheckoutFlow() {
         setCouponError('');
         setCouponSuccess('');
     };
-    };
 
     const handlePayment = async () => {
         if (!email || !shippingAddress) {

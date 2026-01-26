@@ -20,53 +20,8 @@ if (!coupon) {
   return Astro.redirect('/admin/cupones');
 }
 
-let message = '';
-let error = '';
-
-if (Astro.request.method === 'POST') {
-  const formData = await Astro.request.formData();
-  const action = formData.get('action');
-
-  if (action === 'update') {
-    const code = formData.get('code') as string;
-    const description = formData.get('description') as string;
-    const discountValue = parseFloat(formData.get('discountValue') as string);
-    const maxUses = formData.get('maxUses') ? parseInt(formData.get('maxUses') as string) : null;
-    const minPurchaseAmount = parseFloat(formData.get('minPurchaseAmount') as string) || 0;
-    const maxDiscountAmount = formData.get('maxDiscountAmount') 
-      ? parseFloat(formData.get('maxDiscountAmount') as string) * 100 
-      : null;
-    const validUntil = formData.get('validUntil') || null;
-    const isActive = formData.get('isActive') === 'on';
-
-    if (!code || !discountValue) {
-      error = 'El código y el valor de descuento son requeridos';
-    } else {
-      const finalDiscountValue = coupon.discount_type === 'fixed' ? discountValue * 100 : discountValue;
-
-      const { error: updateError } = await supabase
-        .from('coupons')
-        .update({
-          code: code.toUpperCase(),
-          description: description || null,
-          discount_value: finalDiscountValue,
-          max_uses: maxUses,
-          min_purchase_amount: minPurchaseAmount * 100,
-          max_discount_amount: maxDiscountAmount,
-          is_active: isActive,
-          valid_until: validUntil ? new Date(validUntil).toISOString() : null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id);
-
-      if (updateError) {
-        error = `Error: ${updateError.message}`;
-      } else {
-        message = 'Cupón actualizado exitosamente';
-      }
-    }
-  }
-}
+// No server-side form processing needed - using fetch API instead
+// This avoids CSRF issues and provides better UX
 
 const validUntilDate = coupon.valid_until 
   ? new Date(coupon.valid_until).toISOString().split('T')[0]
@@ -82,17 +37,13 @@ const validUntilDate = coupon.valid_until
     <div class="bg-white border border-gray-200 p-8">
       <h1 class="text-2xl font-bold text-gray-900 mb-8">Editar Cupón: {coupon.code}</h1>
 
-      {message && (
-        <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-800 text-sm rounded">
-          ✓ {message}
-        </div>
-      )}
+      <div id="message" class="hidden mb-6 p-4 bg-green-50 border border-green-200 text-green-800 text-sm rounded">
+        <span id="messageText">✓ Cupón actualizado exitosamente</span>
+      </div>
 
-      {error && (
-        <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 text-sm rounded">
-          ✗ {error}
-        </div>
-      )}
+      <div id="error" class="hidden mb-6 p-4 bg-red-50 border border-red-200 text-red-800 text-sm rounded">
+        <span id="errorText">✗ Error</span>
+      </div>
 
       {/* Estadísticas */}
       <div class="grid grid-cols-3 gap-4 mb-8 p-4 bg-gray-50 rounded">
@@ -118,8 +69,7 @@ const validUntilDate = coupon.valid_until
         </div>
       </div>
 
-      <form method="POST" class="space-y-6">
-        <input type="hidden" name="action" value="update" />
+      <form id="couponForm" class="space-y-6">
 
         {/* Código */}
         <div>
@@ -264,6 +214,13 @@ const validUntilDate = coupon.valid_until
           >
             Guardar Cambios
           </button>
+          <button
+            type="button"
+            id="deleteBtn"
+            class="bg-red-600 text-white px-4 py-3 text-sm font-bold uppercase tracking-widest hover:bg-red-700 transition-colors"
+          >
+            Eliminar
+          </button>
           <a
             href="/admin/cupones"
             class="flex-1 bg-gray-200 text-black py-3 text-sm font-bold uppercase tracking-widest hover:bg-gray-300 transition-colors text-center"
@@ -275,3 +232,92 @@ const validUntilDate = coupon.valid_until
     </div>
   </div>
 </AdminLayout>
+
+<script define:vars={{ couponId: id }}>
+  const form = document.getElementById('couponForm') as HTMLFormElement;
+  const messageDiv = document.getElementById('message') as HTMLDivElement;
+  const errorDiv = document.getElementById('error') as HTMLDivElement;
+  const messageText = document.getElementById('messageText') as HTMLSpanElement;
+  const errorText = document.getElementById('errorText') as HTMLSpanElement;
+  const deleteBtn = document.getElementById('deleteBtn') as HTMLButtonElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Hide previous messages
+    messageDiv.classList.add('hidden');
+    errorDiv.classList.add('hidden');
+
+    // Collect form data
+    const formData = new FormData(form);
+    const data = {
+      code: formData.get('code'),
+      description: formData.get('description'),
+      discountValue: formData.get('discountValue'),
+      maxUses: formData.get('maxUses'),
+      minPurchaseAmount: formData.get('minPurchaseAmount'),
+      maxDiscountAmount: formData.get('maxDiscountAmount'),
+      validUntil: formData.get('validUntil'),
+      isActive: (formData.get('isActive') as any) === 'on',
+    };
+
+    try {
+      const response = await fetch(`/api/admin/coupons/${couponId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        messageText.textContent = '✓ Cupón actualizado exitosamente';
+        messageDiv.classList.remove('hidden');
+        
+        setTimeout(() => {
+          window.location.href = '/admin/cupones';
+        }, 1500);
+      } else {
+        errorText.textContent = `✗ ${result.error || 'Error al actualizar el cupón'}`;
+        errorDiv.classList.remove('hidden');
+      }
+    } catch (error) {
+      errorText.textContent = '✗ Error de conexión';
+      errorDiv.classList.remove('hidden');
+    }
+  });
+
+  deleteBtn?.addEventListener('click', async () => {
+    if (!confirm('¿Estás seguro de que deseas eliminar este cupón? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    // Hide previous messages
+    messageDiv.classList.add('hidden');
+    errorDiv.classList.add('hidden');
+
+    try {
+      const response = await fetch(`/api/admin/coupons/${couponId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        messageText.textContent = '✓ Cupón eliminado exitosamente';
+        messageDiv.classList.remove('hidden');
+        
+        setTimeout(() => {
+          window.location.href = '/admin/cupones';
+        }, 1500);
+      } else {
+        errorText.textContent = `✗ ${result.error || 'Error al eliminar el cupón'}`;
+        errorDiv.classList.remove('hidden');
+      }
+    } catch (error) {
+      errorText.textContent = '✗ Error de conexión';
+      errorDiv.classList.remove('hidden');
+    }
+  });
+</script>

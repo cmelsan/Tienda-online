@@ -11,15 +11,15 @@ const orderId = searchParams.get('orderId');
 
 <PublicLayout title="Compra Realizada | ÉCLAT" description="Gracias por tu compra">
   <script>
-    // Limpiar carrito y cupón después de pago exitoso
+    // Limpiar carrito después de pago exitoso
+    // El cupón ya se limpió de memoria automáticamente durante checkout
     if (typeof window !== 'undefined') {
-      // Registrar en console que se va a limpiar
+      // Registrar en console
       const cartData = localStorage.getItem('eclat-cart:');
-      const couponData = localStorage.getItem('eclat-coupon:');
       
-      console.log('[Success Page] Datos antes de limpiar:', {
+      console.log('[Success Page] Iniciando limpieza post-pago:', {
         hasCart: !!cartData,
-        hasCoupon: !!couponData
+        timestamp: new Date().toISOString()
       });
 
       let itemsCount = 0;
@@ -37,25 +37,11 @@ const orderId = searchParams.get('orderId');
       }
       localStorage.removeItem('eclat-cart:');
 
-      // Limpiar cupón
-      if (couponData) {
-        try {
-          const coupon = JSON.parse(couponData);
-          console.log('[Success Page] Cupón eliminado:', coupon.code);
-          discountApplied = coupon.discount_amount || 0;
-        } catch (e) {
-          console.warn('[Success Page] No se pudo parsear cupón');
-        }
-      }
-      localStorage.removeItem('eclat-coupon:');
-
-      // Verificar que todo está limpio
+      // Verificar que está limpio
       const cartAfter = localStorage.getItem('eclat-cart:');
-      const couponAfter = localStorage.getItem('eclat-coupon:');
       
-      console.log('[Success Page] VERIFICACIÓN FINAL - Todo limpio:', {
+      console.log('[Success Page] VERIFICACIÓN FINAL:', {
         cartLimpio: !cartAfter,
-        couponLimpio: !couponAfter,
         timestamp: new Date().toISOString()
       });
 

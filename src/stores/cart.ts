@@ -64,17 +64,15 @@ export const cartItems = persistentMap<Record<string, CartItem>>(
 // Cart UI state
 export const isCartOpen = atom<boolean>(false);
 
-// Coupon state - stores applied coupon info
-export const appliedCoupon = persistentMap<{
+// Coupon state - NO persistente (se limpia al recargar página)
+// El cupón solo se registra en BD después del pago exitoso
+export const appliedCoupon = atom<{
     code: string;
     id: string;
     discount_value: number;
     discount_type: 'percentage' | 'fixed';
     discount_amount: number;
-} | null>('eclat-coupon:', null, {
-    encode: JSON.stringify,
-    decode: JSON.parse,
-});
+} | null>(null);
 
 // Computed: Total items in cart
 export const cartCount = computed(cartItems, (items) => {
@@ -182,29 +180,29 @@ export function updateQuantity(productId: string, quantity: number) {
 
 /**
  * Clear entire cart and coupon
+ * El cupón NO se registra aquí - se registra después del pago exitoso en /api/orders/create
  */
 export function clearCart() {
     // Limpiar Nano Store
     cartItems.set({});
     appliedCoupon.set(null);
     
-    // Limpiar localStorage
+    // Limpiar localStorage del carrito
     localStorage.removeItem('eclat-cart:');
-    localStorage.removeItem('eclat-coupon:');
+    // Nota: 'eclat-coupon:' ya NO se usa (appliedCoupon no es persistent)
     
     // Sync to backend (clear)
     syncToBackend({});
     
-    console.log('[Cart] Carrito y cupón vaciados completamente');
+    console.log('[Cart] Carrito vaciado completamente. Cupón se limpió de memoria.');
 }
 
 /**
- * Clear only the applied coupon
+ * Clear only the applied coupon (sin persistir en localStorage)
  */
 export function removeCoupon() {
     appliedCoupon.set(null);
-    localStorage.removeItem('eclat-coupon:');
-    console.log('[Coupon] Cupón removido');
+    console.log('[Coupon] Cupón removido de memoria - NOT registrado en BD');
 }
 
 /**

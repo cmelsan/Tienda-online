@@ -93,8 +93,9 @@ export const cartSubtotal = computed(cartItems, (items) => {
 export const cartTotal = computed(
     [cartSubtotal, appliedCoupon],
     (subtotal, coupon) => {
-        if (!coupon) return subtotal;
-        return Math.max(0, subtotal - coupon.discount_amount);
+        if (!coupon || !coupon.code) return subtotal;
+        const discountAmount = coupon.discount_amount || 0;
+        return Math.max(0, subtotal - discountAmount);
     }
 );
 

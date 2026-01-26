@@ -11,13 +11,14 @@ export function cn(...inputs: ClassValue[]) {
  * Format price from cents to currency string
  */
 export function formatPrice(cents: number | undefined | null, locale: string = 'es-ES'): string {
-    if (!cents || isNaN(cents) || cents < 0) {
+    if (cents === null || cents === undefined || isNaN(cents)) {
         return '0,00 €';
     }
+    const value = Math.max(0, cents);
     return new Intl.NumberFormat(locale, {
         style: 'currency',
         currency: 'EUR',
-    }).format(cents / 100);
+    }).format(value / 100);
 }
 
 /**

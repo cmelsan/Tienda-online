@@ -1,6 +1,17 @@
 const STORAGE_KEY = 'eclat_guest_session_id';
 
 /**
+ * Generate a UUID v4 compatible with all browsers
+ */
+function generateUUID(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+/**
  * Get current guest session ID or create a new one
  */
 export function getOrCreateSessionId(): string {
@@ -9,7 +20,7 @@ export function getOrCreateSessionId(): string {
     let sessionId = localStorage.getItem(STORAGE_KEY);
 
     if (!sessionId) {
-        sessionId = crypto.randomUUID();
+        sessionId = generateUUID();
         localStorage.setItem(STORAGE_KEY, sessionId!);
     }
 

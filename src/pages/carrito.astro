@@ -28,7 +28,7 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
 </PublicLayout>
 
 <script>
-  import { cartItemsArray, appliedCoupon } from '@/stores/cart';
+  import { cartItemsArray, appliedCoupon, applyCoupon } from '@/stores/cart';
   import { formatPrice } from '@/lib/utils';
 
   const container = document.getElementById('cart-container');
@@ -305,7 +305,6 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
     .then(res => res.json())
     .then(data => {
       if (data.valid) {
-        const { applyCoupon } = require('@/stores/cart');
         applyCoupon({
           code: data.coupon.code,
           id: data.coupon.id,

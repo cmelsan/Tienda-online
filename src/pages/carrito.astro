@@ -284,10 +284,24 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
     removeFromCart(e.detail.id);
   });
 
+  // Elemento para mostrar errores de cupón
+  let couponErrorElement = document.getElementById('coupon-error');
+  
   window.addEventListener('apply-coupon', () => {
     const input = document.getElementById('coupon-input') as HTMLInputElement;
+    if (!couponErrorElement) {
+      couponErrorElement = document.createElement('div');
+      couponErrorElement.id = 'coupon-error';
+      input?.parentElement?.parentElement?.insertBefore(couponErrorElement, input.parentElement.nextSibling);
+    }
+    
+    // Limpiar mensaje previo
+    couponErrorElement.innerHTML = '';
+    couponErrorElement.className = '';
+    
     if (!input || !input.value.trim()) {
-      alert('Por favor ingresa un código');
+      couponErrorElement.innerHTML = 'Por favor ingresa un código';
+      couponErrorElement.className = 'text-red-500 text-xs mt-2';
       return;
     }
 
@@ -305,6 +319,8 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
     .then(res => res.json())
     .then(data => {
       if (data.valid) {
+        couponErrorElement.innerHTML = '';
+        couponErrorElement.className = '';
         applyCoupon({
           code: data.coupon.code,
           id: data.coupon.id,
@@ -313,10 +329,14 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
           discount_amount: data.coupon.discount_amount
         });
       } else {
-        alert(data.error || 'Código inválido');
+        couponErrorElement.innerHTML = data.error || 'Código inválido';
+        couponErrorElement.className = 'text-red-500 text-xs mt-2';
       }
     })
-    .catch(err => alert('Error: ' + err.message));
+    .catch(err => {
+      couponErrorElement.innerHTML = 'Error: ' + err.message;
+      couponErrorElement.className = 'text-red-500 text-xs mt-2';
+    });
   });
 
   window.addEventListener('remove-coupon', () => {

@@ -162,32 +162,55 @@ export default function CheckoutFlow() {
                 product_id: item.product.id,
                 quantity: item.quantity,
                 price: item.product.price,
+                product: item.product,
             }));
 
-            const response = await fetch('/api/orders/create', {
+            // Step 1: Create order
+            const createOrderResponse = await fetch('/api/orders/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     items: itemsArray,
                     email,
                     shippingAddress,
-                    coupon_id: coupon?.id || null,
+                    couponId: coupon?.id || null,
+                    discountAmount: coupon?.discount_amount || 0,
                     total: total
                 })
             });
 
-            const data = await response.json();
+            const orderData = await createOrderResponse.json();
 
-            if (!response.ok) {
-                alert(data.error || 'Error al crear la orden');
+            if (!createOrderResponse.ok || !orderData.success) {
+                alert(orderData.message || 'Error al crear la orden');
                 setProcessing(false);
                 return;
             }
 
-            // Redirect to Stripe checkout
-            if (data.checkout_url) {
-                window.location.href = data.checkout_url;
+            const orderId = orderData.order_id;
+            console.log('Order created:', orderId);
+
+            // Step 2: Create Stripe checkout session
+            const stripeResponse = await fetch('/api/create-checkout-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    items: itemsArray,
+                    orderId: orderId,
+                    email: email
+                })
+            });
+
+            const stripeData = await stripeResponse.json();
+
+            if (!stripeResponse.ok || !stripeData.url) {
+                alert(stripeData.error || 'Error al crear sesión de pago');
+                setProcessing(false);
+                return;
             }
+
+            // Step 3: Redirect to Stripe
+            window.location.href = stripeData.url;
         } catch (error: any) {
             alert('Error: ' + error.message);
             setProcessing(false);

@@ -13,15 +13,15 @@ export const onRequest = defineMiddleware(async (context: any, next: any) => {
         }
 
         try {
-            // Create Supabase client
-            const supabase = await createServerSupabaseClient(context);
+            // Create Supabase client with admin flag
+            const supabase = await createServerSupabaseClient(context, true);
 
             // Get session
             const { data: { session } } = await supabase.auth.getSession();
 
             // Redirect to login if not authenticated
             if (!session) {
-                console.log('[Middleware] No session for admin route, redirecting to /admin/login');
+                console.log('[Middleware] No admin session found, redirecting to /admin/login');
                 return redirect('/admin/login');
             }
 

@@ -197,7 +197,8 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
 
 // Server-side Supabase client (for SSR pages)
 export async function createServerSupabaseClient(
-    context: any
+    context: any,
+    isAdmin: boolean = false
 ): Promise<SupabaseClient<Database>> {
     // Extract cookies object - handle both Astro context and request context
     const cookies = context.cookies;
@@ -207,13 +208,17 @@ export async function createServerSupabaseClient(
         throw new Error('cookies object required');
     }
     
-    const accessTokenCookie = cookies.get("sb-access-token");
-    const refreshTokenCookie = cookies.get("sb-refresh-token");
+    // Use different cookie names for admin vs user sessions
+    const accessTokenName = isAdmin ? 'sb-admin-access-token' : 'sb-access-token';
+    const refreshTokenName = isAdmin ? 'sb-admin-refresh-token' : 'sb-refresh-token';
+    
+    const accessTokenCookie = cookies.get(accessTokenName);
+    const refreshTokenCookie = cookies.get(refreshTokenName);
     
     const accessToken = accessTokenCookie?.value;
     const refreshToken = refreshTokenCookie?.value;
     
-    console.log('[Supabase] Auth check - Access token present:', !!accessToken, 'Refresh token present:', !!refreshToken);
+    console.log(`[Supabase] Auth check (${isAdmin ? 'admin' : 'user'}) - Access token present:`, !!accessToken, 'Refresh token present:', !!refreshToken);
 
     const client = createClient<Database>(
         supabaseUrl,
@@ -229,7 +234,7 @@ export async function createServerSupabaseClient(
     );
 
     if (accessToken && refreshToken) {
-        console.log('[Supabase] Setting session from cookies');
+        console.log(`[Supabase] Setting session from ${isAdmin ? 'admin' : 'user'} cookies`);
         await client.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,

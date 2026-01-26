@@ -46,8 +46,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             
             console.log('[Admin Login] Setting cookies - Site URL:', siteUrl, 'Secure:', isSecure, 'User:', data.user.id);
             
-            cookies.set('sb-access-token', data.session.access_token, cookieOptions);
-            cookies.set('sb-refresh-token', data.session.refresh_token, cookieOptions);
+            // Use different cookie names for admin to avoid conflicts with user sessions
+            cookies.set('sb-admin-access-token', data.session.access_token, cookieOptions);
+            cookies.set('sb-admin-refresh-token', data.session.refresh_token, cookieOptions);
 
             // Return success response
             return new Response(JSON.stringify({ 

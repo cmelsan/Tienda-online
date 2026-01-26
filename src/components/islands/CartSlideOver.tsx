@@ -166,7 +166,7 @@ export default function CartSlideOver() {
                 {items.length > 0 && (
                     <div className="border-t border-gray-100 px-6 py-5 bg-gradient-to-t from-white to-gray-50 space-y-4">
                         {/* Coupon Badge */}
-                        {coupon && (
+                        {coupon && coupon.discount_amount > 0 && (
                             <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center space-x-2">
@@ -186,7 +186,7 @@ export default function CartSlideOver() {
                                 <span>Subtotal</span>
                                 <span className="font-semibold text-gray-900">{formatPrice(subtotal)}</span>
                             </div>
-                            {coupon && (
+                            {coupon && coupon.discount_amount > 0 && (
                                 <div className="flex justify-between text-sm text-green-600">
                                     <span>Descuento</span>
                                     <span className="font-semibold">-{formatPrice(coupon.discount_amount)}</span>

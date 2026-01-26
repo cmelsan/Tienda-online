@@ -38,20 +38,6 @@ export const POST: APIRoute = async ({ request }) => {
             };
         });
 
-        // If there's a discount, add it as a line item
-        if (discountAmount && discountAmount > 0) {
-            line_items.push({
-                price_data: {
-                    currency: 'eur',
-                    product_data: {
-                        name: 'Descuento aplicado',
-                    },
-                    unit_amount: -Math.round(discountAmount), // Negative amount for discount
-                },
-                quantity: 1,
-            });
-        }
-
         // Create Checkout Session
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -62,6 +48,7 @@ export const POST: APIRoute = async ({ request }) => {
             customer_email: email, // Pre-fill email if available
             metadata: {
                 orderId: orderId, // Crucial for matching webhook events to orders
+                discountAmount: discountAmount ? Math.round(discountAmount) : 0,
             },
         });
 

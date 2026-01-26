@@ -43,14 +43,22 @@ export const onRequest = defineMiddleware(async (context: any, next: any) => {
     // Check if the route is a customer protected route
     if (url.pathname.startsWith('/mi-cuenta')) {
         try {
+            // Debug: Log cookies
+            const accessTokenCookie = context.cookies.get('sb-access-token');
+            console.log('[Middleware] /mi-cuenta - Checking auth');
+            console.log('[Middleware] Access token cookie:', accessTokenCookie?.value ? 'EXISTS' : 'MISSING');
+            
             const supabase = await createServerSupabaseClient(context);
             const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
+                console.log('[Middleware] No session found, redirecting to /login');
                 return redirect('/login');
             }
+            
+            console.log('[Middleware] Session found for user:', session.user.id);
         } catch (error) {
-            console.error('Middleware error:', error);
+            console.error('[Middleware] Error checking /mi-cuenta:', error);
             return redirect('/login');
         }
     }

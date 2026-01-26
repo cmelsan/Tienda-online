@@ -118,14 +118,36 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
         }
       }
 
-      // Server has set cookies, now redirect
+      // Server has set cookies via Set-Cookie header
+      // Wait and verify cookies are present before redirecting
       const urlParams = new URLSearchParams(window.location.search);
       const redirectUrl = urlParams.get('redirect') || '/mi-cuenta';
       
-      // Small delay to ensure cookies are processed by the browser
-      setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, 100);
+      console.log('[Login] Login successful, waiting for cookies...');
+      
+      // Wait for browser to process Set-Cookie headers
+      // Then verify at least one cookie is present
+      let cookiesReady = false;
+      let attempts = 0;
+      const maxAttempts = 20; // 20 * 50ms = 1 second max wait
+      
+      const checkCookies = () => {
+        attempts++;
+        const hasCookies = document.cookie.includes('sb-') || attempts >= maxAttempts;
+        
+        if (hasCookies || attempts >= maxAttempts) {
+          if (attempts >= maxAttempts && !hasCookies) {
+            console.warn('[Login] Timeout waiting for cookies, proceeding anyway');
+          } else {
+            console.log('[Login] Cookies detected, redirecting...');
+          }
+          window.location.href = redirectUrl;
+        } else {
+          setTimeout(checkCookies, 50);
+        }
+      };
+      
+      checkCookies();
     } catch (error) {
       if (errorMessage) {
         errorMessage.textContent = error instanceof Error ? error.message : 'Credenciales inválidas. Por favor, inténtalo de nuevo.';

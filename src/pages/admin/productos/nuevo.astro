@@ -4,6 +4,7 @@ export const prerender = false; // SSR
 import AdminLayout from '@/layouts/AdminLayout.astro';
 import Input from '@/components/ui/Input.astro';
 import Button from '@/components/ui/Button.astro';
+import ImageUploader from '@/components/admin/ImageUploader';
 import { supabase } from '@/lib/supabase';
 import { slugify } from '@/lib/utils';
 
@@ -209,21 +210,13 @@ if (Astro.request.method === 'POST') {
       <div class="space-y-6">
         <h3 class="text-sm font-bold text-black uppercase border-b border-gray-100 pb-2">Imágenes</h3>
         
-        <div class="space-y-2">
-          <label for="images" class="block text-xs font-bold text-gray-700 uppercase tracking-wider">
-            URLs de Imágenes (Una por línea)
-          </label>
-          <textarea
-            id="images"
-            name="images"
-            rows="4"
-            placeholder="https://res.cloudinary.com/.../imagen1.jpg&#10;https://res.cloudinary.com/.../imagen2.jpg"
-            class="w-full border border-gray-300 p-3 text-xs font-mono focus:border-black focus:ring-0 focus:outline-none transition-colors placeholder-gray-400 rounded-none bg-gray-50"
-          ></textarea>
-          <p class="text-[10px] text-gray-500 uppercase tracking-wide">
-            Compatible con Cloudinary y Supabase Storage.
-          </p>
-        </div>
+        <ImageUploader client:load onImagesChange={() => {}} />
+        
+        <p class="text-[10px] text-gray-500 uppercase tracking-wide">
+          ✓ Las imágenes se suben automáticamente a Cloudinary<br/>
+          ✓ Se guardarán como URLs en la base de datos<br/>
+          ✓ Máximo 5 imágenes por producto
+        </p>
       </div>
 
       <!-- Actions -->

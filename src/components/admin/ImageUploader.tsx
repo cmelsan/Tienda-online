@@ -1,22 +1,21 @@
 import React, { useState, useRef } from 'react';
 
 interface ImageUploaderProps {
-  onImageAdded: (url: string) => void;
+  onImagesChange: (images: string[]) => void;
   maxImages?: number;
-  currentImages?: string[];
 }
 
 export default function ImageUploader({
-  onImageAdded,
+  onImagesChange,
   maxImages = 5,
-  currentImages = [],
 }: ImageUploaderProps) {
+  const [images, setImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const canAddMore = currentImages.length < maxImages;
+  const canAddMore = images.length < maxImages;
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -60,8 +59,10 @@ export default function ImageUploader({
         throw new Error(result.error || 'Error al subir la imagen');
       }
 
-      // Add the image URL
-      onImageAdded(result.secure_url);
+      // Add the image URL to the list
+      const newImages = [...images, result.secure_url];
+      setImages(newImages);
+      onImagesChange(newImages); // Notify parent component
       
       // Reset
       setPreview(null);
@@ -78,6 +79,12 @@ export default function ImageUploader({
     }
   };
 
+  const removeImage = (index: number) => {
+    const newImages = images.filter((_, i) => i !== index);
+    setImages(newImages);
+    onImagesChange(newImages);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -85,7 +92,7 @@ export default function ImageUploader({
           Fotos del Producto
         </label>
         <span className="text-xs text-gray-500">
-          {currentImages.length}/{maxImages}
+          {images.length}/{maxImages}
         </span>
       </div>
 
@@ -160,13 +167,13 @@ export default function ImageUploader({
       )}
 
       {/* Images Gallery */}
-      {currentImages.length > 0 && (
+      {images.length > 0 && (
         <div className="space-y-2">
           <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">
             Imágenes Subidas
           </label>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {currentImages.map((url, index) => (
+            {images.map((url, index) => (
               <div
                 key={index}
                 className="relative group border border-gray-200 rounded-lg overflow-hidden bg-gray-50"
@@ -178,11 +185,7 @@ export default function ImageUploader({
                 />
                 <button
                   type="button"
-                  onClick={() => {
-                    // This will be handled by parent component
-                    // You might want to emit an event or callback
-                    console.log('Remove image:', url);
-                  }}
+                  onClick={() => removeImage(index)}
                   className="absolute inset-0 bg-black/0 group-hover:bg-black/50 flex items-center justify-center transition opacity-0 group-hover:opacity-100"
                 >
                   <svg
@@ -210,11 +213,11 @@ export default function ImageUploader({
         </div>
       )}
 
-      {/* Hidden input to store image URLs */}
+      {/* Hidden input to store image URLs - used by parent form */}
       <input
         type="hidden"
         name="images"
-        value={currentImages.join('\n')}
+        value={images.join('\n')}
       />
     </div>
   );

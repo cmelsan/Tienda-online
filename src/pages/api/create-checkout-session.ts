@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import Stripe from 'stripe';
 
-const YOUR_DOMAIN = import.meta.env.PUBLIC_SITE_URL || 'http://localhost:4321';
+const YOUR_DOMAIN = import.meta.env.PUBLIC_SITE_URL || 'https://claudiaeclat.victoriafp.online';
 
 export const POST: APIRoute = async ({ request }) => {
     const stripeSecretKey = import.meta.env.STRIPE_SECRET_KEY;

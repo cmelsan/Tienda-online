@@ -14,6 +14,8 @@ const slugify = (text: string) => {
 
 export const POST: APIRoute = async (context) => {
     try {
+        const { request } = context;
+        
         // Create authenticated Supabase client with admin session
         const clientSupabase = await createServerSupabaseClient(context, true);
 

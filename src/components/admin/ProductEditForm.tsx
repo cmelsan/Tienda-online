@@ -242,7 +242,7 @@ export default function ProductEditForm({ product, categories, subcategories, br
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-gold-600 text-white rounded-lg font-medium hover:bg-gold-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-beauty-red text-white rounded-lg font-medium hover:bg-beauty-pink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
               </button>

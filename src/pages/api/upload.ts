@@ -1,11 +1,5 @@
 import type { APIRoute } from 'astro';
-import { v2 as cloudinary } from 'cloudinary';
-
-cloudinary.config({
-  cloud_name: process.env.PUBLIC_CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.PUBLIC_CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import crypto from 'crypto';
 
 /**
  * GET /api/upload/signature
@@ -14,30 +8,43 @@ cloudinary.config({
  */
 export const GET: APIRoute = async () => {
   try {
+    const cloudName = process.env.PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.PUBLIC_CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      console.error('Missing Cloudinary environment variables');
+      return new Response(
+        JSON.stringify({ error: 'Cloudinary not configured' }),
+        { 
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+    }
+
     const timestamp = Math.floor(Date.now() / 1000);
     
-    const signature = cloudinary.utils.api_sign_request(
-      {
-        timestamp,
-        folder: 'eclat-beauty/products',
-        quality: 'auto',
-        fetch_format: 'auto',
-      },
-      process.env.CLOUDINARY_API_SECRET!
-    );
+    // Create signature string
+    const signatureString = `folder=eclat-beauty/products&timestamp=${timestamp}${apiSecret}`;
+    const signature = crypto
+      .createHash('sha1')
+      .update(signatureString)
+      .digest('hex');
 
     return new Response(
       JSON.stringify({
         timestamp,
         signature,
-        cloud_name: process.env.PUBLIC_CLOUDINARY_CLOUD_NAME,
-        api_key: process.env.PUBLIC_CLOUDINARY_API_KEY,
+        cloud_name: cloudName,
+        api_key: apiKey,
       }),
       {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
         }
       }
     );
@@ -49,7 +56,6 @@ export const GET: APIRoute = async () => {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
         }
       }
     );

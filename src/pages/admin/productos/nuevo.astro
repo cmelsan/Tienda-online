@@ -6,7 +6,6 @@ import Input from '@/components/ui/Input.astro';
 import Button from '@/components/ui/Button.astro';
 import ImageUploader from '@/components/admin/ImageUploader';
 import { supabase } from '@/lib/supabase';
-import { slugify } from '@/lib/utils';
 
 // Fetch categories for dropdown
 const { data: categories } = await supabase
@@ -20,56 +19,11 @@ const { data: brands } = await supabase
   .select('*')
   .order('name');
 
-let successMessage = '';
-let errorMessage = '';
-
 // Fetch subcategories
 const { data: subcategories } = await supabase
   .from('subcategories')
   .select('*')
   .order('name');
-
-// Handle form submission
-if (Astro.request.method === 'POST') {
-  const formData = await Astro.request.formData();
-  
-  const name = formData.get('name')?.toString();
-  const description = formData.get('description')?.toString();
-  const price = parseFloat(formData.get('price')?.toString() || '0');
-  const stock = parseInt(formData.get('stock')?.toString() || '0');
-
-  const category_id = formData.get('category_id')?.toString();
-  const subcategory_id = formData.get('subcategory_id')?.toString() || null;
-  const brand_id = formData.get('brand_id')?.toString() || null;
-  const images = formData.get('images')?.toString().split('\n').filter(Boolean) || [];
-
-  if (name && description && category_id) {
-    const slug = slugify(name);
-    const priceInCents = Math.round(price * 100);
-
-    const { error } = await supabase
-      .from('products')
-      .insert({
-        name,
-        slug,
-        description,
-        price: priceInCents,
-        stock,
-        category_id,
-        subcategory_id, // Add this
-        brand_id: brand_id || null, 
-        images,
-      });
-
-    if (error) {
-      errorMessage = `Error: ${error.message}`;
-    } else {
-      return Astro.redirect('/admin/productos');
-    }
-  } else {
-    errorMessage = 'Por favor completa todos los campos requeridos';
-  }
-}
 ---
 
 <AdminLayout title="Nuevo Producto">
@@ -96,7 +50,7 @@ if (Astro.request.method === 'POST') {
       </div>
     )}
 
-    <form method="POST" class="bg-white border border-gray-200 p-8 shadow-sm space-y-8">
+    <form id="productForm" class="bg-white border border-gray-200 p-8 shadow-sm space-y-8">
       <!-- Basic Info -->
       <div class="space-y-6">
         <h3 class="text-sm font-bold text-black uppercase border-b border-gray-100 pb-2">Información Básica</h3>
@@ -234,3 +188,49 @@ if (Astro.request.method === 'POST') {
     </form>
   </div>
 </AdminLayout>
+
+<script>
+document.getElementById('productForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const formData = new FormData(e.target);
+  const imagesField = formData.get('images')?.toString() || '';
+  const images = imagesField.split('\n').filter(img => img.trim());
+  
+  const data = {
+    name: formData.get('name'),
+    description: formData.get('description'),
+    price: parseFloat(formData.get('price') || '0'),
+    stock: parseInt(formData.get('stock') || '0'),
+    category_id: formData.get('category_id'),
+    subcategory_id: formData.get('subcategory_id') || null,
+    brand_id: formData.get('brand_id') || null,
+    images: images
+  };
+  
+  try {
+    const response = await fetch('/api/admin/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    
+    if (response.ok) {
+      window.location.href = '/admin/productos';
+    } else {
+      const error = await response.json();
+      const errorDiv = document.querySelector('#productForm')?.previousElementSibling;
+      if (errorDiv) {
+        errorDiv.textContent = error.error || 'Error creando producto';
+        errorDiv.style.display = 'block';
+      }
+    }
+  } catch (err) {
+    const errorDiv = document.querySelector('#productForm')?.previousElementSibling;
+    if (errorDiv) {
+      errorDiv.textContent = 'Error al procesar la solicitud';
+      errorDiv.style.display = 'block';
+    }
+  }
+});
+</script>

@@ -82,6 +82,7 @@ export default function AttributesManage({ token: initialToken, categories, subc
       if (data.success) {
         setSubs([...subs, data.subcategory]);
         setNewSubName('');
+        setNewSubCategory('');
       } else {
         alert('Error: ' + (data.error || data.message));
       }

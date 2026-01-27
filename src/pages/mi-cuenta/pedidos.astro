@@ -1,9 +1,10 @@
 ---
 import PublicLayout from '@/layouts/PublicLayout.astro';
 import OrderActions from '@/components/orders/OrderActions';
-import { supabase } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase';
 
 // 1. Auth Check
+const supabase = await createServerSupabaseClient(Astro);
 const { data: { user } } = await supabase.auth.getUser();
 
 if (!user) {

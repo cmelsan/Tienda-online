@@ -1,75 +1,22 @@
 ---
-export const prerender = false; // SSR
+export const prerender = false;
 
 import AdminLayout from '@/layouts/AdminLayout.astro';
-import Button from '@/components/ui/Button.astro';
-import { supabase } from '@/lib/supabase';
+import SettingsForm from '@/components/admin/SettingsForm';
+import { createServerSupabaseClient } from '@/lib/supabase';
 
-// 1. Fetch current settings
+const supabase = await createServerSupabaseClient(Astro);
+
+// Fetch current settings
 const { data: settings } = await supabase
   .from('settings')
   .select('*')
   .eq('key', 'offers_enabled')
   .single();
 
-let offersEnabled = settings?.value === true;
-let message = '';
-
-// 2. Handle Update
-if (Astro.request.method === 'POST') {
-  const formData = await Astro.request.formData();
-  const newState = formData.get('offers_enabled') === 'on';
-  
-  const { error } = await supabase
-    .from('settings')
-    .upsert({ 
-        key: 'offers_enabled', 
-        value: newState,
-        updated_at: new Date().toISOString()
-    });
-
-  if (error) {
-    message = 'Error al guardar configuración.';
-  } else {
-    message = 'Configuración actualizada correctamente.';
-    offersEnabled = newState;
-  }
-}
+const offersEnabled = settings?.value === true;
 ---
 
 <AdminLayout title="Configuración Global">
-  <div class="max-w-2xl">
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold text-black uppercase tracking-wider mb-2">Configuración de la Tienda</h1>
-      <p class="text-xs text-gray-500 uppercase tracking-wide">Gestiona la visibilidad de secciones y parámetros globales.</p>
-    </div>
-
-    {message && (
-      <div class={`mb-6 p-4 border text-xs font-bold uppercase tracking-wide ${message.includes('Error') ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-green-50 border-green-200 text-green-600'}`}>
-        {message}
-      </div>
-    )}
-
-    <div class="bg-white border border-gray-200 p-8 shadow-sm">
-        <form method="POST">
-            <div class="flex items-center justify-between pb-6 border-b border-gray-100">
-                <div>
-                    <h3 class="text-sm font-bold text-black uppercase">Sección de Ofertas</h3>
-                    <p class="text-xs text-gray-500 mt-1 max-w-sm">Si se desactiva, la página de ofertas mostrará un error 404 y el enlace desaparecerá del menú principal.</p>
-                </div>
-                
-                <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="offers_enabled" class="sr-only peer" checked={offersEnabled}>
-                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
-                </label>
-            </div>
-
-            <div class="pt-6 flex justify-end">
-                <Button type="submit" variant="primary" class="bg-black text-white hover:bg-gray-900 uppercase tracking-widest text-xs font-bold px-6 py-3 rounded-none">
-                    Guardar Cambios
-                </Button>
-            </div>
-        </form>
-    </div>
-  </div>
+  <SettingsForm client:load offersEnabled={offersEnabled} />
 </AdminLayout>

@@ -1,140 +1,20 @@
 ---
 import AdminLayout from '@/layouts/AdminLayout.astro';
-import { supabase } from '@/lib/supabase';
-
-// Check Admin Auth (Middleware handles redirection, but we can double check or just rely on it)
+import { createServerSupabaseClient } from '@/lib/supabase';
+import AttributesManage from '@/components/admin/AttributesManage';
 
 // Fetch Data
+const supabase = await createServerSupabaseClient(Astro);
 const { data: brands } = await supabase.from('brands').select('*').order('name');
 const { data: categories } = await supabase.from('categories').select('*').order('name');
 const { data: subcategories } = await supabase.from('subcategories').select('*, category:categories(name)').order('name');
-
 ---
 
 <AdminLayout title="Gestionar Atributos | Admin">
-    <div class="p-6 max-w-7xl mx-auto" x-data="{ activeTab: 'subcategories', selectedCategory: 'all' }">
-        <h1 class="text-3xl font-bold text-gray-900 mb-8">Gestión de Atributos</h1>
-
-        <!-- Tabs -->
-        <div class="border-b border-gray-200 mb-8">
-            <nav class="-mb-px flex space-x-8">
-                <button 
-                    @click="activeTab = 'subcategories'"
-                    :class="{ 'border-black text-black': activeTab === 'subcategories', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'subcategories' }"
-                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors"
-                >
-                    Subcategorías
-                </button>
-                <button 
-                    @click="activeTab = 'brands'"
-                    :class="{ 'border-black text-black': activeTab === 'brands', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'brands' }"
-                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors"
-                >
-                    Marcas
-                </button>
-            </nav>
-        </div>
-
-        <!-- SUBCATEGORIES SECTION -->
-        <div x-show="activeTab === 'subcategories'" class="space-y-6">
-            <div class="flex justify-between items-center bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <div class="flex items-center gap-4">
-                     <label class="text-sm font-bold text-gray-700">Filtrar por Categoría:</label>
-                     <select x-model="selectedCategory" class="rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black">
-                        <option value="all">Todas</option>
-                        {categories?.map(cat => (
-                            <option value={cat.id}>{cat.name}</option>
-                        ))}
-                     </select>
-                </div>
-                
-                <!-- Add Subcategory Form -->
-                <form 
-                    action="/api/admin/attributes" 
-                    method="POST" 
-                    class="flex gap-2"
-                    onsubmit="event.preventDefault(); this.submit();"
-                >
-                    <input type="hidden" name="action" value="create_subcategory">
-                    <select name="category_id" required class="rounded-md border-gray-300 shadow-sm text-sm" x-model="selectedCategory === 'all' ? '' : selectedCategory">
-                         <option value="" disabled selected>Selecciona Categoría Padre</option>
-                         {categories?.map(cat => (
-                            <option value={cat.id}>{cat.name}</option>
-                        ))}
-                    </select>
-                    <input type="text" name="name" placeholder="Nueva Subcategoría (ej. Rostro)" required class="rounded-md border-gray-300 shadow-sm text-sm w-64">
-                    <button type="submit" class="bg-black text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-gray-800 transition-colors">
-                        + Añadir
-                    </button>
-                </form>
-            </div>
-
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subcategoría</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría Padre</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {subcategories?.map(sub => (
-                            <tr x-show={`selectedCategory === 'all' || selectedCategory === '${sub.category_id}'`}>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{sub.name}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                        {sub.category?.name}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 italic">{sub.slug}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <form action="/api/admin/attributes" method="POST" class="inline">
-                                        <input type="hidden" name="action" value="delete_subcategory">
-                                        <input type="hidden" name="id" value={sub.id}>
-                                        <button type="submit" class="text-red-600 hover:text-red-900 font-bold" onclick="return confirm('¿Seguro que quieres borrar esta subcategoría?')">
-                                            Eliminar
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- BRANDS SECTION -->
-        <div x-show="activeTab === 'brands'" class="space-y-6" style="display: none;">
-             <div class="flex justify-between items-center bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                 <h2 class="text-lg font-bold">Listado de Marcas</h2>
-                 
-                 <!-- Add Brand Form -->
-                 <form action="/api/admin/attributes" method="POST" class="flex gap-2">
-                    <input type="hidden" name="action" value="create_brand">
-                    <input type="text" name="name" placeholder="Nombre de la Nueva Marca" required class="rounded-md border-gray-300 shadow-sm text-sm w-64">
-                    <button type="submit" class="bg-black text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-gray-800 transition-colors">
-                        + Añadir Marca
-                    </button>
-                </form>
-             </div>
-
-             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {brands?.map(brand => (
-                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center group hover:border-black transition-colors">
-                        <span class="font-bold text-sm truncate">{brand.name}</span>
-                        <form action="/api/admin/attributes" method="POST">
-                             <input type="hidden" name="action" value="delete_brand">
-                             <input type="hidden" name="id" value={brand.id}>
-                             <button type="submit" class="text-gray-400 hover:text-red-600 p-1 opacity-0 group-hover:opacity-100 transition-opacity" onclick="return confirm('¿Seguro?')">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                             </button>
-                        </form>
-                    </div>
-                ))}
-             </div>
-        </div>
-
-    </div>
+  <AttributesManage 
+    client:load 
+    categories={categories || []}
+    subcategories={subcategories || []}
+    brands={brands || []}
+  />
 </AdminLayout>

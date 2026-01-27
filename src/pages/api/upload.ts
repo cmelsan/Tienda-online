@@ -15,15 +15,19 @@ cloudinary.config({
  */
 export const POST: APIRoute = async ({ request }) => {
   try {
-    // Check if user is authenticated (optional - add your auth check)
-    
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
     if (!file) {
       return new Response(
         JSON.stringify({ error: 'No file provided' }),
-        { status: 400 }
+        { 
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          }
+        }
       );
     }
 
@@ -45,7 +49,13 @@ export const POST: APIRoute = async ({ request }) => {
             resolve(
               new Response(
                 JSON.stringify({ error: `Upload failed: ${error.message}` }),
-                { status: 500 }
+                { 
+                  status: 500,
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                  }
+                }
               )
             );
           } else {
@@ -57,7 +67,13 @@ export const POST: APIRoute = async ({ request }) => {
                   public_id: result?.public_id,
                   url: result?.url,
                 }),
-                { status: 200 }
+                { 
+                  status: 200,
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                  }
+                }
               )
             );
           }
@@ -70,7 +86,13 @@ export const POST: APIRoute = async ({ request }) => {
     console.error('Upload error:', error);
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        }
+      }
     );
   }
 };

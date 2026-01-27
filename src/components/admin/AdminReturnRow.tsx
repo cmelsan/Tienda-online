@@ -4,11 +4,13 @@ import { supabase } from '@/lib/supabase';
 interface AdminReturnRowProps {
     orderId: string;
     orderTotal: string;
+    orderStatus?: string; // 'return_requested' or 'returned'
 }
 
-export default function AdminReturnRow({ orderId, orderTotal }: AdminReturnRowProps) {
+export default function AdminReturnRow({ orderId, orderTotal, orderStatus = 'return_requested' }: AdminReturnRowProps) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [notes, setNotes] = useState('');
+    const isRefundStage = orderStatus === 'returned';
 
     const handleProcessReturn = async (approved: boolean, restoreStock: boolean, action: string) => {
         const confirmMessage = approved
@@ -69,47 +71,71 @@ export default function AdminReturnRow({ orderId, orderTotal }: AdminReturnRowPr
 
     return (
         <div className="space-y-4">
-            {/* Admin Notes */}
-            <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">
-                    Notas Administrativas (opcional)
-                </label>
-                <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="w-full border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none resize-none rounded"
-                    rows={2}
-                    placeholder="Añade comentarios sobre esta devolución..."
-                    disabled={isProcessing}
-                />
-            </div>
+            {isRefundStage ? (
+                <>
+                    {/* REFUND STAGE: Process Refund */}
+                    <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-3">
+                            Devolución aprobada. Procesar reembolso de <span className="text-green-600">{orderTotal}</span>
+                        </p>
+                    </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-                <button
-                    onClick={() => handleProcessReturn(true, true, 'Devolución aprobada y stock restaurado')}
-                    disabled={isProcessing}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
-                >
-                    {isProcessing ? 'Procesando...' : '✓ Aprobar y Restaurar Stock'}
-                </button>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={handleProcessRefund}
+                            disabled={isProcessing}
+                            className="flex-1 bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
+                        >
+                            {isProcessing ? 'Procesando...' : '💰 Procesar Reembolso'}
+                        </button>
+                    </div>
+                </>
+            ) : (
+                <>
+                    {/* RETURN REQUESTED STAGE: Approve/Reject Return */}
+                    {/* Admin Notes */}
+                    <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">
+                            Notas Administrativas (opcional)
+                        </label>
+                        <textarea
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            className="w-full border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none resize-none rounded"
+                            rows={2}
+                            placeholder="Añade comentarios sobre esta devolución..."
+                            disabled={isProcessing}
+                        />
+                    </div>
 
-                <button
-                    onClick={() => handleProcessReturn(true, false, 'Devolución aprobada sin restaurar stock')}
-                    disabled={isProcessing}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
-                >
-                    {isProcessing ? 'Procesando...' : '✓ Aprobar sin Restaurar Stock'}
-                </button>
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => handleProcessReturn(true, true, 'Devolución aprobada y stock restaurado')}
+                            disabled={isProcessing}
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
+                        >
+                            {isProcessing ? 'Procesando...' : '✓ Aprobar y Restaurar Stock'}
+                        </button>
 
-                <button
-                    onClick={() => handleProcessReturn(false, false, 'Devolución rechazada')}
-                    disabled={isProcessing}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
-                >
-                    {isProcessing ? 'Procesando...' : '✗ Rechazar Devolución'}
-                </button>
-            </div>
+                        <button
+                            onClick={() => handleProcessReturn(true, false, 'Devolución aprobada sin restaurar stock')}
+                            disabled={isProcessing}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
+                        >
+                            {isProcessing ? 'Procesando...' : '✓ Aprobar sin Restaurar Stock'}
+                        </button>
+
+                        <button
+                            onClick={() => handleProcessReturn(false, false, 'Devolución rechazada')}
+                            disabled={isProcessing}
+                            className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
+                        >
+                            {isProcessing ? 'Procesando...' : '✗ Rechazar Devolución'}
+                        </button>
+                    </div>
+                </>
+            )}
         </div>
     );
 }

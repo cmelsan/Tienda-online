@@ -413,9 +413,11 @@ CREATE TABLE IF NOT EXISTS orders (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id), -- Nullable for guests
   guest_email VARCHAR(255),               -- Required if user_id is null
-  status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'shipped', 'delivered', 'cancelled', 'return_requested', 'returned', 'refunded')),
+  status VARCHAR(20) NOT NULL DEFAULT 'awaiting_payment' CHECK (status IN ('awaiting_payment', 'paid', 'shipped', 'delivered', 'cancelled', 'return_requested', 'returned', 'refunded')),
   delivered_at TIMESTAMP WITH TIME ZONE, -- Set when status changes to 'delivered'
-  return_deadline TIMESTAMP WITH TIME ZONE, -- Computed as delivered_at + 30 days
+  return_initiated_at TIMESTAMP WITH TIME ZONE, -- Set when customer requests return
+  return_deadline_at TIMESTAMP WITH TIME ZONE, -- Deadline to physically return the item (14 days from return_initiated_at)
+  return_address JSONB, -- Address where customer should send the return package
   total_amount INTEGER NOT NULL CHECK (total_amount >= 0),
   shipping_address JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -597,6 +599,19 @@ BEGIN
     WHERE id = v_item.product_id;
   END LOOP;
 
+  -- 4. Release used coupons (decrement current_uses and remove from coupon_usage)
+  IF EXISTS (SELECT 1 FROM coupon_usage WHERE order_id = p_order_id) THEN
+    UPDATE coupons 
+    SET current_uses = GREATEST(0, current_uses - 1)
+    WHERE id IN (SELECT coupon_id FROM coupon_usage WHERE order_id = p_order_id);
+    
+    DELETE FROM coupon_usage WHERE order_id = p_order_id;
+  END IF;
+
+  -- 5. Log cancellation
+  INSERT INTO order_status_history (order_id, from_status, to_status, changed_by, changed_by_type, notes)
+  VALUES (p_order_id, 'paid', 'cancelled', auth.uid(), 'user', 'Self-cancelled by customer');
+
   RETURN jsonb_build_object('success', true, 'message', 'Order cancelled and stock restored successfully');
 EXCEPTION WHEN OTHERS THEN
   RETURN jsonb_build_object('success', false, 'message', SQLERRM);
@@ -752,9 +767,20 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'message', 'Return window expired (30 days from delivery)');
   END IF;
 
-  -- Update order status
+  -- Update order status AND set return timestamps + address
   UPDATE orders
-  SET status = 'return_requested', updated_at = NOW()
+  SET 
+    status = 'return_requested',
+    return_initiated_at = NOW(),
+    return_deadline_at = NOW() + INTERVAL '14 days',
+    return_address = jsonb_build_object(
+      'street', 'Carrer de Còrsega 360',
+      'city', 'Barcelona',
+      'postal_code', '08037',
+      'country', 'ES',
+      'instructions', 'Por favor, devuelve el producto en su embalaje original en buen estado'
+    ),
+    updated_at = NOW()
   WHERE id = p_order_id;
 
   -- Log status change

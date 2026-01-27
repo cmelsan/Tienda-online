@@ -64,9 +64,9 @@ export default function OrderActions({ orderId, status, deliveredAt }: OrderActi
                     Cancelado
                 </span>
             )}
-            {currentStatus === 'pending' && (
+            {currentStatus === 'awaiting_payment' && (
                 <span className="text-yellow-600 font-bold text-sm bg-yellow-50 px-3 py-1 rounded-full border border-yellow-100">
-                    Pendiente de Pago
+                    Pagando
                 </span>
             )}
             {currentStatus === 'paid' && (

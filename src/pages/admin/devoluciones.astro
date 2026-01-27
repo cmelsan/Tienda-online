@@ -4,7 +4,7 @@ import AdminLayout from '@/layouts/AdminLayout.astro';
 import AdminReturnRow from '@/components/admin/AdminReturnRow';
 import { createServerSupabaseClient } from '@/lib/supabase';
 
-// Fetch all orders with return_requested status
+// Fetch all orders with return_requested or returned status
 const supabase = await createServerSupabaseClient(Astro, true);
 
 const { data: returnRequests } = await supabase
@@ -32,7 +32,7 @@ const { data: returnRequests } = await supabase
       created_at
     )
   `)
-  .eq('status', 'return_requested')
+  .in('status', ['return_requested', 'returned'])
   .order('created_at', { ascending: false });
 
 const formatDate = (dateStr: string) => {
@@ -53,11 +53,11 @@ const formatPrice = (amount: number) => {
     <!-- Header -->
     <div class="flex justify-between items-center">
       <div>
-        <h2 class="text-2xl font-bold uppercase tracking-wide">Solicitudes de Devolución</h2>
-        <p class="text-sm text-gray-600 mt-1">Revisa y aprobar/rechazar devoluciones de clientes</p>
+        <h2 class="text-2xl font-bold uppercase tracking-wide">Gestión de Devoluciones</h2>
+        <p class="text-sm text-gray-600 mt-1">Revisar, aprobar/rechazar devoluciones y procesar reembolsos</p>
       </div>
       <div class="bg-blue-50 px-4 py-2 rounded-full border border-blue-200">
-        <span class="text-sm font-bold text-blue-600">{returnRequests?.length || 0} solicitudes pendientes</span>
+        <span class="text-sm font-bold text-blue-600">{returnRequests?.length || 0} pendientes</span>
       </div>
     </div>
 
@@ -79,11 +79,15 @@ const formatPrice = (amount: number) => {
           const returnHistory = order.order_status_history?.find((h: any) => h.notes);
           const returnReason = returnHistory?.notes || 'Sin motivo especificado';
           const requestDate = returnHistory?.created_at || order.created_at;
+          const isRefundStage = order.status === 'returned';
+          const headerColor = isRefundStage ? 'bg-indigo-50 border-indigo-200' : 'bg-orange-50 border-orange-200';
+          const badgeColor = isRefundStage ? 'bg-indigo-100 text-indigo-700 border-indigo-300' : 'bg-orange-100 text-orange-700 border-orange-300';
+          const statusLabel = isRefundStage ? 'Devuelto - Reembolso Pendiente' : 'Devolución Solicitada';
 
           return (
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               {/* Request Header */}
-              <div class="bg-orange-50 px-6 py-4 border-b border-orange-200">
+              <div class={`px-6 py-4 border-b ${headerColor}`}>
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div class="flex gap-8 text-sm">
                     <div>
@@ -104,8 +108,8 @@ const formatPrice = (amount: number) => {
                     </div>
                   </div>
                   
-                  <span class="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-full border border-orange-300">
-                    Devolución Solicitada
+                  <span class={`px-3 py-1 text-xs font-bold rounded-full border ${badgeColor}`}>
+                    {statusLabel}
                   </span>
                 </div>
               </div>
@@ -133,12 +137,14 @@ const formatPrice = (amount: number) => {
                 </div>
 
                 {/* Reason */}
-                <div>
-                  <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Motivo de Devolución</h4>
-                  <div class="bg-gray-50 p-4 rounded border border-gray-200">
-                    <p class="text-sm text-gray-700">{returnReason}</p>
+                {!isRefundStage && (
+                  <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Motivo de Devolución</h4>
+                    <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                      <p class="text-sm text-gray-700">{returnReason}</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Actions (Using Client Component) */}
@@ -147,6 +153,7 @@ const formatPrice = (amount: number) => {
                   client:visible 
                   orderId={order.id}
                   orderTotal={formatPrice(order.total_amount)}
+                  orderStatus={order.status}
                 />
               </div>
             </div>

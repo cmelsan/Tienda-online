@@ -45,9 +45,10 @@ export default function ImageUploader({
       reader.readAsDataURL(file);
 
       // Get upload signature from server
-      const signatureResponse = await fetch('/api/upload/signature');
+      const signatureResponse = await fetch('/api/cloudinary/signature');
       if (!signatureResponse.ok) {
-        throw new Error('Error al obtener firma de subida');
+        const errorData = await signatureResponse.json();
+        throw new Error(errorData.error || 'Error al obtener firma de subida');
       }
       const { timestamp, signature, cloud_name, api_key } = await signatureResponse.json();
 

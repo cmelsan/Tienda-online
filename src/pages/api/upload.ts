@@ -8,6 +8,20 @@ cloudinary.config({
 });
 
 /**
+ * OPTIONS /api/upload - Handle CORS preflight
+ */
+export const OPTIONS: APIRoute = async () => {
+  return new Response(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, x-csrf-token',
+    },
+  });
+};
+
+/**
  * POST /api/upload
  * Upload a single image to Cloudinary
  * Body: multipart/form-data with 'file' field

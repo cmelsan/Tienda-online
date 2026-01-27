@@ -48,9 +48,13 @@ export default function ImageUploader({
       const formData = new FormData();
       formData.append('file', file);
 
+      // Get CSRF token from meta tag or create one
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
+        headers: csrfToken ? { 'x-csrf-token': csrfToken } : {},
       });
 
       const result = await response.json();

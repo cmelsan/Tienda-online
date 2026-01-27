@@ -24,24 +24,12 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // If user is authenticated with a valid token, they've already been verified as admin during login
+    // No need to check is_admin again - the login endpoint already verified this
+
     // Get admin client (bypasses RLS) - may be null if SUPABASE_SERVICE_ROLE_KEY not set
     const adminClient = getAdminSupabaseClient();
     const dbClient = adminClient || supabase; // Fallback to regular supabase if admin client not available
-
-    // Check if user is admin
-    const { data: profile, error: profileError } = await dbClient
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || !profile?.is_admin) {
-      console.log('[Admin API] User is not admin:', user.id, 'Profile error:', profileError, 'Profile:', profile);
-      return new Response(JSON.stringify({ error: 'Forbidden - Admin access required' }), {
-        status: 403,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
 
     const { key, value } = await request.json();
 

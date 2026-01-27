@@ -1,6 +1,11 @@
 import type { APIRoute } from 'astro';
 import { v2 as cloudinary } from 'cloudinary';
 
+// Disable CSRF check for this endpoint
+export const security = {
+  checkOrigin: false,
+};
+
 cloudinary.config({
   cloud_name: process.env.PUBLIC_CLOUDINARY_CLOUD_NAME,
   api_key: process.env.PUBLIC_CLOUDINARY_API_KEY,

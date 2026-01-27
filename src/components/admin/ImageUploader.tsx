@@ -44,23 +44,39 @@ export default function ImageUploader({
       };
       reader.readAsDataURL(file);
 
-      // Upload to server
+      // Get upload signature from server
+      const signatureResponse = await fetch('/api/upload/signature');
+      if (!signatureResponse.ok) {
+        throw new Error('Error al obtener firma de subida');
+      }
+      const { timestamp, signature, cloud_name, api_key } = await signatureResponse.json();
+
+      // Upload directly to Cloudinary using signed upload
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('api_key', api_key);
+      formData.append('timestamp', timestamp.toString());
+      formData.append('signature', signature);
+      formData.append('folder', 'eclat-beauty/products');
+      formData.append('quality', 'auto');
+      formData.append('fetch_format', 'auto');
 
-      // Get CSRF token from meta tag or create one
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-        headers: csrfToken ? { 'x-csrf-token': csrfToken } : {},
-      });
+      if (!response.ok) {
+        throw new Error('Error al conectar con Cloudinary');
+      }
 
       const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Error al subir la imagen');
+      if (result.error) {
+        throw new Error(result.error.message || 'Error en la subida a Cloudinary');
       }
 
       // Add the image URL to the list

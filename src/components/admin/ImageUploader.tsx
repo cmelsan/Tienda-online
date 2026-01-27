@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 
 interface ImageUploaderProps {
-  onImagesChange: (images: string[]) => void;
+  onImagesChange?: (images: string[]) => void;
   maxImages?: number;
 }
 
@@ -83,7 +83,11 @@ export default function ImageUploader({
       // Add the image URL to the list
       const newImages = [...images, result.secure_url];
       setImages(newImages);
-      onImagesChange(newImages); // Notify parent component
+      
+      // Notify parent component if callback provided
+      if (onImagesChange && typeof onImagesChange === 'function') {
+        onImagesChange(newImages);
+      }
       
       // Reset
       setPreview(null);
@@ -103,7 +107,9 @@ export default function ImageUploader({
   const removeImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index);
     setImages(newImages);
-    onImagesChange(newImages);
+    if (onImagesChange && typeof onImagesChange === 'function') {
+      onImagesChange(newImages);
+    }
   };
 
   return (

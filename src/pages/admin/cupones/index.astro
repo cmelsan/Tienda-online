@@ -8,28 +8,6 @@ const { data: coupons } = await supabase
   .from('coupons')
   .select('*')
   .order('created_at', { ascending: false });
-
-let message = '';
-
-// Handle delete
-if (Astro.request.method === 'POST') {
-  const formData = await Astro.request.formData();
-  const action = formData.get('action');
-  const couponId = formData.get('id');
-
-  if (action === 'delete') {
-    const { error } = await supabase
-      .from('coupons')
-      .delete()
-      .eq('id', couponId);
-
-    if (error) {
-      message = 'Error al eliminar cupón';
-    } else {
-      message = 'Cupón eliminado correctamente';
-    }
-  }
-}
 ---
 
 <AdminLayout title="Gestión de Cupones">
@@ -46,11 +24,13 @@ if (Astro.request.method === 'POST') {
     </a>
   </div>
 
-  {message && (
-    <div class="mb-4 p-4 bg-green-50 border border-green-200 text-green-800 text-sm rounded">
-      {message}
-    </div>
-  )}
+  <div id="message" class="hidden mb-4 p-4 bg-green-50 border border-green-200 text-green-800 text-sm rounded">
+    <span id="messageText">✓ Cupón eliminado correctamente</span>
+  </div>
+
+  <div id="error" class="hidden mb-4 p-4 bg-red-50 border border-red-200 text-red-800 text-sm rounded">
+    <span id="errorText">✗ Error</span>
+  </div>
 
   {coupons && coupons.length > 0 ? (
     <div class="bg-white border border-gray-200">
@@ -105,17 +85,12 @@ if (Astro.request.method === 'POST') {
                   >
                     Editar
                   </a>
-                  <form method="POST" class="inline">
-                    <input type="hidden" name="action" value="delete" />
-                    <input type="hidden" name="id" value={coupon.id} />
-                    <button
-                      type="submit"
-                      onclick="return confirm('¿Seguro que quieres eliminar este cupón?')"
-                      class="text-red-600 hover:text-red-800 font-semibold"
-                    >
-                      Eliminar
-                    </button>
-                  </form>
+                  <button
+                    class="delete-coupon text-red-600 hover:text-red-800 font-semibold"
+                    data-id={coupon.id}
+                  >
+                    Eliminar
+                  </button>
                 </td>
               </tr>
             ))}
@@ -135,3 +110,51 @@ if (Astro.request.method === 'POST') {
     </div>
   )}
 </AdminLayout>
+
+<script>
+  const deleteButtons = document.querySelectorAll('.delete-coupon') as NodeListOf<HTMLButtonElement>;
+  const messageDiv = document.getElementById('message') as HTMLDivElement;
+  const errorDiv = document.getElementById('error') as HTMLDivElement;
+  const messageText = document.getElementById('messageText') as HTMLSpanElement;
+  const errorText = document.getElementById('errorText') as HTMLSpanElement;
+
+  deleteButtons.forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      
+      if (!confirm('¿Estás seguro de que deseas eliminar este cupón? Esta acción no se puede deshacer.')) {
+        return;
+      }
+
+      const couponId = btn.getAttribute('data-id');
+      if (!couponId) return;
+
+      messageDiv.classList.add('hidden');
+      errorDiv.classList.add('hidden');
+
+      try {
+        const response = await fetch(`/api/admin/coupons/${couponId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          messageText.textContent = '✓ Cupón eliminado correctamente';
+          messageDiv.classList.remove('hidden');
+          
+          setTimeout(() => {
+            window.location.href = '/admin/cupones';
+          }, 1500);
+        } else {
+          errorText.textContent = `✗ ${result.error || 'Error al eliminar el cupón'}`;
+          errorDiv.classList.remove('hidden');
+        }
+      } catch (error) {
+        errorText.textContent = '✗ Error de conexión';
+        errorDiv.classList.remove('hidden');
+      }
+    });
+  });
+</script>

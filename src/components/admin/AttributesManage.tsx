@@ -70,7 +70,6 @@ export default function AttributesManage({ token: initialToken, categories, subc
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        credentials: 'include',
         body: JSON.stringify({
           action: 'create_subcategory',
           category_id: newSubCategory,
@@ -110,7 +109,6 @@ export default function AttributesManage({ token: initialToken, categories, subc
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        credentials: 'include',
         body: JSON.stringify({
           action: 'delete_subcategory',
           id,
@@ -148,7 +146,6 @@ export default function AttributesManage({ token: initialToken, categories, subc
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        credentials: 'include',
         body: JSON.stringify({
           action: 'create_brand',
           name: newBrandName,
@@ -186,7 +183,6 @@ export default function AttributesManage({ token: initialToken, categories, subc
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        credentials: 'include',
         body: JSON.stringify({
           action: 'delete_brand',
           id,

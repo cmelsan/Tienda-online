@@ -6,10 +6,44 @@ interface SettingsFormProps {
   offersEnabled: boolean;
 }
 
-export default function SettingsForm({ token, offersEnabled: initialOffersEnabled }: SettingsFormProps) {
+export default function SettingsForm({ token: initialToken, offersEnabled: initialOffersEnabled }: SettingsFormProps) {
   const [offersEnabled, setOffersEnabled] = useState(initialOffersEnabled);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState(initialToken);
+
+  // If token is empty, try to get it from localStorage or fetch from server
+  useEffect(() => {
+    if (!token) {
+      fetchToken();
+    }
+  }, []);
+
+  const fetchToken = async () => {
+    // First try localStorage
+    const storedToken = localStorage.getItem('admin-token');
+    if (storedToken) {
+      setToken(storedToken);
+      console.log('[SettingsForm] Token loaded from localStorage');
+      return;
+    }
+
+    // If not in localStorage, try to fetch from server
+    try {
+      const response = await fetch('/api/admin/me', {
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (response.ok && data.token) {
+        setToken(data.token);
+        // Save to localStorage for future use
+        localStorage.setItem('admin-token', data.token);
+        console.log('[SettingsForm] Token fetched from server and saved to localStorage');
+      }
+    } catch (error) {
+      console.error('[SettingsForm] Error fetching token:', error);
+    }
+  };
 
   const handleToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const newState = e.target.checked;

@@ -7,15 +7,49 @@ interface BrandFormProps {
   isEdit?: boolean;
 }
 
-export default function BrandForm({ token, brand, isEdit = false }: BrandFormProps) {
+export default function BrandForm({ token: initialToken, brand, isEdit = false }: BrandFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [token, setToken] = useState(initialToken);
   const [formData, setFormData] = useState({
     name: brand?.name || '',
     slug: brand?.slug || '',
     description: brand?.description || '',
     logo_url: brand?.logo_url || '',
   });
+
+  // If token is empty, try to get it from localStorage or fetch from server
+  useEffect(() => {
+    if (!token) {
+      fetchToken();
+    }
+  }, []);
+
+  const fetchToken = async () => {
+    // First try localStorage
+    const storedToken = localStorage.getItem('admin-token');
+    if (storedToken) {
+      setToken(storedToken);
+      console.log('[BrandForm] Token loaded from localStorage');
+      return;
+    }
+
+    // If not in localStorage, try to fetch from server
+    try {
+      const response = await fetch('/api/admin/me', {
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (response.ok && data.token) {
+        setToken(data.token);
+        // Save to localStorage for future use
+        localStorage.setItem('admin-token', data.token);
+        console.log('[BrandForm] Token fetched from server and saved to localStorage');
+      }
+    } catch (error) {
+      console.error('[BrandForm] Error fetching token:', error);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

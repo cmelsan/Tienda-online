@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
 interface AttributesManageProps {
@@ -8,7 +8,7 @@ interface AttributesManageProps {
   brands: any[];
 }
 
-export default function AttributesManage({ token, categories, subcategories, brands: initialBrands }: AttributesManageProps) {
+export default function AttributesManage({ token: initialToken, categories, subcategories, brands: initialBrands }: AttributesManageProps) {
   const [activeTab, setActiveTab] = useState('subcategories');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -17,6 +17,40 @@ export default function AttributesManage({ token, categories, subcategories, bra
   const [newSubName, setNewSubName] = useState('');
   const [newSubCategory, setNewSubCategory] = useState('');
   const [newBrandName, setNewBrandName] = useState('');
+  const [token, setToken] = useState(initialToken);
+
+  // If token is empty, try to get it from localStorage or fetch from server
+  useEffect(() => {
+    if (!token) {
+      fetchToken();
+    }
+  }, []);
+
+  const fetchToken = async () => {
+    // First try localStorage
+    const storedToken = localStorage.getItem('admin-token');
+    if (storedToken) {
+      setToken(storedToken);
+      console.log('[AttributesManage] Token loaded from localStorage');
+      return;
+    }
+
+    // If not in localStorage, try to fetch from server
+    try {
+      const response = await fetch('/api/admin/me', {
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (response.ok && data.token) {
+        setToken(data.token);
+        // Save to localStorage for future use
+        localStorage.setItem('admin-token', data.token);
+        console.log('[AttributesManage] Token fetched from server and saved to localStorage');
+      }
+    } catch (error) {
+      console.error('[AttributesManage] Error fetching token:', error);
+    }
+  };
 
   const handleAddSubcategory = async (e: React.FormEvent) => {
     e.preventDefault();

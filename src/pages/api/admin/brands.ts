@@ -70,18 +70,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   }
 };
 
-export const PUT: APIRoute = async ({ request, cookies, params }) => {
+export const PUT: APIRoute = async ({ request, cookies }) => {
   try {
-    const url = new URL(request.url);
-    const id = url.searchParams.get('id') || params.id;
-
-    if (!id) {
-      return new Response(JSON.stringify({ error: 'ID is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
     const supabase = await createServerSupabaseClient({ cookies });
     
     // Verify auth
@@ -107,7 +97,14 @@ export const PUT: APIRoute = async ({ request, cookies, params }) => {
       });
     }
 
-    const { name, slug, description, logo_url } = await request.json();
+    const { id, name, slug, description, logo_url } = await request.json();
+
+    if (!id) {
+      return new Response(JSON.stringify({ error: 'ID is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     if (!name || !slug) {
       return new Response(JSON.stringify({ error: 'Name and slug are required' }), {
@@ -144,18 +141,8 @@ export const PUT: APIRoute = async ({ request, cookies, params }) => {
   }
 };
 
-export const DELETE: APIRoute = async ({ request, cookies, params }) => {
+export const DELETE: APIRoute = async ({ request, cookies }) => {
   try {
-    const url = new URL(request.url);
-    const id = url.searchParams.get('id') || params.id;
-
-    if (!id) {
-      return new Response(JSON.stringify({ error: 'ID is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
     const supabase = await createServerSupabaseClient({ cookies });
     
     // Verify auth
@@ -177,6 +164,15 @@ export const DELETE: APIRoute = async ({ request, cookies, params }) => {
     if (!adminUser) {
       return new Response(JSON.stringify({ error: 'Not an admin' }), {
         status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { id } = await request.json();
+
+    if (!id) {
+      return new Response(JSON.stringify({ error: 'ID is required' }), {
+        status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
     }

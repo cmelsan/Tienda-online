@@ -32,13 +32,17 @@ export default function BrandForm({ brand, isEdit = false }: BrandFormProps) {
     }
 
     try {
-      const url = isEdit ? `/api/admin/brands/${brand.id}` : '/api/admin/brands';
+      const url = '/api/admin/brands';
       const method = isEdit ? 'PUT' : 'POST';
+      
+      const payload = isEdit 
+        ? { id: brand.id, ...formData }
+        : formData;
 
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
@@ -46,7 +50,7 @@ export default function BrandForm({ brand, isEdit = false }: BrandFormProps) {
       if (data.success) {
         window.location.href = '/admin/marcas';
       } else {
-        setErrorMsg(data.message || 'Error al guardar la marca');
+        setErrorMsg(data.error || data.message || 'Error al guardar la marca');
       }
     } catch (error: any) {
       setErrorMsg(error.message || 'Error de conexión');

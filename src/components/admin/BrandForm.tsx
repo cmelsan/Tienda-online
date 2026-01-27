@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
 interface BrandFormProps {
   brand?: any;
@@ -32,6 +33,14 @@ export default function BrandForm({ brand, isEdit = false }: BrandFormProps) {
     }
 
     try {
+      // Get session token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setErrorMsg('Sesión expirada. Por favor, inicia sesión de nuevo.');
+        setIsSubmitting(false);
+        return;
+      }
+
       const url = '/api/admin/brands';
       const method = isEdit ? 'PUT' : 'POST';
       
@@ -41,7 +50,10 @@ export default function BrandForm({ brand, isEdit = false }: BrandFormProps) {
 
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         credentials: 'include',
         body: JSON.stringify(payload)
       });

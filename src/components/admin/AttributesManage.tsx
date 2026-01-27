@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
 interface AttributesManageProps {
   categories: any[];
@@ -22,9 +23,20 @@ export default function AttributesManage({ categories, subcategories, brands: in
 
     setIsSubmitting(true);
     try {
+      // Get session token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert('Sesión expirada. Por favor, inicia sesión de nuevo.');
+        setIsSubmitting(false);
+        return;
+      }
+
       const response = await fetch('/api/admin/attributes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         credentials: 'include',
         body: JSON.stringify({
           action: 'create_subcategory',
@@ -39,10 +51,10 @@ export default function AttributesManage({ categories, subcategories, brands: in
         setNewSubName('');
         alert('Subcategoría creada exitosamente');
       } else {
-        alert('Error: ' + data.message);
+        alert('Error: ' + (data.error || data.message));
       }
-    } catch (error) {
-      alert('Error al crear subcategoría');
+    } catch (error: any) {
+      alert('Error al crear subcategoría: ' + error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -53,9 +65,20 @@ export default function AttributesManage({ categories, subcategories, brands: in
 
     setIsSubmitting(true);
     try {
+      // Get session token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert('Sesión expirada. Por favor, inicia sesión de nuevo.');
+        setIsSubmitting(false);
+        return;
+      }
+
       const response = await fetch('/api/admin/attributes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         credentials: 'include',
         body: JSON.stringify({
           action: 'delete_subcategory',
@@ -67,10 +90,10 @@ export default function AttributesManage({ categories, subcategories, brands: in
       if (data.success) {
         setSubs(subs.filter(s => s.id !== id));
       } else {
-        alert('Error: ' + data.message);
+        alert('Error: ' + (data.error || data.message));
       }
-    } catch (error) {
-      alert('Error al eliminar');
+    } catch (error: any) {
+      alert('Error al eliminar: ' + error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -82,9 +105,20 @@ export default function AttributesManage({ categories, subcategories, brands: in
 
     setIsSubmitting(true);
     try {
+      // Get session token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert('Sesión expirada. Por favor, inicia sesión de nuevo.');
+        setIsSubmitting(false);
+        return;
+      }
+
       const response = await fetch('/api/admin/attributes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         credentials: 'include',
         body: JSON.stringify({
           action: 'create_brand',
@@ -98,10 +132,10 @@ export default function AttributesManage({ categories, subcategories, brands: in
         setNewBrandName('');
         alert('Marca creada exitosamente');
       } else {
-        alert('Error: ' + data.message);
+        alert('Error: ' + (data.error || data.message));
       }
-    } catch (error) {
-      alert('Error al crear marca');
+    } catch (error: any) {
+      alert('Error al crear marca: ' + error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -112,9 +146,20 @@ export default function AttributesManage({ categories, subcategories, brands: in
 
     setIsSubmitting(true);
     try {
+      // Get session token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert('Sesión expirada. Por favor, inicia sesión de nuevo.');
+        setIsSubmitting(false);
+        return;
+      }
+
       const response = await fetch('/api/admin/attributes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         credentials: 'include',
         body: JSON.stringify({
           action: 'delete_brand',

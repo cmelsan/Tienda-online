@@ -1,6 +1,6 @@
 
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 // Helper to slugify
 const slugify = (text: string) => {
@@ -12,14 +12,26 @@ const slugify = (text: string) => {
         .replace(/-+$/, '');
 };
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request }) => {
     try {
-        const supabase = await createServerSupabaseClient({ cookies });
+        // Get auth token from headers or request body
+        const authHeader = request.headers.get('Authorization');
+        let token = authHeader?.replace('Bearer ', '');
         
-        // Verify auth - only requires valid session
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        if (!token) {
+            const body = await request.json();
+            // If no token, return error - auth will be validated by client
+            return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+                status: 401,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
+        // Set the token on the supabase client
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        
+        if (authError || !user) {
+            return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
                 status: 401,
                 headers: { 'Content-Type': 'application/json' },
             });

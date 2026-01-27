@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
 interface SettingsFormProps {
   offersEnabled: boolean;
@@ -16,9 +17,21 @@ export default function SettingsForm({ offersEnabled: initialOffersEnabled }: Se
     setMessage('');
 
     try {
+      // Get session token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setMessage('Sesión expirada. Por favor, inicia sesión de nuevo.');
+        setOffersEnabled(!newState);
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch('/api/admin/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         credentials: 'include',
         body: JSON.stringify({
           key: 'offers_enabled',

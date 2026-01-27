@@ -1,13 +1,23 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request }) => {
   try {
-    const supabase = await createServerSupabaseClient({ cookies });
+    // Get auth token from headers
+    const authHeader = request.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
     
-    // Verify auth - only requires valid session
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    if (!token) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Verify token
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },

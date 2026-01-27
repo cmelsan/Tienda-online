@@ -9,6 +9,9 @@ import { slugify } from '@/lib/utils';
 
 const { id } = Astro.params;
 
+let errorMessage = '';
+let successMessage = '';
+
 // Fetch product
 const { data: product } = await supabase
   .from('products')

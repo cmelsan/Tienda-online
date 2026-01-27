@@ -44,11 +44,7 @@ const { data: subcategories } = await supabase
       </a>
     </div>
 
-    {errorMessage && (
-      <div class="mb-8 p-4 bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold uppercase tracking-wide">
-        {errorMessage}
-      </div>
-    )}
+    <div id="errorMessage" class="mb-8 p-4 bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold uppercase tracking-wide hidden"></div>
 
     <form id="productForm" class="bg-white border border-gray-200 p-8 shadow-sm space-y-8">
       <!-- Basic Info -->
@@ -208,6 +204,8 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
     images: images
   };
   
+  console.log('Enviando producto:', data);
+  
   try {
     const response = await fetch('/api/admin/products', {
       method: 'POST',
@@ -215,20 +213,24 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
       body: JSON.stringify(data)
     });
     
+    const result = await response.json();
+    
     if (response.ok) {
+      console.log('Producto creado:', result);
       window.location.href = '/admin/productos';
     } else {
-      const error = await response.json();
-      const errorDiv = document.querySelector('#productForm')?.previousElementSibling;
+      console.error('Error:', result);
+      const errorDiv = document.getElementById('errorMessage');
       if (errorDiv) {
-        errorDiv.textContent = error.error || 'Error creando producto';
+        errorDiv.textContent = result.error || 'Error creando producto';
         errorDiv.style.display = 'block';
       }
     }
   } catch (err) {
-    const errorDiv = document.querySelector('#productForm')?.previousElementSibling;
+    console.error('Error en la solicitud:', err);
+    const errorDiv = document.getElementById('errorMessage');
     if (errorDiv) {
-      errorDiv.textContent = 'Error al procesar la solicitud';
+      errorDiv.textContent = 'Error al procesar la solicitud: ' + err.message;
       errorDiv.style.display = 'block';
     }
   }

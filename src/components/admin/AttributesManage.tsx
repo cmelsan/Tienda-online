@@ -82,7 +82,6 @@ export default function AttributesManage({ token: initialToken, categories, subc
       if (data.success) {
         setSubs([...subs, data.subcategory]);
         setNewSubName('');
-        alert('Subcategoría creada exitosamente');
       } else {
         alert('Error: ' + (data.error || data.message));
       }
@@ -159,7 +158,6 @@ export default function AttributesManage({ token: initialToken, categories, subc
       if (data.success) {
         setBrandsList([...brandsList, data.brand]);
         setNewBrandName('');
-        alert('Marca creada exitosamente');
       } else {
         alert('Error: ' + (data.error || data.message));
       }

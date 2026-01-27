@@ -2,17 +2,13 @@
 export const prerender = false; // SSR
 
 import AdminLayout from '@/layouts/AdminLayout.astro';
-import Input from '@/components/ui/Input.astro';
-import Button from '@/components/ui/Button.astro';
-import { supabase } from '@/lib/supabase';
-import { slugify } from '@/lib/utils';
+import ProductEditForm from '@/components/admin/ProductEditForm';
+import { createServerSupabaseClient } from '@/lib/supabase';
 
 const { id } = Astro.params;
 
-let errorMessage = '';
-let successMessage = '';
-
 // Fetch product
+const supabase = await createServerSupabaseClient(Astro);
 const { data: product } = await supabase
   .from('products')
   .select('*, category:categories(*)')
@@ -40,66 +36,10 @@ const { data: subcategories } = await supabase
   .from('subcategories')
   .select('*')
   .order('name');
-
-// Handle form submission
-if (Astro.request.method === 'POST') {
-  const formData = await Astro.request.formData();
-  const action = formData.get('action')?.toString();
-
-  if (action === 'delete') {
-    const { error } = await supabase
-      .from('products')
-      .delete()
-      .eq('id', id);
-
-    if (!error) {
-      return Astro.redirect('/admin/productos');
-    } else {
-      errorMessage = `Error al eliminar: ${error.message}`;
-    }
-  } else {
-    const name = formData.get('name')?.toString();
-    const description = formData.get('description')?.toString();
-    const price = parseFloat(formData.get('price')?.toString() || '0');
-    const stock = parseInt(formData.get('stock')?.toString() || '0');
-    const category_id = formData.get('category_id')?.toString();
-    const subcategory_id = formData.get('subcategory_id')?.toString() || null;
-    const brand_id = formData.get('brand_id')?.toString() || null;
-    const images = formData.get('images')?.toString().split('\n').filter(Boolean) || [];
-
-    if (name && description && category_id) {
-      const slug = slugify(name);
-      const priceInCents = Math.round(price * 100);
-
-      const { error } = await supabase
-        .from('products')
-        .update({
-          name,
-          slug,
-          description,
-          price: priceInCents,
-          stock,
-          category_id,
-          subcategory_id, // Added
-          brand_id,
-          images,
-        })
-        .eq('id', id);
-
-      if (!error) {
-        return Astro.redirect('/admin/productos');
-      } else {
-        errorMessage = `Error: ${error.message}`;
-      }
-    } else {
-      errorMessage = 'Por favor completa todos los campos requeridos';
-    }
-  }
-}
 ---
 
 <AdminLayout title={`Editar: ${product.name}`}>
-  <div class="max-w-3xl" x-data={`{ selectedCategory: '${product.category_id}' }`}>
+  <div class="max-w-3xl">
     <div class="mb-6">
       <a
         href="/admin/productos"
@@ -113,155 +53,13 @@ if (Astro.request.method === 'POST') {
       <h1 class="text-2xl font-serif text-noir-900">Editar Producto</h1>
     </div>
 
-    {errorMessage && (
-      <div class="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-lg text-rose-700">
-        {errorMessage}
-      </div>
-    )}
-
-    <div class="bg-white rounded-lg shadow-soft p-8">
-      <form method="POST" class="space-y-6">
-        <Input
-          label="Nombre del Producto"
-          name="name"
-          type="text"
-          value={product.name}
-          required
-        />
-
-        <div class="space-y-2">
-          <label for="description" class="block text-sm font-medium text-noir-900">
-            Descripción <span class="text-rose-500">*</span>
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            rows="4"
-            required
-            class="w-full px-4 py-3 border border-noir-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all duration-200 bg-white text-noir-900"
-          >{product.description}</textarea>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Input
-            label="Precio (EUR)"
-            name="price"
-            type="number"
-            step="0.01"
-            min="0"
-            value={(product.price / 100).toFixed(2)}
-            required
-          />
-
-          <Input
-            label="Stock"
-            name="stock"
-            type="number"
-            min="0"
-            value={product.stock.toString()}
-            required
-          />
-        </div>
-
-        <div class="space-y-2">
-          <label for="category_id" class="block text-sm font-medium text-noir-900">
-            Categoría <span class="text-rose-500">*</span>
-          </label>
-          <select
-            id="category_id"
-            name="category_id"
-            x-model="selectedCategory"
-            required
-            class="w-full px-4 py-3 border border-noir-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all duration-200 bg-white text-noir-900"
-          >
-            {categories?.map((category) => (
-              <option value={category.id} selected={category.id === product.category_id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <!-- SUBCATEGORY SELECTOR -->
-        <div class="space-y-2" x-show="selectedCategory">
-             <label for="subcategory_id" class="block text-sm font-medium text-noir-900">
-               Subcategoría
-             </label>
-             <select
-               id="subcategory_id"
-               name="subcategory_id"
-               class="w-full px-4 py-3 border border-noir-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all duration-200 bg-white text-noir-900"
-             >
-               <option value="">Seleccionar Subcategoría</option>
-               {subcategories?.map(sub => (
-                   <option 
-                        value={sub.id} 
-                        data-cat={sub.category_id} 
-                        x-show={`'${sub.category_id}' == selectedCategory`}
-                        selected={sub.id === product.subcategory_id}
-                   >
-                      {sub.name}
-                   </option>
-               ))}
-             </select>
-        </div>
-
-        <div class="space-y-2">
-          <label for="brand_id" class="block text-sm font-medium text-noir-900">
-            Marca
-          </label>
-          <select
-            id="brand_id"
-            name="brand_id"
-            class="w-full px-4 py-3 border border-noir-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all duration-200 bg-white text-noir-900"
-          >
-            <option value="">SIN MARCA / GENÉRICO</option>
-            {brands?.map((brand) => (
-              <option value={brand.id} selected={brand.id === product.brand_id}>
-                {brand.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div class="space-y-2">
-          <label for="images" class="block text-sm font-medium text-noir-900">
-            URLs de Imágenes
-          </label>
-          <textarea
-            id="images"
-            name="images"
-            rows="3"
-            class="w-full px-4 py-3 border border-noir-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all duration-200 bg-white text-noir-900 font-mono text-sm"
-          >{product.images && product.images.join('\n')}</textarea>
-          <p class="text-xs text-noir-600">Una URL por línea.</p>
-        </div>
-
-        <div class="flex items-center justify-between pt-6 border-t border-noir-200">
-          <div class="flex items-center space-x-4">
-            <Button type="submit" variant="primary" size="lg">
-              Guardar Cambios
-            </Button>
-            <a
-              href="/admin/productos"
-              class="px-6 py-3 text-noir-700 hover:bg-cream-100 rounded-lg font-medium transition-colors"
-            >
-              Cancelar
-            </a>
-          </div>
-
-          <button
-            type="submit"
-            name="action"
-            value="delete"
-            onclick="return confirm('¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer.')"
-            class="px-6 py-3 bg-rose-600 text-white rounded-lg font-medium hover:bg-rose-700 transition-colors"
-          >
-            Eliminar Producto
-          </button>
-        </div>
-      </form>
-    </div>
+    <ProductEditForm 
+      client:load
+      product={product}
+      categories={categories || []}
+      subcategories={subcategories || []}
+      brands={brands || []}
+    />
 
     <!-- Preview -->
     <div class="mt-6 bg-cream-50 rounded-lg p-6">

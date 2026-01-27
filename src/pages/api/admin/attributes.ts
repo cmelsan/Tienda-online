@@ -35,22 +35,23 @@ export const POST: APIRoute = async ({ request }) => {
             });
         }
 
-        // Check if user is admin
-        const { data: profile } = await supabase
+        // Get admin client (bypasses RLS)
+        const adminClient = getAdminSupabaseClient();
+
+        // Check if user is admin using admin client (bypass RLS)
+        const { data: profile, error: profileError } = await adminClient
             .from('profiles')
             .select('is_admin')
             .eq('id', user.id)
             .single();
 
-        if (!profile?.is_admin) {
+        if (profileError || !profile?.is_admin) {
+            console.log('[Admin API] User is not admin:', user.id, 'Profile error:', profileError, 'Profile:', profile);
             return new Response(JSON.stringify({ error: 'Forbidden - Admin access required' }), { 
                 status: 403,
                 headers: { 'Content-Type': 'application/json' },
             });
         }
-
-        // Get admin client (bypasses RLS)
-        const adminClient = getAdminSupabaseClient();
 
         const body = await request.json();
         const { action } = body;

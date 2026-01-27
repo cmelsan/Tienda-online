@@ -24,11 +24,12 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // Get admin client (bypasses RLS)
+    // Get admin client (bypasses RLS) - may be null if SUPABASE_SERVICE_ROLE_KEY not set
     const adminClient = getAdminSupabaseClient();
+    const dbClient = adminClient || supabase; // Fallback to regular supabase if admin client not available
 
-    // Check if user is admin using admin client (bypass RLS)
-    const { data: profile, error: profileError } = await adminClient
+    // Check if user is admin
+    const { data: profile, error: profileError } = await dbClient
       .from('profiles')
       .select('is_admin')
       .eq('id', user.id)
@@ -52,7 +53,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Upsert setting
-    const { data: setting, error } = await adminClient
+    const { data: setting, error } = await dbClient
       .from('app_settings')
       .upsert(
         {

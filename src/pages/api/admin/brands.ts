@@ -24,8 +24,12 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // Get admin client (bypasses RLS) - may be null if SUPABASE_SERVICE_ROLE_KEY not set
+    const adminClient = getAdminSupabaseClient();
+    const dbClient = adminClient || supabase; // Fallback to regular supabase if admin client not available
+
     // Check if user is admin
-    const { data: profile } = await supabase
+    const { data: profile } = await dbClient
       .from('profiles')
       .select('is_admin')
       .eq('id', user.id)
@@ -47,11 +51,8 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // Get admin client (bypasses RLS)
-    const adminClient = getAdminSupabaseClient();
-
     // Insert brand
-    const { data: brand, error } = await adminClient
+    const { data: brand, error } = await dbClient
       .from('brands')
       .insert({
         name,
@@ -129,11 +130,12 @@ export const PUT: APIRoute = async ({ request }) => {
       });
     }
 
-    // Get admin client (bypasses RLS)
+    // Get admin client (bypasses RLS) - may be null if SUPABASE_SERVICE_ROLE_KEY not set
     const adminClient = getAdminSupabaseClient();
+    const dbClient = adminClient || supabase; // Fallback to regular supabase if admin client not available
 
     // Update brand
-    const { data: brand, error } = await adminClient
+    const { data: brand, error } = await dbClient
       .from('brands')
       .update({
         name,
@@ -206,11 +208,12 @@ export const DELETE: APIRoute = async ({ request }) => {
       });
     }
 
-    // Get admin client (bypasses RLS)
+    // Get admin client (bypasses RLS) - may be null if SUPABASE_SERVICE_ROLE_KEY not set
     const adminClient = getAdminSupabaseClient();
+    const dbClient = adminClient || supabase; // Fallback to regular supabase if admin client not available
 
     // Delete brand
-    const { error } = await adminClient
+    const { error } = await dbClient
       .from('brands')
       .delete()
       .eq('id', id);

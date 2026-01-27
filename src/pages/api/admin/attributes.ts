@@ -16,25 +16,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     try {
         const supabase = await createServerSupabaseClient({ cookies });
         
-        // Verify auth
+        // Verify auth - only requires valid session
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             return new Response(JSON.stringify({ error: 'Unauthorized' }), {
                 status: 401,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
-
-        // Check if user is admin
-        const { data: adminUser } = await supabase
-            .from('admins')
-            .select('id')
-            .eq('user_id', session.user.id)
-            .single();
-
-        if (!adminUser) {
-            return new Response(JSON.stringify({ error: 'Not an admin' }), {
-                status: 403,
                 headers: { 'Content-Type': 'application/json' },
             });
         }

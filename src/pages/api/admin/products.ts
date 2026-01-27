@@ -2,8 +2,54 @@ import type { APIRoute } from 'astro';
 import { supabase } from '@/lib/supabase';
 import { slugify } from '@/lib/utils';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
   try {
+    // Get session from cookies
+    const sessionToken = cookies.get('sb-bztkmnpojogpjxguwzyo-auth-token')?.value;
+    if (!sessionToken) {
+      return new Response(
+        JSON.stringify({ error: 'No autenticado. Por favor inicia sesión.' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Create authenticated Supabase client
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabaseAuth = createClient(
+      import.meta.env.PUBLIC_SUPABASE_URL,
+      import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${sessionToken}`,
+          },
+        },
+      }
+    );
+
+    // Get current user
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Usuario no válido' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if user is admin
+    const { data: profile } = await supabaseAuth
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.is_admin) {
+      return new Response(
+        JSON.stringify({ error: 'No tienes permisos para crear productos' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     const data = await request.json();
 
     const {
@@ -27,7 +73,7 @@ export const POST: APIRoute = async ({ request }) => {
     const slug = slugify(name);
     const priceInCents = Math.round(price * 100);
 
-    const { data: product, error } = await supabase
+    const { data: product, error } = await supabaseAuth
       .from('products')
       .insert([
         {

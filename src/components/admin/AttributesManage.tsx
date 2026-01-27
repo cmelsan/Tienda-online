@@ -25,6 +25,7 @@ export default function AttributesManage({ categories, subcategories, brands: in
       const response = await fetch('/api/admin/attributes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'create_subcategory',
           category_id: newSubCategory,
@@ -55,6 +56,7 @@ export default function AttributesManage({ categories, subcategories, brands: in
       const response = await fetch('/api/admin/attributes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'delete_subcategory',
           id,
@@ -83,6 +85,7 @@ export default function AttributesManage({ categories, subcategories, brands: in
       const response = await fetch('/api/admin/attributes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'create_brand',
           name: newBrandName,
@@ -112,6 +115,7 @@ export default function AttributesManage({ categories, subcategories, brands: in
       const response = await fetch('/api/admin/attributes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'delete_brand',
           id,

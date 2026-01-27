@@ -19,6 +19,7 @@ export default function SettingsForm({ offersEnabled: initialOffersEnabled }: Se
       const response = await fetch('/api/admin/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           key: 'offers_enabled',
           value: newState,

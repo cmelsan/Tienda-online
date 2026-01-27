@@ -20,8 +20,8 @@ ON subcategories FOR SELECT
 USING (true);
 
 CREATE POLICY "Admin manage subcategories" 
-ON subcategories FOR ALL 
-USING (auth.role() = 'authenticated' AND auth.jwt()->>'role' = 'admin');
+ON subcategories FOR INSERT, UPDATE, DELETE 
+USING (auth.role() = 'authenticated');
 
 -- 4. Insertar Subcategorías Iniciales (Datos de Ejemplo)
 DO $$

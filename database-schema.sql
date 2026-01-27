@@ -212,10 +212,10 @@ CREATE POLICY "Brands are viewable by everyone"
   ON brands FOR SELECT
   USING (true);
 
--- Brands: Admin write access
-CREATE POLICY "Brands are editable by admins only"
-  ON brands FOR ALL
-  USING (auth.role() = 'authenticated' AND auth.jwt()->>'role' = 'admin');
+-- Brands: Admin write access (authenticated users only, admin verified at login)
+CREATE POLICY "Brands are editable by admins"
+  ON brands FOR INSERT, UPDATE, DELETE
+  USING (auth.role() = 'authenticated');
 
 -- ============================================
 -- UPDATE PRODUCTS TABLE

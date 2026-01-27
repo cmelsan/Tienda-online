@@ -30,6 +30,11 @@ const { data: categories } = await supabase
   .order('name');
 
 // Fetch brands
+const { data: brands } = await supabase
+  .from('brands')
+  .select('*')
+  .order('name');
+
 // Fetch subcategories
 const { data: subcategories } = await supabase
   .from('subcategories')

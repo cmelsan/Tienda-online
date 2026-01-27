@@ -1,8 +1,14 @@
 ---
 import AdminLayout from '@/layouts/AdminLayout.astro';
 import BrandForm from '@/components/admin/BrandForm';
+import { createServerSupabaseClient } from '@/lib/supabase';
+
+const supabase = await createServerSupabaseClient(Astro);
+
+// Get session
+const { data: { session } } = await supabase.auth.getSession();
 ---
 
 <AdminLayout title="Nueva Marca">
-  <BrandForm client:load />
+  <BrandForm client:load token={session?.access_token || ''} />
 </AdminLayout>

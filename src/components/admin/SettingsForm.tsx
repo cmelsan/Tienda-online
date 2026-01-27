@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
 interface SettingsFormProps {
+  token: string;
   offersEnabled: boolean;
 }
 
-export default function SettingsForm({ offersEnabled: initialOffersEnabled }: SettingsFormProps) {
+export default function SettingsForm({ token, offersEnabled: initialOffersEnabled }: SettingsFormProps) {
   const [offersEnabled, setOffersEnabled] = useState(initialOffersEnabled);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,10 +18,8 @@ export default function SettingsForm({ offersEnabled: initialOffersEnabled }: Se
     setMessage('');
 
     try {
-      // Get session token
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setMessage('Sesión expirada. Por favor, inicia sesión de nuevo.');
+      if (!token) {
+        setMessage('Token no disponible. Por favor, recarga la página.');
         setOffersEnabled(!newState);
         setLoading(false);
         return;
@@ -30,7 +29,7 @@ export default function SettingsForm({ offersEnabled: initialOffersEnabled }: Se
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include',
         body: JSON.stringify({

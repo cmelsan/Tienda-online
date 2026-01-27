@@ -11,6 +11,10 @@ if (!id) {
 }
 
 const supabase = await createServerSupabaseClient(Astro);
+
+// Get session
+const { data: { session } } = await supabase.auth.getSession();
+
 const { data: brand, error: fetchError } = await supabase
   .from('brands')
   .select('*')
@@ -23,5 +27,5 @@ if (fetchError || !brand) {
 ---
 
 <AdminLayout title={`Editar Marca: ${brand.name}`}>
-  <BrandForm client:load brand={brand} isEdit={true} />
+  <BrandForm client:load token={session?.access_token || ''} brand={brand} isEdit={true} />
 </AdminLayout>

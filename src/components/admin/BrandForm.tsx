@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
 interface BrandFormProps {
+  token: string;
   brand?: any;
   isEdit?: boolean;
 }
 
-export default function BrandForm({ brand, isEdit = false }: BrandFormProps) {
+export default function BrandForm({ token, brand, isEdit = false }: BrandFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [formData, setFormData] = useState({
@@ -33,10 +34,8 @@ export default function BrandForm({ brand, isEdit = false }: BrandFormProps) {
     }
 
     try {
-      // Get session token
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setErrorMsg('Sesión expirada. Por favor, inicia sesión de nuevo.');
+      if (!token) {
+        setErrorMsg('Token no disponible. Por favor, recarga la página.');
         setIsSubmitting(false);
         return;
       }
@@ -52,7 +51,7 @@ export default function BrandForm({ brand, isEdit = false }: BrandFormProps) {
         method,
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include',
         body: JSON.stringify(payload)

@@ -5,6 +5,10 @@ import AttributesManage from '@/components/admin/AttributesManage';
 
 // Fetch Data
 const supabase = await createServerSupabaseClient(Astro);
+
+// Get session
+const { data: { session } } = await supabase.auth.getSession();
+
 const { data: brands } = await supabase.from('brands').select('*').order('name');
 const { data: categories } = await supabase.from('categories').select('*').order('name');
 const { data: subcategories } = await supabase.from('subcategories').select('*, category:categories(name)').order('name');
@@ -13,6 +17,7 @@ const { data: subcategories } = await supabase.from('subcategories').select('*, 
 <AdminLayout title="Gestionar Atributos | Admin">
   <AttributesManage 
     client:load 
+    token={session?.access_token || ''}
     categories={categories || []}
     subcategories={subcategories || []}
     brands={brands || []}

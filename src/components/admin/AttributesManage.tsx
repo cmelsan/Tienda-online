@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
 interface AttributesManageProps {
+  token: string;
   categories: any[];
   subcategories: any[];
   brands: any[];
 }
 
-export default function AttributesManage({ categories, subcategories, brands: initialBrands }: AttributesManageProps) {
+export default function AttributesManage({ token, categories, subcategories, brands: initialBrands }: AttributesManageProps) {
   const [activeTab, setActiveTab] = useState('subcategories');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,10 +24,8 @@ export default function AttributesManage({ categories, subcategories, brands: in
 
     setIsSubmitting(true);
     try {
-      // Get session token
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        alert('Sesión expirada. Por favor, inicia sesión de nuevo.');
+      if (!token) {
+        alert('Token no disponible. Por favor, recarga la página.');
         setIsSubmitting(false);
         return;
       }
@@ -35,7 +34,7 @@ export default function AttributesManage({ categories, subcategories, brands: in
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include',
         body: JSON.stringify({
@@ -65,10 +64,8 @@ export default function AttributesManage({ categories, subcategories, brands: in
 
     setIsSubmitting(true);
     try {
-      // Get session token
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        alert('Sesión expirada. Por favor, inicia sesión de nuevo.');
+      if (!token) {
+        alert('Token no disponible. Por favor, recarga la página.');
         setIsSubmitting(false);
         return;
       }
@@ -77,7 +74,7 @@ export default function AttributesManage({ categories, subcategories, brands: in
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include',
         body: JSON.stringify({
@@ -105,10 +102,8 @@ export default function AttributesManage({ categories, subcategories, brands: in
 
     setIsSubmitting(true);
     try {
-      // Get session token
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        alert('Sesión expirada. Por favor, inicia sesión de nuevo.');
+      if (!token) {
+        alert('Token no disponible. Por favor, recarga la página.');
         setIsSubmitting(false);
         return;
       }
@@ -117,7 +112,7 @@ export default function AttributesManage({ categories, subcategories, brands: in
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include',
         body: JSON.stringify({
@@ -146,10 +141,8 @@ export default function AttributesManage({ categories, subcategories, brands: in
 
     setIsSubmitting(true);
     try {
-      // Get session token
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        alert('Sesión expirada. Por favor, inicia sesión de nuevo.');
+      if (!token) {
+        alert('Token no disponible. Por favor, recarga la página.');
         setIsSubmitting(false);
         return;
       }
@@ -158,7 +151,7 @@ export default function AttributesManage({ categories, subcategories, brands: in
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include',
         body: JSON.stringify({

@@ -1,51 +1,26 @@
 import type { APIRoute } from 'astro';
+import { createServerSupabaseClient } from '@/lib/supabase';
 import { slugify } from '@/lib/utils';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    // Get all cookies to find the session token
-    const cookieHeader = request.headers.get('cookie') || '';
-    
-    // Parse session from cookies - Supabase stores it as sb-[project-id]-auth-token
-    const sessionMatch = cookieHeader.match(/sb-\w+-auth-token=([^;]+)/);
-    const sessionToken = sessionMatch?.[1];
+    // Create authenticated Supabase client with admin session
+    const supabase = await createServerSupabaseClient({ cookies }, true);
 
-    if (!sessionToken) {
+    // Verify session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
       return new Response(
         JSON.stringify({ error: 'No autenticado. Por favor inicia sesión.' }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Create authenticated Supabase client
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabaseAuth = createClient(
-      import.meta.env.PUBLIC_SUPABASE_URL,
-      import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${sessionToken}`,
-          },
-        },
-      }
-    );
-
-    // Get current user
-    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
-    if (userError || !user) {
-      console.error('Auth error:', userError);
-      return new Response(
-        JSON.stringify({ error: 'Usuario no válido' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
     // Check if user is admin
-    const { data: profile, error: profileError } = await supabaseAuth
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('is_admin')
-      .eq('id', user.id)
+      .eq('id', session.user.id)
       .single();
 
     if (profileError || !profile?.is_admin) {
@@ -78,7 +53,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const slug = slugify(name);
     const priceInCents = Math.round(price * 100);
 
-    const { data: product, error } = await supabaseAuth
+    const { data: product, error } = await supabase
       .from('products')
       .insert([
         {

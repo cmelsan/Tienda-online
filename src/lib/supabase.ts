@@ -259,3 +259,23 @@ export async function requestReturn(orderId: string, reason: string) {
     if (error) throw error;
     return data;
 }
+// Server-side admin client using service role key (bypasses RLS)
+// Use this ONLY for admin operations that need to modify data
+export function getAdminSupabaseClient(): SupabaseClient<Database> {
+    const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!serviceRoleKey) {
+        throw new Error('SUPABASE_SERVICE_ROLE_KEY environment variable is not set');
+    }
+
+    return createClient<Database>(
+        supabaseUrl,
+        serviceRoleKey,
+        {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false,
+            },
+        }
+    );
+}

@@ -1,6 +1,6 @@
 
 import type { APIRoute } from 'astro';
-import { supabase } from '@/lib/supabase';
+import { supabase, getAdminSupabaseClient } from '@/lib/supabase';
 
 // Helper to slugify
 const slugify = (text: string) => {
@@ -14,20 +14,18 @@ const slugify = (text: string) => {
 
 export const POST: APIRoute = async ({ request }) => {
     try {
-        // Get auth token from headers or request body
+        // Get auth token from headers
         const authHeader = request.headers.get('Authorization');
         let token = authHeader?.replace('Bearer ', '');
         
         if (!token) {
-            const body = await request.json();
-            // If no token, return error - auth will be validated by client
             return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
                 status: 401,
                 headers: { 'Content-Type': 'application/json' },
             });
         }
 
-        // Set the token on the supabase client
+        // Verify the token is valid
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
         if (authError || !user) {
@@ -36,6 +34,23 @@ export const POST: APIRoute = async ({ request }) => {
                 headers: { 'Content-Type': 'application/json' },
             });
         }
+
+        // Check if user is admin
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', user.id)
+            .single();
+
+        if (!profile?.is_admin) {
+            return new Response(JSON.stringify({ error: 'Forbidden - Admin access required' }), { 
+                status: 403,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
+        // Get admin client (bypasses RLS)
+        const adminClient = getAdminSupabaseClient();
 
         const body = await request.json();
         const { action } = body;
@@ -58,7 +73,7 @@ export const POST: APIRoute = async ({ request }) => {
             }
 
             const slug = slugify(name);
-            const { data: subcategory, error } = await supabase
+            const { data: subcategory, error } = await adminClient
                 .from('subcategories')
                 .insert({ name, slug, category_id })
                 .select()
@@ -87,7 +102,7 @@ export const POST: APIRoute = async ({ request }) => {
                 });
             }
 
-            const { error } = await supabase
+            const { error } = await adminClient
                 .from('subcategories')
                 .delete()
                 .eq('id', id);
@@ -116,7 +131,7 @@ export const POST: APIRoute = async ({ request }) => {
             }
 
             const slug = slugify(name);
-            const { data: brand, error } = await supabase
+            const { data: brand, error } = await adminClient
                 .from('brands')
                 .insert({ name, slug })
                 .select()
@@ -145,7 +160,7 @@ export const POST: APIRoute = async ({ request }) => {
                 });
             }
 
-            const { error } = await supabase
+            const { error } = await adminClient
                 .from('brands')
                 .delete()
                 .eq('id', id);

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { supabase } from '@/lib/supabase';
+import { supabase, getAdminSupabaseClient } from '@/lib/supabase';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -24,6 +24,20 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // Check if user is admin
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.is_admin) {
+      return new Response(JSON.stringify({ error: 'Forbidden - Admin access required' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const { key, value } = await request.json();
 
     if (!key) {
@@ -33,9 +47,12 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // Get admin client (bypasses RLS)
+    const adminClient = getAdminSupabaseClient();
+
     // Upsert setting
-    const { data: setting, error } = await supabase
-      .from('settings')
+    const { data: setting, error } = await adminClient
+      .from('app_settings')
       .upsert(
         {
           key,

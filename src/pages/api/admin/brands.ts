@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { supabase } from '@/lib/supabase';
+import { supabase, getAdminSupabaseClient } from '@/lib/supabase';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -24,6 +24,20 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // Check if user is admin
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.is_admin) {
+      return new Response(JSON.stringify({ error: 'Forbidden - Admin access required' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const { name, slug, description, logo_url } = await request.json();
 
     if (!name || !slug) {
@@ -33,8 +47,11 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // Get admin client (bypasses RLS)
+    const adminClient = getAdminSupabaseClient();
+
     // Insert brand
-    const { data: brand, error } = await supabase
+    const { data: brand, error } = await adminClient
       .from('brands')
       .insert({
         name,
@@ -82,6 +99,20 @@ export const PUT: APIRoute = async ({ request }) => {
       });
     }
 
+    // Check if user is admin
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.is_admin) {
+      return new Response(JSON.stringify({ error: 'Forbidden - Admin access required' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const { id, name, slug, description, logo_url } = await request.json();
 
     if (!id) {
@@ -98,8 +129,11 @@ export const PUT: APIRoute = async ({ request }) => {
       });
     }
 
+    // Get admin client (bypasses RLS)
+    const adminClient = getAdminSupabaseClient();
+
     // Update brand
-    const { data: brand, error } = await supabase
+    const { data: brand, error } = await adminClient
       .from('brands')
       .update({
         name,
@@ -149,6 +183,20 @@ export const DELETE: APIRoute = async ({ request }) => {
       });
     }
 
+    // Check if user is admin
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.is_admin) {
+      return new Response(JSON.stringify({ error: 'Forbidden - Admin access required' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const { id } = await request.json();
 
     if (!id) {
@@ -158,8 +206,11 @@ export const DELETE: APIRoute = async ({ request }) => {
       });
     }
 
+    // Get admin client (bypasses RLS)
+    const adminClient = getAdminSupabaseClient();
+
     // Delete brand
-    const { error } = await supabase
+    const { error } = await adminClient
       .from('brands')
       .delete()
       .eq('id', id);

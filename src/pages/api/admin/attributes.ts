@@ -1,6 +1,6 @@
 
 import type { APIRoute } from 'astro';
-import { supabase, getAdminSupabaseClient } from '@/lib/supabase';
+import { supabase, getAdminSupabaseClient, createServerSupabaseClient } from '@/lib/supabase';
 
 // Helper to slugify
 const slugify = (text: string) => {
@@ -12,28 +12,22 @@ const slugify = (text: string) => {
         .replace(/-+$/, '');
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async (context) => {
     try {
-        // Get auth token from headers
-        const authHeader = request.headers.get('Authorization');
-        let token = authHeader?.replace('Bearer ', '');
-        
-        if (!token) {
-            return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+        // Create authenticated Supabase client with admin session
+        const clientSupabase = await createServerSupabaseClient(context, true);
+
+        // Get session to verify admin
+        const { data: { session }, error: sessionError } = await clientSupabase.auth.getSession();
+
+        if (sessionError || !session) {
+            return new Response(JSON.stringify({ error: 'Unauthorized' }), {
                 status: 401,
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json' }
             });
         }
 
-        // Verify the token is valid
-        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-        
-        if (authError || !user) {
-            return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
-                status: 401,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        }
+        const user = session.user;
 
         // If user is authenticated with a valid token, they've already been verified as admin during login
         // No need to check is_admin again - the login endpoint already verified this

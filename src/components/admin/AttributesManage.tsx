@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
 interface AttributesManageProps {
@@ -17,40 +17,6 @@ export default function AttributesManage({ token: initialToken, categories, subc
   const [newSubName, setNewSubName] = useState('');
   const [newSubCategory, setNewSubCategory] = useState('');
   const [newBrandName, setNewBrandName] = useState('');
-  const [token, setToken] = useState(initialToken);
-
-  // If token is empty, try to get it from localStorage or fetch from server
-  useEffect(() => {
-    if (!token) {
-      fetchToken();
-    }
-  }, []);
-
-  const fetchToken = async () => {
-    // First try localStorage
-    const storedToken = localStorage.getItem('admin-token');
-    if (storedToken) {
-      setToken(storedToken);
-      console.log('[AttributesManage] Token loaded from localStorage');
-      return;
-    }
-
-    // If not in localStorage, try to fetch from server
-    try {
-      const response = await fetch('/api/admin/me', {
-        credentials: 'include',
-      });
-      const data = await response.json();
-      if (response.ok && data.token) {
-        setToken(data.token);
-        // Save to localStorage for future use
-        localStorage.setItem('admin-token', data.token);
-        console.log('[AttributesManage] Token fetched from server and saved to localStorage');
-      }
-    } catch (error) {
-      console.error('[AttributesManage] Error fetching token:', error);
-    }
-  };
 
   const handleAddSubcategory = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,18 +24,12 @@ export default function AttributesManage({ token: initialToken, categories, subc
 
     setIsSubmitting(true);
     try {
-      if (!token) {
-        alert('Token no disponible. Por favor, recarga la página.');
-        setIsSubmitting(false);
-        return;
-      }
-
       const response = await fetch('/api/admin/attributes', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'create_subcategory',
           category_id: newSubCategory,
@@ -97,18 +57,12 @@ export default function AttributesManage({ token: initialToken, categories, subc
 
     setIsSubmitting(true);
     try {
-      if (!token) {
-        alert('Token no disponible. Por favor, recarga la página.');
-        setIsSubmitting(false);
-        return;
-      }
-
       const response = await fetch('/api/admin/attributes', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'delete_subcategory',
           id,
@@ -134,18 +88,12 @@ export default function AttributesManage({ token: initialToken, categories, subc
 
     setIsSubmitting(true);
     try {
-      if (!token) {
-        alert('Token no disponible. Por favor, recarga la página.');
-        setIsSubmitting(false);
-        return;
-      }
-
       const response = await fetch('/api/admin/attributes', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'create_brand',
           name: newBrandName,
@@ -171,18 +119,12 @@ export default function AttributesManage({ token: initialToken, categories, subc
 
     setIsSubmitting(true);
     try {
-      if (!token) {
-        alert('Token no disponible. Por favor, recarga la página.');
-        setIsSubmitting(false);
-        return;
-      }
-
       const response = await fetch('/api/admin/attributes', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'delete_brand',
           id,

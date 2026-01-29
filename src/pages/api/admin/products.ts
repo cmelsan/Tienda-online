@@ -51,7 +51,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const slug = slugify(name);
-    const priceInCents = Math.round(price * 100);
 
     const { data: product, error } = await supabase
       .from('products')
@@ -60,7 +59,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           name,
           slug,
           description,
-          price: priceInCents,
+          price,
           stock,
           category_id,
           subcategory_id: subcategory_id || null,
@@ -137,15 +136,13 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
       );
     }
 
-    const priceInCents = Math.round(price * 100);
-
     const { error } = await supabase
       .from('products')
       .update({
         name,
         slug,
         description,
-        price: priceInCents,
+        price,
         stock,
         category_id,
         subcategory_id,

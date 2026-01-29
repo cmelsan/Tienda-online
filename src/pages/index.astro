@@ -18,27 +18,22 @@ const { data: brands } = await supabase
 
 <PublicLayout title="ÉCLAT - Perfumes, Maquillaje, Tratamiento" description="Descubre lo último en belleza: maquillaje, tratamiento, perfumes y cabello.">
   
-  {/* 1. HERO - Premium Full-Screen Style */}
-  <section class="relative w-full h-[85vh] min-h-[600px] max-h-[900px] bg-gray-light overflow-hidden">
-    <img 
-      src="https://res.cloudinary.com/REEMPLAZA_AQUI/image/upload/v123/eclat-beauty/banners/hero-banner.jpg" 
-      alt="Hero Campaign" 
-      class="w-full h-full object-cover transition-transform duration-[2s] ease-elegant hover:scale-105" 
-    />
-    <div class="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-transparent"></div>
+  {/* 1. HERO - Premium Full-Screen Style with Border */}
+  <section class="relative w-full h-[85vh] min-h-[600px] max-h-[900px] bg-gradient-to-r from-pink-300 via-pink-200 to-pink-300 overflow-hidden border-8 border-black">
+    <div class="absolute inset-0 bg-gradient-to-r from-black/20 via-black/10 to-transparent"></div>
     <div class="absolute inset-0 flex items-center">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div class="max-w-xl animate-fade-in">
-          <span class="inline-block text-white/80 text-[11px] uppercase tracking-[0.3em] mb-6 font-medium">Nueva Colección</span>
-          <h1 class="text-5xl md:text-7xl text-white font-serif font-light tracking-tight mb-6 leading-[0.95]">
+      <div class="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 w-full">
+        <div class="max-w-2xl animate-fadeIn">
+          <span class="inline-block text-gray-700 text-[11px] uppercase tracking-[0.3em] mb-6 font-medium">Nueva Colección</span>
+          <h1 class="text-5xl md:text-7xl text-black font-sans font-bold tracking-tight mb-6 leading-[1.1]">
             The Next<br/>Big Thing
           </h1>
-          <p class="text-white/80 text-lg md:text-xl font-light mb-10 leading-relaxed">
+          <p class="text-gray-700 text-lg md:text-xl font-light mb-10 leading-relaxed">
             Descubre la nueva revolución en cuidado de la piel. Solo en Éclat.
           </p>
           <a 
             href="/productos" 
-            class="inline-block bg-white text-black px-10 py-4 font-medium text-xs uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all duration-300 shadow-button"
+            class="inline-block bg-black text-white px-10 py-4 font-medium text-xs uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-300 shadow-button border border-black"
           >
             Descubrir Ahora
           </a>
@@ -47,7 +42,7 @@ const { data: brands } = await supabase
     </div>
     
     {/* Scroll indicator */}
-    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/60 animate-bounce">
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-black/60 animate-bounce">
       <span class="text-[10px] uppercase tracking-widest">Scroll</span>
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
@@ -55,36 +50,31 @@ const { data: brands } = await supabase
     </div>
   </section>
 
-  {/* 2. DOUBLE BANNER GRID - Refined */}
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 bg-gradient-to-b from-white-cream to-white">
+  {/* 2. DOUBLE BANNER GRID - Refined with Borders */}
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 bg-white">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-        {/* Banner 1: Rebajas - Elegant */}
-        <a href="/ofertas" class="relative h-[350px] md:h-[450px] bg-beauty-nude flex items-center justify-center overflow-hidden group">
+        {/* Banner 1: Rebajas - Pink */}
+        <a href="/ofertas" class="relative h-[350px] md:h-[450px] bg-gradient-to-br from-pink-300 to-pink-200 flex items-center justify-center overflow-hidden group border-4 border-black">
           <div class="text-center z-10 p-8 transition-transform duration-500 group-hover:scale-105">
-            <span class="inline-block text-beauty-red text-[10px] uppercase tracking-[0.3em] mb-4 font-medium">Ofertas Exclusivas</span>
-            <h3 class="text-4xl md:text-5xl font-serif font-light text-black mb-3">Rebajas</h3>
-            <p class="text-gray-dark text-sm mb-8">Hasta -50% en favoritos</p>
-            <span class="inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b border-black pb-1 group-hover:border-beauty-red group-hover:text-beauty-red transition-colors">
+            <span class="inline-block text-black text-[10px] uppercase tracking-[0.3em] mb-4 font-medium">Ofertas Exclusivas</span>
+            <h3 class="text-4xl md:text-5xl font-sans font-bold text-black mb-3">Rebajas</h3>
+            <p class="text-gray-700 text-sm mb-8">Hasta -50% en favoritos</p>
+            <span class="inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b-2 border-black pb-1 group-hover:border-rose-600 group-hover:text-rose-600 transition-colors">
               Ver Ofertas
             </span>
           </div>
           {/* Decorative element */}
-          <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-beauty-pink/20 rounded-full blur-3xl transition-transform duration-700 group-hover:scale-125"></div>
+          <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-white/20 rounded-full blur-3xl transition-transform duration-700 group-hover:scale-125"></div>
         </a>
 
-        {/* Banner 2: Novedades */}
-        <a href="/productos" class="relative h-[350px] md:h-[450px] bg-gray-light overflow-hidden group">
-          <img 
-            src="https://res.cloudinary.com/REEMPLAZA_AQUI/image/upload/v456/eclat-beauty/banners/novedades-banner.jpg" 
-            alt="Novedades" 
-            class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-elegant group-hover:scale-105" 
-          />
-          <div class="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-500"></div>
-          <div class="absolute bottom-0 left-0 w-full p-8 md:p-10">
+        {/* Banner 2: Novedades - Gray */}
+        <a href="/productos" class="relative h-[350px] md:h-[450px] bg-gray-400 overflow-hidden group border-4 border-black flex items-center justify-center">
+          <div class="absolute inset-0 bg-gradient-to-b from-black/20 to-black/40"></div>
+          <div class="relative z-10 text-center p-8">
             <span class="inline-block text-white/80 text-[10px] uppercase tracking-[0.3em] mb-3 font-medium">Lo último</span>
-            <h3 class="text-3xl md:text-4xl font-serif font-light text-white mb-3">Novedades</h3>
+            <h3 class="text-3xl md:text-4xl font-sans font-bold text-white mb-3">Novedades</h3>
             <p class="text-white/80 text-sm mb-6">Lo último de tus marcas favoritas</p>
-            <span class="inline-block bg-white text-black px-7 py-3 text-[10px] font-medium uppercase tracking-[0.15em] group-hover:bg-black group-hover:text-white transition-all duration-300">
+            <span class="inline-block bg-white text-black px-7 py-3 text-[10px] font-medium uppercase tracking-[0.15em] group-hover:bg-black group-hover:text-white transition-all duration-300 border border-white">
               Comprar
             </span>
           </div>
@@ -127,29 +117,29 @@ const { data: brands } = await supabase
     </div>
   </section>
 
-  {/* 4. BRAND SPOTLIGHT - Elegant Grid */}
-  <section class="bg-black text-white py-20 lg:py-28">
+  {/* 4. BRAND SPOTLIGHT - Elegant Grid with Borders */}
+  <section class="bg-black text-white py-20 lg:py-28 border-y-8 border-black">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-16">
         <span class="inline-block text-white/50 text-[10px] uppercase tracking-[0.3em] mb-4">Descubre</span>
-        <h2 class="text-3xl md:text-4xl font-serif font-light mb-4">Marcas Estrella</h2>
-        <div class="w-12 h-px bg-beauty-red mx-auto"></div>
+        <h2 class="text-3xl md:text-4xl font-sans font-bold mb-4">Marcas Estrella</h2>
+        <div class="w-12 h-px bg-rose-600 mx-auto"></div>
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {['Rare Beauty', 'Fenty Beauty', 'Dior', 'Charlotte Tilbury'].map((brand, i) => (
           <a 
             href={`/marcas/${brand.toLowerCase().replace(' ', '-')}`}
-            class={`relative h-64 md:h-80 bg-black-soft group overflow-hidden ${i === 0 ? 'md:col-span-2 md:h-96' : ''}`}
+            class={`relative h-64 md:h-80 bg-black-soft group overflow-hidden border-2 border-white/20 hover:border-rose-600 transition-all ${i === 0 ? 'md:col-span-2 md:h-96' : ''}`}
           >
             <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-gray-dark/30 to-black/60">
-              <span class="text-white/10 font-serif text-5xl md:text-6xl uppercase tracking-wider group-hover:text-white/5 transition-all duration-500">
+              <span class="text-white/10 font-sans text-4xl md:text-5xl font-bold uppercase tracking-wider group-hover:text-white/5 transition-all duration-500">
                 {brand}
               </span>
             </div>
             
             <div class="absolute inset-0 flex flex-col items-center justify-center p-6 opacity-100 group-hover:opacity-0 transition-opacity duration-300">
-              <h3 class="text-xl md:text-2xl font-serif font-light tracking-wide mb-3 text-center">{brand}</h3>
+              <h3 class="text-xl md:text-2xl font-sans font-bold tracking-wide mb-3 text-center">{brand}</h3>
               <div class="w-8 h-px bg-white/30"></div>
             </div>
             
@@ -164,32 +154,30 @@ const { data: brands } = await supabase
     </div>
   </section>
 
-  {/* 5. EXCLUSIVES BANNER - Sophisticated */}
-  <section class="py-20 lg:py-28">
+  {/* 5. EXCLUSIVES BANNER - Sophisticated with Border */}
+  <section class="py-20 lg:py-28 bg-white border-y-8 border-black">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
         <div class="order-2 lg:order-1">
-          <span class="inline-block text-beauty-red text-[10px] uppercase tracking-[0.3em] mb-6 font-medium">Solo en Éclat</span>
-          <h2 class="text-4xl md:text-5xl font-serif font-light text-black mb-6 leading-tight">
+          <span class="inline-block text-rose-600 text-[10px] uppercase tracking-[0.3em] mb-6 font-medium">Solo en Éclat</span>
+          <h2 class="text-4xl md:text-5xl font-sans font-bold text-black mb-6 leading-tight">
             Éclat Collection
           </h2>
-          <p class="text-gray-dark text-lg leading-relaxed mb-10 max-w-md">
+          <p class="text-gray-700 text-lg leading-relaxed mb-10 max-w-md">
             Descubre nuestra propia línea de maquillaje, diseñada para realzar tu belleza natural con fórmulas premium.
           </p>
           <a 
             href="/marcas/eclat-collection" 
-            class="inline-block bg-black text-white px-10 py-4 text-xs font-medium uppercase tracking-[0.2em] hover:bg-beauty-red transition-all duration-300"
+            class="inline-block bg-black text-white px-10 py-4 text-xs font-medium uppercase tracking-[0.2em] hover:bg-rose-600 transition-all duration-300 border border-black"
           >
             Ver Colección
           </a>
         </div>
         <div class="order-1 lg:order-2">
-          <div class="relative aspect-[4/5] bg-gray-light overflow-hidden">
-            <img 
-              src="/assets/exclusive-promo.jpg" 
-              alt="Éclat Collection" 
-              class="w-full h-full object-cover transition-transform duration-700 ease-elegant hover:scale-105" 
-            />
+          <div class="relative aspect-[4/5] bg-gray-300 overflow-hidden border-4 border-black">
+            <div class="w-full h-full bg-gradient-to-br from-pink-300 to-pink-200 flex items-center justify-center">
+              <span class="text-white/20 font-sans text-6xl font-bold">Éclat</span>
+            </div>
           </div>
         </div>
       </div>

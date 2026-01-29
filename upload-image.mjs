@@ -10,12 +10,12 @@ cloudinary.config({
 });
 
 // Ruta de la imagen local (cámbiala si es necesario)
-const imagePath = './public/assets/hero-makeup.jpg';
+const imagePath = './public/assets/hero-makeup.png';
 
 // Verificar si el archivo existe
 if (!fs.existsSync(imagePath)) {
   console.error(`❌ Archivo no encontrado: ${imagePath}`);
-  console.log('Por favor, guarda la imagen en: public/assets/hero-makeup.jpg');
+  console.log('Por favor, guarda la imagen en: public/assets/hero-makeup.png');
   process.exit(1);
 }
 

@@ -118,20 +118,41 @@ const offersEnabled = settings?.value === true;
           <div class="group h-full flex items-center">
             <a href="/categoria/maquillaje" class="px-5 py-2 text-[11px] font-medium text-white/90 hover:text-white transition-colors uppercase tracking-[0.15em] relative h-full flex items-center">
               Maquillaje
-              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-beauty-red group-hover:w-3/4 transition-all duration-300"></span>
+              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-rose-600 group-hover:w-3/4 transition-all duration-300"></span>
             </a>
             
             <!-- Mega Dropdown -->
-            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-elegant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform z-40">
-              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                 <ul class="space-y-3 text-sm">
-                    <li><a href="/categoria/maquillaje" class="block font-medium text-[10px] uppercase tracking-[0.2em] text-black hover:text-beauty-red transition-colors">Ver todo Maquillaje</a></li>
-                    <li class="pt-2"><a href="/categoria/maquillaje/rostro" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Rostro</a></li>
-                    <li><a href="/categoria/maquillaje/labios" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Labios</a></li>
-                    <li><a href="/categoria/maquillaje/ojos" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Ojos</a></li>
-                    <li><a href="/categoria/maquillaje/cejas" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Cejas</a></li>
-                    <li><a href="/categoria/maquillaje/brochas-y-accesorios" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Brochas y Accesorios</a></li>
-                 </ul>
+            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-elegant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform z-40 border-t-4 border-rose-600">
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                 <div class="grid grid-cols-2 gap-12">
+                    <!-- Ver Todo -->
+                    <div>
+                       <a href="/categoria/maquillaje" class="block font-medium text-[11px] uppercase tracking-[0.2em] text-black hover:text-rose-600 transition-colors mb-8 pb-4 border-b border-gray-300">
+                         ↗ Ver Todo Maquillaje
+                       </a>
+                       <ul class="space-y-4">
+                          <li><a href="/categoria/maquillaje/rostro" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-rose-600 hover:pl-2 transition-all duration-200">Rostro</a></li>
+                          <li><a href="/categoria/maquillaje/labios" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-rose-600 hover:pl-2 transition-all duration-200">Labios</a></li>
+                          <li><a href="/categoria/maquillaje/ojos" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-rose-600 hover:pl-2 transition-all duration-200">Ojos</a></li>
+                          <li><a href="/categoria/maquillaje/cejas" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-rose-600 hover:pl-2 transition-all duration-200">Cejas</a></li>
+                          <li><a href="/categoria/maquillaje/brochas-y-accesorios" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-rose-600 hover:pl-2 transition-all duration-200">Brochas y Accesorios</a></li>
+                       </ul>
+                    </div>
+                    
+                    <!-- Marcas Populares -->
+                    <div>
+                       <h4 class="font-medium text-[11px] uppercase tracking-[0.2em] text-black mb-8 pb-4 border-b border-gray-300">Marcas de Maquillaje</h4>
+                       <ul class="space-y-3 text-sm">
+                          <li><a href="/marcas/rare-beauty" class="text-gray-700 hover:text-rose-600 hover:pl-1 transition-all duration-200">Rare Beauty</a></li>
+                          <li><a href="/marcas/fenty-beauty" class="text-gray-700 hover:text-rose-600 hover:pl-1 transition-all duration-200">Fenty Beauty</a></li>
+                          <li><a href="/marcas/too-faced" class="text-gray-700 hover:text-rose-600 hover:pl-1 transition-all duration-200">Too Faced</a></li>
+                          <li><a href="/marcas/charlotte-tilbury" class="text-gray-700 hover:text-rose-600 hover:pl-1 transition-all duration-200">Charlotte Tilbury</a></li>
+                          <li><a href="/marcas/huda-beauty" class="text-gray-700 hover:text-rose-600 hover:pl-1 transition-all duration-200">Huda Beauty</a></li>
+                          <li><a href="/marcas/haus-labs" class="text-gray-700 hover:text-rose-600 hover:pl-1 transition-all duration-200">Haus Labs</a></li>
+                          <li><a href="/marcas/makeup-by-mario" class="text-gray-700 hover:text-rose-600 hover:pl-1 transition-all duration-200">Makeup by Mario</a></li>
+                       </ul>
+                    </div>
+                 </div>
               </div>
             </div>
           </div>
@@ -140,17 +161,35 @@ const offersEnabled = settings?.value === true;
           <div class="group h-full flex items-center">
             <a href="/categoria/cabello" class="px-5 py-2 text-[11px] font-medium text-white/90 hover:text-white transition-colors uppercase tracking-[0.15em] relative h-full flex items-center">
               Cabello
-              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-beauty-red group-hover:w-3/4 transition-all duration-300"></span>
+              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-amber-500 group-hover:w-3/4 transition-all duration-300"></span>
             </a>
-             <div class="absolute left-0 top-16 w-full bg-white text-black shadow-elegant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform z-40">
-              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                 <ul class="space-y-3 text-sm">
-                    <li><a href="/categoria/cabello" class="block font-medium text-[10px] uppercase tracking-[0.2em] text-black hover:text-beauty-red transition-colors">Ver todo Cabello</a></li>
-                    <li class="pt-2"><a href="/categoria/cabello/champu" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Champú</a></li>
-                    <li><a href="/categoria/cabello/acondicionador" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Acondicionador</a></li>
-                    <li><a href="/categoria/cabello/tratamientos" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Tratamientos</a></li>
-                    <li><a href="/categoria/cabello/styling" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Styling</a></li>
-                 </ul>
+             <div class="absolute left-0 top-16 w-full bg-white text-black shadow-elegant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform z-40 border-t-4 border-amber-500">
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                 <div class="grid grid-cols-2 gap-12">
+                    <div>
+                       <a href="/categoria/cabello" class="block font-medium text-[11px] uppercase tracking-[0.2em] text-black hover:text-amber-600 transition-colors mb-8 pb-4 border-b border-gray-300">
+                         ↗ Ver Todo Cabello
+                       </a>
+                       <ul class="space-y-4">
+                          <li><a href="/categoria/cabello/champu" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-amber-600 hover:pl-2 transition-all duration-200">Champú</a></li>
+                          <li><a href="/categoria/cabello/acondicionador" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-amber-600 hover:pl-2 transition-all duration-200">Acondicionador</a></li>
+                          <li><a href="/categoria/cabello/tratamientos" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-amber-600 hover:pl-2 transition-all duration-200">Tratamientos</a></li>
+                          <li><a href="/categoria/cabello/styling" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-amber-600 hover:pl-2 transition-all duration-200">Styling</a></li>
+                       </ul>
+                    </div>
+                    
+                    <div>
+                       <h4 class="font-medium text-[11px] uppercase tracking-[0.2em] text-black mb-8 pb-4 border-b border-gray-300">Marcas de Cabello</h4>
+                       <ul class="space-y-3 text-sm">
+                          <li><a href="/marcas/gisou" class="text-gray-700 hover:text-amber-600 hover:pl-1 transition-all duration-200">Gisou</a></li>
+                          <li><a href="/marcas/olaplex" class="text-gray-700 hover:text-amber-600 hover:pl-1 transition-all duration-200">Olaplex</a></li>
+                          <li><a href="/marcas/k18" class="text-gray-700 hover:text-amber-600 hover:pl-1 transition-all duration-200">K18</a></li>
+                          <li><a href="/marcas/dyson" class="text-gray-700 hover:text-amber-600 hover:pl-1 transition-all duration-200">Dyson</a></li>
+                          <li><a href="/marcas/amika" class="text-gray-700 hover:text-amber-600 hover:pl-1 transition-all duration-200">Amika</a></li>
+                          <li><a href="/marcas/moroccanoil" class="text-gray-700 hover:text-amber-600 hover:pl-1 transition-all duration-200">Moroccanoil</a></li>
+                       </ul>
+                    </div>
+                 </div>
               </div>
             </div>
           </div>
@@ -159,17 +198,34 @@ const offersEnabled = settings?.value === true;
           <div class="group h-full flex items-center">
             <a href="/categoria/cuerpo" class="px-5 py-2 text-[11px] font-medium text-white/90 hover:text-white transition-colors uppercase tracking-[0.15em] relative h-full flex items-center">
               Cuerpo
-              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-beauty-red group-hover:w-3/4 transition-all duration-300"></span>
+              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-blue-500 group-hover:w-3/4 transition-all duration-300"></span>
             </a>
-            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-elegant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform z-40">
-              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                 <ul class="space-y-3 text-sm">
-                    <li><a href="/categoria/cuerpo" class="block font-medium text-[10px] uppercase tracking-[0.2em] text-black hover:text-beauty-red transition-colors">Ver todo Cuerpo</a></li>
-                    <li class="pt-2"><a href="/categoria/cuerpo/exfoliante" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Exfoliante corporal</a></li>
-                    <li><a href="/categoria/cuerpo/aceite" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Aceite cuerpo</a></li>
-                    <li><a href="/categoria/cuerpo/leche" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Leche corporal</a></li>
-                    <li><a href="/categoria/cuerpo/desodorante" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Desodorante</a></li>
-                 </ul>
+            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-elegant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform z-40 border-t-4 border-blue-500">
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                 <div class="grid grid-cols-2 gap-12">
+                    <div>
+                       <a href="/categoria/cuerpo" class="block font-medium text-[11px] uppercase tracking-[0.2em] text-black hover:text-blue-600 transition-colors mb-8 pb-4 border-b border-gray-300">
+                         ↗ Ver Todo Cuerpo
+                       </a>
+                       <ul class="space-y-4">
+                          <li><a href="/categoria/cuerpo/exfoliante" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-blue-600 hover:pl-2 transition-all duration-200">Exfoliante</a></li>
+                          <li><a href="/categoria/cuerpo/aceite" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-blue-600 hover:pl-2 transition-all duration-200">Aceite cuerpo</a></li>
+                          <li><a href="/categoria/cuerpo/leche" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-blue-600 hover:pl-2 transition-all duration-200">Leche corporal</a></li>
+                          <li><a href="/categoria/cuerpo/desodorante" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-blue-600 hover:pl-2 transition-all duration-200">Desodorante</a></li>
+                       </ul>
+                    </div>
+                    
+                    <div>
+                       <h4 class="font-medium text-[11px] uppercase tracking-[0.2em] text-black mb-8 pb-4 border-b border-gray-300">Marcas de Cuidado</h4>
+                       <ul class="space-y-3 text-sm">
+                          <li><a href="/marcas/sol-de-janeiro" class="text-gray-700 hover:text-blue-600 hover:pl-1 transition-all duration-200">Sol de Janeiro</a></li>
+                          <li><a href="/marcas/byoma" class="text-gray-700 hover:text-blue-600 hover:pl-1 transition-all duration-200">Byoma</a></li>
+                          <li><a href="/marcas/glow-recipe" class="text-gray-700 hover:text-blue-600 hover:pl-1 transition-all duration-200">Glow Recipe</a></li>
+                          <li><a href="/marcas/tatcha" class="text-gray-700 hover:text-blue-600 hover:pl-1 transition-all duration-200">Tatcha</a></li>
+                          <li><a href="/marcas/kosas" class="text-gray-700 hover:text-blue-600 hover:pl-1 transition-all duration-200">Kosas</a></li>
+                       </ul>
+                    </div>
+                 </div>
               </div>
             </div>
           </div>
@@ -178,17 +234,35 @@ const offersEnabled = settings?.value === true;
           <div class="group h-full flex items-center">
             <a href="/categoria/perfumes" class="px-5 py-2 text-[11px] font-medium text-white/90 hover:text-white transition-colors uppercase tracking-[0.15em] relative h-full flex items-center">
               Perfumes
-              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-beauty-red group-hover:w-3/4 transition-all duration-300"></span>
+              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-purple-500 group-hover:w-3/4 transition-all duration-300"></span>
             </a>
-            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-elegant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform z-40">
-              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                 <ul class="space-y-3 text-sm">
-                    <li><a href="/categoria/perfumes" class="block font-medium text-[10px] uppercase tracking-[0.2em] text-black hover:text-beauty-red transition-colors">Ver todo Perfumes</a></li>
-                    <li class="pt-2"><a href="/categoria/perfumes" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Perfume mujer</a></li>
-                    <li><a href="/categoria/perfumes" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Perfume hombre</a></li>
-                    <li><a href="/categoria/perfumes" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Velas y difusores</a></li>
-                    <li><a href="/categoria/perfumes" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Estuches perfume</a></li>
-                 </ul>
+            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-elegant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform z-40 border-t-4 border-purple-500">
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                 <div class="grid grid-cols-2 gap-12">
+                    <div>
+                       <a href="/categoria/perfumes" class="block font-medium text-[11px] uppercase tracking-[0.2em] text-black hover:text-purple-600 transition-colors mb-8 pb-4 border-b border-gray-300">
+                         ↗ Ver Todo Perfumes
+                       </a>
+                       <ul class="space-y-4">
+                          <li><a href="/categoria/perfumes/mujer" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-purple-600 hover:pl-2 transition-all duration-200">Perfume mujer</a></li>
+                          <li><a href="/categoria/perfumes/hombre" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-purple-600 hover:pl-2 transition-all duration-200">Perfume hombre</a></li>
+                          <li><a href="/categoria/perfumes/velas" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-purple-600 hover:pl-2 transition-all duration-200">Velas y difusores</a></li>
+                          <li><a href="/categoria/perfumes/estuches" class="block font-medium text-[10px] uppercase tracking-[0.15em] text-gray-700 hover:text-purple-600 hover:pl-2 transition-all duration-200">Estuches y sets</a></li>
+                       </ul>
+                    </div>
+                    
+                    <div>
+                       <h4 class="font-medium text-[11px] uppercase tracking-[0.2em] text-black mb-8 pb-4 border-b border-gray-300">Marcas de Perfume</h4>
+                       <ul class="space-y-3 text-sm">
+                          <li><a href="/marcas/kayali" class="text-gray-700 hover:text-purple-600 hover:pl-1 transition-all duration-200">Kayali</a></li>
+                          <li><a href="/marcas/dior" class="text-gray-700 hover:text-purple-600 hover:pl-1 transition-all duration-200">Dior</a></li>
+                          <li><a href="/marcas/guerlain" class="text-gray-700 hover:text-purple-600 hover:pl-1 transition-all duration-200">Guerlain</a></li>
+                          <li><a href="/marcas/tom-ford" class="text-gray-700 hover:text-purple-600 hover:pl-1 transition-all duration-200">Tom Ford</a></li>
+                          <li><a href="/marcas/valentino" class="text-gray-700 hover:text-purple-600 hover:pl-1 transition-all duration-200">Valentino</a></li>
+                          <li><a href="/marcas/chanel" class="text-gray-700 hover:text-purple-600 hover:pl-1 transition-all duration-200">Chanel</a></li>
+                       </ul>
+                    </div>
+                 </div>
               </div>
             </div>
           </div>

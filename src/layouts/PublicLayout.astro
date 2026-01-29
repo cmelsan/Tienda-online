@@ -124,11 +124,90 @@ const offersEnabled = settings?.value === true;
             
             <!-- Mega Dropdown -->
             <div class="absolute left-0 top-16 w-full bg-white text-black shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border-t border-gray-100 transform z-40">
-              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                 <ul class="space-y-3 text-sm font-medium">
-                    <li><a href="/categoria/maquillaje" class="block font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Ver Todo Maquillaje</a></li>
-                    <li><a href="/categoria/maquillaje" class="hover:text-black transition-colors">Descubre toda nuestra colección de maquillaje premium →</a></li>
-                 </ul>
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                 <div class="grid grid-cols-4 gap-8">
+                    <!-- Column 1 -->
+                    <div>
+                        <ul class="space-y-4 mb-8">
+                            <li><a href="#" class="block text-sm font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Ver todo</a></li>
+                            <li><a href="#" class="block text-sm font-bold text-red-600 hover:text-black transition-colors uppercase tracking-widest">Rebajas hasta -50%*</a></li>
+                            <li><a href="#" class="block text-sm font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Novedades</a></li>
+                            <li><a href="#" class="block text-sm font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Bestsellers</a></li>
+                        </ul>
+
+                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Rostro</h4>
+                       <ul class="space-y-2 text-sm text-gray-500 font-medium">
+                          <li><a href="/categoria/maquillaje/colorete" class="hover:text-black transition-colors">Colorete</a></li>
+                          <li><a href="/categoria/maquillaje/base" class="hover:text-black transition-colors">Base de maquillaje</a></li>
+                          <li><a href="/categoria/maquillaje/antiojeras" class="hover:text-black transition-colors">Antiojeras & corrector</a></li>
+                          <li><a href="/categoria/maquillaje/iluminador" class="hover:text-black transition-colors">Iluminador</a></li>
+                          <li><a href="/categoria/maquillaje/prebase-maquillaje" class="hover:text-black transition-colors">Prebase de maquillaje y fijador</a></li>
+                          <li><a href="/categoria/maquillaje/polvos-bronceadores" class="hover:text-black transition-colors">Polvos bronceadores</a></li>
+                          <li><a href="/categoria/maquillaje/contouring" class="hover:text-black transition-colors">Contouring</a></li>
+                          <li><a href="/categoria/maquillaje/cremas-bb-cc" class="hover:text-black transition-colors">Cremas BB & CC</a></li>
+                          <li><a href="/categoria/maquillaje/polvos-matificantes" class="hover:text-black transition-colors">Polvos matificantes</a></li>
+                          <li><a href="/categoria/maquillaje/polvos-sueltos" class="hover:text-black transition-colors">Polvos sueltos</a></li>
+                       </ul>
+                    </div>
+
+                    <!-- Column 2 -->
+                    <div>
+                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Labios</h4>
+                       <ul class="space-y-2 text-sm text-gray-500 mb-8 font-medium">
+                          <li><a href="/categoria/maquillaje/barra-de-labios" class="hover:text-black transition-colors">Barra de labios</a></li>
+                          <li><a href="/categoria/maquillaje/balsamo-labial" class="hover:text-black transition-colors">Bálsamo labial</a></li>
+                          <li><a href="/categoria/maquillaje/brillo-labial" class="hover:text-black transition-colors">Gloss/ Brillo labial</a></li>
+
+                          <li><a href="/categoria/maquillaje/lapiz-labios" class="hover:text-black transition-colors">Lápiz de labios</a></li>
+                       </ul>
+
+                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Ojos</h4>
+                       <ul class="space-y-2 text-sm text-gray-500 mb-8 font-medium">
+                          <li><a href="/categoria/maquillaje/paleta-ojos" class="hover:text-black transition-colors">Paleta de sombras de ojos</a></li>
+                          <li><a href="/categoria/maquillaje/sombras" class="hover:text-black transition-colors">Sombras de ojos</a></li>
+                          <li><a href="/categoria/maquillaje/mascara-pestanas" class="hover:text-black transition-colors">Máscara de pestañas</a></li>
+                          <li><a href="/categoria/maquillaje/eyeliner" class="hover:text-black transition-colors">Eyeliner</a></li>
+                       </ul>
+
+                        <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Pinceles & accesorios</h4>
+                        <ul class="space-y-2 text-sm text-gray-500 mb-8 font-medium">
+                          <li><a href="#" class="hover:text-black transition-colors">Brocha rostro</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Esponja de maquillaje</a></li>
+                       </ul>
+                    </div>
+                    
+                    <!-- Column 3 -->
+                    <div>
+                         <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Paletas maquillaje</h4>
+                         <ul class="space-y-2 text-sm text-gray-500 mb-8 font-medium">
+                            <li><a href="#" class="hover:text-black transition-colors">Paleta rostro</a></li>
+                            <li><a href="#" class="hover:text-black transition-colors">Paleta de sombras de ojos</a></li>
+                         </ul>
+
+                         <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Cejas</h4>
+                         <ul class="space-y-2 text-sm text-gray-500 mb-8 font-medium">
+                            <li><a href="#" class="hover:text-black transition-colors">Gel & Máscara de cejas</a></li>
+                            <li><a href="#" class="hover:text-black transition-colors">Lápiz & polvo para cejas</a></li>
+
+                         </ul>
+
+
+                         
+                         <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Estuches maquillaje</h4>
+                         <ul class="space-y-2 text-sm text-gray-500 mb-8 font-medium">
+                            <li><a href="#" class="hover:text-black transition-colors">Estuches de rostro</a></li>
+                         </ul>
+                         
+                         <h4 class="font-bold uppercase tracking-widest text-xs mb-4 hover:text-beauty-red transition-colors cursor-pointer">Maquillaje Éclat Collection</h4>
+                    </div>
+
+                     <!-- Column 4 -->
+                    <div>
+                        <h4 class="font-bold uppercase tracking-widest text-xs mb-4 hover:text-beauty-red transition-colors cursor-pointer">Maquillaje precio top</h4>
+                        <h4 class="font-bold uppercase tracking-widest text-xs mb-4 hover:text-beauty-red transition-colors cursor-pointer">Minis maquillaje</h4>
+                        <h4 class="font-bold uppercase tracking-widest text-xs mb-4 hover:text-beauty-red transition-colors cursor-pointer">¡Prueba... primero!</h4>
+                    </div>
+                 </div>
               </div>
             </div>
           </div>
@@ -140,11 +219,86 @@ const offersEnabled = settings?.value === true;
               <span class="absolute bottom-0 left-0 w-full h-0.5 bg-beauty-red transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
             </a>
              <div class="absolute left-0 top-16 w-full bg-white text-black shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border-t border-gray-100 transform z-40">
-              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                 <ul class="space-y-3 text-sm font-medium">
-                    <li><a href="/categoria/cabello" class="block font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Ver Todo Cabello</a></li>
-                    <li><a href="/categoria/cabello" class="hover:text-black transition-colors">Descubre nuestros productos para el cuidado del cabello →</a></li>
-                 </ul>
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                 <div class="grid grid-cols-4 gap-8">
+                    <!-- Column 1 -->
+                    <div>
+                        <ul class="space-y-4 mb-8">
+                            <li><a href="#" class="block text-sm font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Ver todo</a></li>
+                            <li><a href="#" class="block text-sm font-bold text-red-600 hover:text-black transition-colors uppercase tracking-widest">Rebajas hasta -50%*</a></li>
+                            <li><a href="#" class="block text-sm font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Novedades</a></li>
+                            <li><a href="#" class="block text-sm font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Bestsellers</a></li>
+                        </ul>
+
+                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Champú y acondicionador</h4>
+                       <ul class="space-y-2 text-sm text-gray-500 font-medium">
+                          <li><a href="/categoria/cabello/mascarilla" class="hover:text-black transition-colors">Mascarilla cabello</a></li>
+                          <li><a href="/categoria/cabello/champu" class="hover:text-black transition-colors">Champú</a></li>
+                          <li><a href="/categoria/cabello/acondicionador" class="hover:text-black transition-colors">Acondicionador</a></li>
+                          <li><a href="/categoria/cabello/tratamiento" class="hover:text-black transition-colors">Crema y tratamiento sin aclarado</a></li>
+                          <li><a href="/categoria/cabello/serum" class="hover:text-black transition-colors">Sérum y aceite</a></li>
+                          <li><a href="/categoria/cabello/champu-seco" class="hover:text-black transition-colors">Champú seco</a></li>
+                          <li><a href="/categoria/cabello/color" class="hover:text-black transition-colors">Cuidado del color</a></li>
+                          <li><a href="/categoria/cabello/perfume" class="hover:text-black transition-colors">Perfume cabello</a></li>
+                       </ul>
+                    </div>
+
+                    <!-- Column 2 -->
+                    <div>
+                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Herramientas y accesorios</h4>
+                       <ul class="space-y-2 text-sm text-gray-500 mb-8 font-medium">
+                          <li><a href="#" class="hover:text-black transition-colors">Cepillo & peine</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Plancha para alisar & rizar</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Secador de cabello</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Toalla & turbante cabello</a></li>
+                       </ul>
+
+                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Acabados & fijadores</h4>
+                       <ul class="space-y-2 text-sm text-gray-500 mb-8 font-medium">
+                          <li><a href="#" class="hover:text-black transition-colors">Spray</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Gel</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Cera</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Crema</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Mousse</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Sérum</a></li>
+                       </ul>
+
+                        <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Estuches cabello</h4>
+                    </div>
+
+                     <!-- Column 3 -->
+                     <div>
+                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Tipo de cabello</h4>
+                       <ul class="space-y-2 text-sm text-gray-500 font-medium">
+                          <li><a href="#" class="hover:text-black transition-colors">Cabello seco & dañado</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Cabello liso & sin volumen</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Cabello teñido & con mechas</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Cabello mixto a graso</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Cabello ondulado, rizado y encrespado</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Cabello sin brillo</a></li>
+                       </ul>
+                    </div>
+                    
+                    <!-- Column 4 -->
+                    <div>
+                         <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Necesidades</h4>
+                         <ul class="space-y-2 text-sm text-gray-500 mb-8 font-medium">
+                            <li><a href="#" class="hover:text-black transition-colors">Hidratación y nutrición</a></li>
+                            <li><a href="#" class="hover:text-black transition-colors">Definición de rizos y ondas</a></li>
+                            <li><a href="#" class="hover:text-black transition-colors">Caída cabello</a></li>
+                            <li><a href="#" class="hover:text-black transition-colors">Brillo & suavidad</a></li>
+                            <li><a href="#" class="hover:text-black transition-colors">Cuidado del cuero cabelludo</a></li>
+                            <li><a href="#" class="hover:text-black transition-colors">Volumen</a></li>
+                            <li><a href="#" class="hover:text-black transition-colors">Cabello teñido</a></li>
+                            <li><a href="#" class="hover:text-black transition-colors">Protector solar cabello</a></li>
+                            <li><a href="#" class="hover:text-black transition-colors">Anti-caspa</a></li>
+                         </ul>
+
+                        <h4 class="font-bold uppercase tracking-widest text-xs mb-4 hover:text-beauty-red transition-colors cursor-pointer">Cabello Éclat Collection</h4>
+                        <h4 class="font-bold uppercase tracking-widest text-xs mb-4 hover:text-beauty-red transition-colors cursor-pointer">Rutinas Premium</h4>
+                        <h4 class="font-bold uppercase tracking-widest text-xs mb-4 hover:text-beauty-red transition-colors cursor-pointer">Minis cabello</h4>
+                    </div>
+                 </div>
               </div>
             </div>
           </div>
@@ -156,11 +310,67 @@ const offersEnabled = settings?.value === true;
                <span class="absolute bottom-0 left-0 w-full h-0.5 bg-beauty-red transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
             </a>
             <div class="absolute left-0 top-16 w-full bg-white text-black shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border-t border-gray-100 transform z-40">
-              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                 <ul class="space-y-3 text-sm font-medium">
-                    <li><a href="/categoria/cuerpo" class="block font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Ver Todo Cuerpo</a></li>
-                    <li><a href="/categoria/cuerpo" class="hover:text-black transition-colors">Explora nuestra selección de tratamientos corporales →</a></li>
-                 </ul>
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                 <div class="grid grid-cols-4 gap-8">
+                    <!-- Column 1 -->
+                    <div>
+                        <ul class="space-y-4 mb-8">
+                            <li><a href="#" class="block text-sm font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Ver todo</a></li>
+                            <li><a href="#" class="block text-sm font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Novedades</a></li>
+                            <li><a href="#" class="block text-sm font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Bestsellers</a></li>
+                        </ul>
+
+                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Tratamiento corporal</h4>
+                       <ul class="space-y-2 text-sm text-gray-500 font-medium">
+                          <li><a href="/categoria/cuerpo/exfoliante" class="hover:text-black transition-colors">Exfoliante corporal</a></li>
+                          <li><a href="/categoria/cuerpo/aceite" class="hover:text-black transition-colors">Aceite cuerpo</a></li>
+                          <li><a href="/categoria/cuerpo/bruma" class="hover:text-black transition-colors">Bruma corporal</a></li>
+                          <li><a href="/categoria/cuerpo/leche" class="hover:text-black transition-colors">Leche corporal</a></li>
+                          <li><a href="/categoria/cuerpo/desodorante" class="hover:text-black transition-colors">Desodorante</a></li>
+                          <li><a href="/categoria/cuerpo/pies" class="hover:text-black transition-colors">Cuidado pies</a></li>
+                          <li><a href="/categoria/cuerpo/manos" class="hover:text-black transition-colors">Cuidado de manos</a></li>
+                          <li><a href="/categoria/cuerpo/escote" class="hover:text-black transition-colors">Escote & pecho</a></li>
+                          <li><a href="/categoria/cuerpo/crema" class="hover:text-black transition-colors">Crema cuerpo</a></li>
+                       </ul>
+                    </div>
+
+                    <!-- Column 2 -->
+                    <div>
+                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Ducha & baño</h4>
+                       <ul class="space-y-2 text-sm text-gray-500 mb-8 font-medium">
+                          <li><a href="#" class="hover:text-black transition-colors">Gel ducha</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Bolas de baño</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Jabón</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Aceite cuerpo & baño</a></li>
+                       </ul>
+
+                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Productos solares para el cuerpo</h4>
+                       <ul class="space-y-2 text-sm text-gray-500 mb-8 font-medium">
+                          <li><a href="#" class="hover:text-black transition-colors">Protección solar cuerpo</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">After sun cuerpo</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Autobronceador de cuerpo</a></li>
+                       </ul>
+
+                        <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Necesidades</h4>
+                        <ul class="space-y-2 text-sm text-gray-500 mb-8 font-medium">
+                          <li><a href="#" class="hover:text-black transition-colors">Reductor & reafirmante</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Celulitis & estrías</a></li>
+                       </ul>
+
+                        <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Accesorios cuerpo</h4>
+                        <a href="#" class="block font-bold uppercase tracking-widest text-xs mb-4 hover:text-beauty-red transition-colors">Estuches cuerpo & baño</a>
+                    </div>
+                    
+                    <!-- Column 3 -->
+                    <div>
+                         <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Higiene bucal</h4>
+                         <a href="#" class="block font-bold uppercase tracking-widest text-xs mb-4 hover:text-beauty-red transition-colors">Minis cuerpo y baño</a>
+                         <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Casa</h4>
+                    </div>
+
+                     <!-- Column 4 (Empty for now to match text-heavy layout or future use) -->
+                    <div></div>
+                 </div>
               </div>
             </div>
           </div>
@@ -172,11 +382,77 @@ const offersEnabled = settings?.value === true;
                <span class="absolute bottom-0 left-0 w-full h-0.5 bg-beauty-red transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
             </a>
             <div class="absolute left-0 top-16 w-full bg-white text-black shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border-t border-gray-100 transform z-40">
-              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                 <ul class="space-y-3 text-sm font-medium">
-                    <li><a href="/categoria/perfumes" class="block font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Ver Todo Perfumes</a></li>
-                    <li><a href="/categoria/perfumes" class="hover:text-black transition-colors">Descubre nuestras fragancias premium →</a></li>
-                 </ul>
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                 <div class="grid grid-cols-4 gap-8">
+                    <!-- Column 1 -->
+                    <div>
+                        <ul class="space-y-4 mb-8">
+                            <li><a href="#" class="block text-sm font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Ver todo</a></li>
+                            <li><a href="#" class="block text-sm font-bold text-red-600 hover:text-black transition-colors uppercase tracking-widest">Rebajas hasta -50%*</a></li>
+                            <li><a href="#" class="block text-sm font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Novedades</a></li>
+                            <li><a href="#" class="block text-sm font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Bestsellers</a></li>
+                        </ul>
+
+                        <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Estuches perfume</h4>
+                        <ul class="space-y-2 text-sm text-gray-500 mb-8 font-medium">
+                           <li><a href="#" class="hover:text-black transition-colors">Estuche perfume mujer</a></li>
+                           <li><a href="#" class="hover:text-black transition-colors">Estuche perfume hombre</a></li>
+                        </ul>
+
+                        <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Perfume mujer</h4>
+                        <ul class="space-y-2 text-sm text-gray-500 font-medium">
+                           <li><a href="#" class="hover:text-black transition-colors">Eau de parfum</a></li>
+                           <li><a href="#" class="hover:text-black transition-colors">Eau de toilette</a></li>
+                           <li><a href="#" class="hover:text-black transition-colors">Perfume cabello</a></li>
+                           <li><a href="#" class="hover:text-black transition-colors">Cuidado corporal perfumado</a></li>
+                           <li><a href="#" class="hover:text-black transition-colors">Agua de colonia</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Column 2 -->
+                    <div>
+                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Perfume hombre</h4>
+                       <ul class="space-y-2 text-sm text-gray-500 mb-6 font-medium">
+                          <li><a href="#" class="hover:text-black transition-colors">Eau de parfum</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Eau de toilette</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Agua de colonia</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Desodorante</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Gel de ducha & jabón</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Gel afeitado & aftershave</a></li>
+                       </ul>
+
+                       <a href="#" class="block font-bold uppercase tracking-widest text-xs mb-3 hover:text-beauty-red transition-colors">Perfume para dos</a>
+                       <a href="#" class="block font-bold uppercase tracking-widest text-xs mb-6 hover:text-beauty-red transition-colors">Perfumes recargables</a>
+
+                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Notas olfativas</h4>
+                       <ul class="space-y-2 text-sm text-gray-500 font-medium">
+                          <li><a href="#" class="hover:text-black transition-colors">Perfume floral</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Perfume fresco</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Perfume amaderado</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Perfume con vainilla</a></li>
+                          <li><a href="#" class="hover:text-black transition-colors">Perfume dulce</a></li>
+                       </ul>
+                    </div>
+                    
+                    <!-- Column 3 -->
+                    <div>
+                       <div class="space-y-4">
+                           <a href="#" class="block font-bold uppercase tracking-widest text-xs hover:text-beauty-red transition-colors">Perfumes precio top</a>
+                           <a href="#" class="block font-bold uppercase tracking-widest text-xs hover:text-beauty-red transition-colors">Minis perfume</a>
+                           <a href="#" class="block font-bold uppercase tracking-widest text-xs hover:text-beauty-red transition-colors">Velas y difusores</a>
+                           <a href="#" class="block font-bold uppercase tracking-widest text-xs hover:text-beauty-red transition-colors">Aromas acogedores</a>
+                           <a href="#" class="block font-bold uppercase tracking-widest text-xs hover:text-beauty-red transition-colors">¡Prueba... primero!</a>
+                       </div>
+                    </div>
+
+                    <!-- Column 4 (Image) -->
+                    <div class="relative h-full min-h-[500px] bg-gray-100 overflow-hidden group/image cursor-pointer">
+                        <img src="/assets/category-perfume.png" alt="Featured Perfume" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/image:scale-105" />
+                         <div class="absolute bottom-4 left-4 bg-white/90 px-4 py-2">
+                           <span class="text-xs font-bold uppercase tracking-widest">DESCUBRE TU ESENCIA</span>
+                        </div>
+                    </div>
+                 </div>
               </div>
             </div>
           </div>

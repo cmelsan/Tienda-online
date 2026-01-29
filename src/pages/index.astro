@@ -74,7 +74,7 @@ const { data: brands } = await supabase
 
       {/* Products Grid */}
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-        {newProducts?.slice(0, 10).map(product => (
+        {newProducts?.slice(0, 5).map(product => (
           <ProductCard product={{
             ...product,
             brand: product.brand?.name || 'Marca'

@@ -91,74 +91,87 @@ const { data: brands } = await supabase
     <div class="w-full h-px bg-black mt-12"></div>
   </section>
 
-  {/* 3. NOVEDADES SECTION - Product Grid */}
-  <section class="py-16 lg:py-24 bg-white">
+  {/* 3. NOVEDADES SECTION - Enhanced Product Banners */}
+  <section class="py-20 lg:py-28 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-end justify-between mb-12">
-        <div>
-          <span class="inline-block text-gray-500 text-[10px] uppercase tracking-[0.3em] mb-3 font-medium">Lo Último</span>
-          <h2 class="text-3xl md:text-4xl font-sans font-bold text-black">Novedades</h2>
-        </div>
-        <a href="/productos" class="hidden md:inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b border-black pb-1 hover:text-rose-600 hover:border-rose-600 transition-colors">
-          Ver todo
+      <div class="text-center mb-16">
+        <span class="inline-block text-gray-500 text-[10px] uppercase tracking-[0.3em] mb-3 font-medium">Lo Último</span>
+        <h2 class="text-3xl md:text-5xl font-sans font-bold text-black">Novedades</h2>
+        <div class="w-12 h-px bg-black mx-auto mt-6"></div>
+      </div>
+
+      {/* Banners Grid */}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+        {/* Banner 1: Nuevas Colecciones - Pink */}
+        <a href="/productos" class="relative h-[400px] md:h-[500px] bg-gradient-to-br from-pink-300 via-pink-200 to-pink-300 overflow-hidden group border-4 border-black">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+          <div class="relative z-10 h-full flex flex-col items-start justify-end p-10 md:p-14">
+            <span class="inline-block text-black text-[10px] uppercase tracking-[0.3em] mb-4 font-medium">Colecciones</span>
+            <h3 class="text-4xl md:text-5xl font-sans font-bold text-black mb-4">Nuevas Llegadas</h3>
+            <p class="text-black/80 text-base mb-8 max-w-sm leading-relaxed">Descubre nuestras últimas colecciones con fórmulas innovadoras y colores exclusivos.</p>
+            <span class="inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b-2 border-black pb-1 group-hover:border-rose-600 group-hover:text-rose-600 transition-colors">
+              Explorar Colección
+            </span>
+          </div>
+        </a>
+
+        {/* Banner 2: Bestsellers - Gray */}
+        <a href="/productos" class="relative h-[400px] md:h-[500px] bg-gray-400 overflow-hidden group border-4 border-black">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-black/10"></div>
+          <div class="relative z-10 h-full flex flex-col items-start justify-end p-10 md:p-14">
+            <span class="inline-block text-white/90 text-[10px] uppercase tracking-[0.3em] mb-4 font-medium">Top Productos</span>
+            <h3 class="text-4xl md:text-5xl font-sans font-bold text-white mb-4">Bestsellers</h3>
+            <p class="text-white/90 text-base mb-8 max-w-sm leading-relaxed">Los productos más amados por nuestras clientes. Calidad y resultados garantizados.</p>
+            <span class="inline-block bg-white text-black px-7 py-3 text-[10px] font-medium uppercase tracking-[0.15em] group-hover:bg-black group-hover:text-white transition-all duration-300 border border-white">
+              Ver Bestsellers
+            </span>
+          </div>
         </a>
       </div>
 
-      {/* Products Grid */}
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-        {newProducts?.slice(0, 10).map(product => (
-          <ProductCard product={{
-            ...product,
-            brand: product.brand?.name || 'Marca'
-          }} />
-        ))}
-      </div>
-
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 md:hidden">
-        <a href="/productos" class="inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b border-black pb-1">
+      <a href="/productos" class="flex justify-center mt-12">
+        <span class="text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b border-black pb-1 hover:text-rose-600 hover:border-rose-600 transition-colors">
           Ver todos los productos
-        </a>
-      </div>
+        </span>
+      </a>
     </div>
     <div class="w-full h-px bg-black mt-12"></div>
   </section>
 
-  {/* 4. PRODUCT SLIDER - Premium Style */}
-  <section class="py-16 lg:py-24 bg-white-cream">
+  {/* 4. TOP CATEGORIES - Featured Categories Grid */}
+  <section class="py-20 lg:py-28 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-end justify-between mb-12">
-        <div>
-          <span class="inline-block text-gray-medium text-[10px] uppercase tracking-[0.3em] mb-3">Recién llegados</span>
-          <h2 class="text-3xl md:text-4xl font-serif font-light text-black">Lo más nuevo</h2>
-        </div>
-        <a href="/productos" class="hidden md:inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b border-black pb-1 hover:text-beauty-red hover:border-beauty-red transition-colors">
-          Ver todo
-        </a>
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-5xl font-sans font-bold text-black">Top categorías</h2>
+        <div class="w-12 h-px bg-black mx-auto mt-6"></div>
       </div>
-    </div>
-    
-    {/* Horizontal Scroll Container */}
-    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex overflow-x-auto gap-5 pb-8 snap-x scrollbar-hide -mx-4 px-4">
-        {newProducts?.map(product => (
-          <div class="min-w-[220px] md:min-w-[280px] snap-start">
-            <ProductCard product={{
-              ...product,
-              brand: product.brand?.name || 'Marca'
-            }} />
-          </div>
+
+      {/* Categories Grid */}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
+        {[
+          { name: 'Perfumes para mujer', slug: 'perfumes', color: 'from-pink-300 to-pink-200' },
+          { name: 'Perfumes para hombre', slug: 'perfumes-hombre', color: 'from-blue-300 to-blue-200' },
+          { name: 'Maquillaje', slug: 'maquillaje', color: 'from-rose-300 to-rose-200' },
+          { name: 'Cosmética', slug: 'cosmetica', color: 'from-purple-300 to-purple-200' },
+          { name: 'Cabello', slug: 'cabello', color: 'from-amber-300 to-amber-200' }
+        ].map((category) => (
+          <a 
+            href={`/categoria/${category.slug}`}
+            class={`relative h-60 md:h-80 overflow-hidden group border-4 border-black bg-gradient-to-br ${category.color}`}
+          >
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <h3 class="text-xl md:text-2xl font-sans font-bold text-black text-center px-4 group-hover:scale-105 transition-transform duration-300">
+                {category.name}
+              </h3>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-black transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+          </a>
         ))}
       </div>
     </div>
-    
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 md:hidden">
-      <a href="/productos" class="inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b border-black pb-1">
-        Ver todos los productos
-      </a>
-    </div>
+    <div class="w-full h-px bg-black mt-12"></div>
   </section>
-
-  {/* 5. BRAND SPOTLIGHT - Elegant Grid with Borders */}
   <section class="bg-black text-white py-20 lg:py-28 border-y-8 border-black">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-16">

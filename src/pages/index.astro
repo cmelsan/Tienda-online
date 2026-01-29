@@ -18,154 +18,226 @@ const { data: brands } = await supabase
 
 <PublicLayout title="ÉCLAT - Perfumes, Maquillaje, Tratamiento" description="Descubre lo último en belleza: maquillaje, tratamiento, perfumes y cabello.">
   
-  {/* 1. HERO CAROUSEL: "The Next Big Thing" Style */}
-  <section class="relative w-full h-[500px] md:h-[600px] bg-gray-100 overflow-hidden cursor-pointer group">
-    <img src="https://res.cloudinary.com/REEMPLAZA_AQUI/image/upload/v123/eclat-beauty/banners/hero-banner.jpg" alt="Hero Campaign" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
-    <div class="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
-    <div class="absolute bottom-12 md:bottom-20 left-6 md:left-20 max-w-lg text-white">
-        <h2 class="text-4xl md:text-6xl font-bold uppercase tracking-tight mb-4 leading-none">The Next<br/>Big Thing</h2>
-        <p class="text-lg md:text-xl font-medium mb-8">Descubre la nueva revolución en cuidado de la piel. Solo en Éclat.</p>
-        <a href="/productos" class="inline-block bg-white text-black px-8 py-3 font-bold uppercase tracking-widest text-sm hover:bg-black hover:text-white transition-colors">
-            Descubrir
+  {/* 1. HERO - Premium Full-Screen Style */}
+  <section class="relative w-full h-[85vh] min-h-[600px] max-h-[900px] bg-gray-light overflow-hidden">
+    <img 
+      src="https://res.cloudinary.com/REEMPLAZA_AQUI/image/upload/v123/eclat-beauty/banners/hero-banner.jpg" 
+      alt="Hero Campaign" 
+      class="w-full h-full object-cover transition-transform duration-[2s] ease-elegant hover:scale-105" 
+    />
+    <div class="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-transparent"></div>
+    <div class="absolute inset-0 flex items-center">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div class="max-w-xl animate-fade-in">
+          <span class="inline-block text-white/80 text-[11px] uppercase tracking-[0.3em] mb-6 font-medium">Nueva Colección</span>
+          <h1 class="text-5xl md:text-7xl text-white font-serif font-light tracking-tight mb-6 leading-[0.95]">
+            The Next<br/>Big Thing
+          </h1>
+          <p class="text-white/80 text-lg md:text-xl font-light mb-10 leading-relaxed">
+            Descubre la nueva revolución en cuidado de la piel. Solo en Éclat.
+          </p>
+          <a 
+            href="/productos" 
+            class="inline-block bg-white text-black px-10 py-4 font-medium text-xs uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all duration-300 shadow-button"
+          >
+            Descubrir Ahora
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    {/* Scroll indicator */}
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/60 animate-bounce">
+      <span class="text-[10px] uppercase tracking-widest">Scroll</span>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+      </svg>
+    </div>
+  </section>
+
+  {/* 2. DOUBLE BANNER GRID - Refined */}
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Banner 1: Rebajas - Elegant */}
+        <a href="/ofertas" class="relative h-[350px] md:h-[450px] bg-beauty-nude flex items-center justify-center overflow-hidden group">
+          <div class="text-center z-10 p-8 transition-transform duration-500 group-hover:scale-105">
+            <span class="inline-block text-beauty-red text-[10px] uppercase tracking-[0.3em] mb-4 font-medium">Ofertas Exclusivas</span>
+            <h3 class="text-4xl md:text-5xl font-serif font-light text-black mb-3">Rebajas</h3>
+            <p class="text-gray-dark text-sm mb-8">Hasta -50% en favoritos</p>
+            <span class="inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b border-black pb-1 group-hover:border-beauty-red group-hover:text-beauty-red transition-colors">
+              Ver Ofertas
+            </span>
+          </div>
+          {/* Decorative element */}
+          <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-beauty-pink/20 rounded-full blur-3xl transition-transform duration-700 group-hover:scale-125"></div>
+        </a>
+
+        {/* Banner 2: Novedades */}
+        <a href="/productos" class="relative h-[350px] md:h-[450px] bg-gray-light overflow-hidden group">
+          <img 
+            src="https://res.cloudinary.com/REEMPLAZA_AQUI/image/upload/v456/eclat-beauty/banners/novedades-banner.jpg" 
+            alt="Novedades" 
+            class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-elegant group-hover:scale-105" 
+          />
+          <div class="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-500"></div>
+          <div class="absolute bottom-0 left-0 w-full p-8 md:p-10">
+            <span class="inline-block text-white/80 text-[10px] uppercase tracking-[0.3em] mb-3 font-medium">Lo último</span>
+            <h3 class="text-3xl md:text-4xl font-serif font-light text-white mb-3">Novedades</h3>
+            <p class="text-white/80 text-sm mb-6">Lo último de tus marcas favoritas</p>
+            <span class="inline-block bg-white text-black px-7 py-3 text-[10px] font-medium uppercase tracking-[0.15em] group-hover:bg-black group-hover:text-white transition-all duration-300">
+              Comprar
+            </span>
+          </div>
         </a>
     </div>
   </section>
 
-  {/* 2. DOUBLE BANNER GRID (Rebajas / Novedades) */}
-  <section class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Banner 1: Rebajas */}
-        <div class="relative h-[300px] md:h-[400px] bg-[#ffecf0] flex items-center justify-center overflow-hidden group cursor-pointer">
-             <div class="text-center z-10 p-6">
-                <h3 class="text-3xl md:text-5xl font-bold uppercase tracking-tight text-beauty-red mb-2">Rebajas</h3>
-                <p class="text-black font-bold text-lg mb-6">Hasta -50% en favoritos</p>
-                <a href="/ofertas" class="inline-block border-b-2 border-black text-black font-bold uppercase tracking-widest text-xs pb-1 hover:text-beauty-red hover:border-beauty-red transition-colors">
-                    Ver Ofertas
-                </a>
-             </div>
-             {/* Decorational element */}
-             <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-beauty-red/10 rounded-full blur-3xl"></div>
+  {/* 3. PRODUCT SLIDER - Premium Style */}
+  <section class="py-16 lg:py-24 bg-white-cream">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-end justify-between mb-12">
+        <div>
+          <span class="inline-block text-gray-medium text-[10px] uppercase tracking-[0.3em] mb-3">Recién llegados</span>
+          <h2 class="text-3xl md:text-4xl font-serif font-light text-black">Lo más nuevo</h2>
         </div>
-
-        {/* Banner 2: Novedades */}
-        <div class="relative h-[300px] md:h-[400px] bg-gray-100 overflow-hidden group cursor-pointer">
-            <img src="https://res.cloudinary.com/REEMPLAZA_AQUI/image/upload/v456/eclat-beauty/banners/novedades-banner.jpg" alt="Novedades" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-            <div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
-             <div class="absolute bottom-8 left-8 text-white">
-                <h3 class="text-3xl font-bold uppercase tracking-tight mb-2">Novedades</h3>
-                <p class="font-medium mb-6">Lo último de tus marcas favoritas</p>
-                <a href="/productos" class="bg-white text-black px-6 py-2 font-bold uppercase tracking-widest text-xs hover:bg-black hover:text-white transition-colors">
-                    Comprar
-                </a>
-             </div>
-        </div>
-    </div>
-  </section>
-
-  {/* 3. PRODUCT SLIDER: "Recién aterrizados" */}
-  <section class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="flex items-center justify-between mb-8">
-        <h2 class="text-2xl font-bold uppercase tracking-widest">Recién aterrizados</h2>
-        <a href="/productos" class="text-sm font-bold border-b border-black pb-0.5 hover:text-gray-600 transition-colors">Ver todo</a>
+        <a href="/productos" class="hidden md:inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b border-black pb-1 hover:text-beauty-red hover:border-beauty-red transition-colors">
+          Ver todo
+        </a>
+      </div>
     </div>
     
     {/* Horizontal Scroll Container */}
-    <div class="flex overflow-x-auto gap-6 pb-8 snap-x scrollbar-hide">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex overflow-x-auto gap-5 pb-8 snap-x scrollbar-hide -mx-4 px-4">
         {newProducts?.map(product => (
-            <div class="min-w-[200px] md:min-w-[280px] snap-start">
-               <ProductCard product={{
-                   ...product,
-                   brand: product.brand?.name || 'Marca'
-               }} />
-            </div>
-        ))}
-    </div>
-  </section>
-
-  {/* 4. BRAND SPOTLIGHT (Mosaic) */}
-  <section class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-black text-white">
-    <div class="text-center mb-12">
-        <h2 class="text-3xl font-bold uppercase tracking-tight mb-2">Marcas Estrella</h2>
-        <p class="text-gray-400">Las marcas de las que todo el mundo habla</p>
-    </div>
-
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {['Rare Beauty', 'Fenty Beauty', 'Dior', 'Charlotte Tilbury'].map((brand, i) => (
-            <div class={`relative h-64 md:h-96 bg-gray-900 group overflow-hidden cursor-pointer ${i === 0 ? 'md:col-span-2' : ''}`}>
-                {/* Placeholder visual if no image */}
-                <div class="absolute inset-0 flex items-center justify-center bg-gray-800 text-gray-700 font-bold text-4xl uppercase opacity-20 group-hover:opacity-10 transition-opacity">
-                    {brand}
-                </div>
-                
-                <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black to-transparent">
-                    <h3 class="text-xl font-bold uppercase tracking-widest mb-2">{brand}</h3>
-                    <span class="text-xs font-bold border-b border-white pb-1">Descubrir marca</span>
-                </div>
-            </div>
-        ))}
-    </div>
-  </section>
-
-  {/* 5. EXCLUSIVES BANNER */}
-  <section class="py-12">
-      <div class="relative h-[400px] w-full bg-[#f5f5f5] flex items-center">
-         <div class="max-w-[1920px] mx-auto px-4 w-full grid grid-cols-1 md:grid-cols-2">
-            <div class="order-2 md:order-1 flex flex-col justify-center items-start md:pl-20">
-                <span class="text-beauty-red font-bold uppercase tracking-widest text-xs mb-4">Solo en Éclat</span>
-                <h2 class="text-4xl md:text-5xl font-bold uppercase tracking-tight mb-6">Éclat Collection</h2>
-                <p class="text-gray-600 max-w-md mb-8">Descubre nuestra propia línea de maquillaje, diseñada para realzar tu belleza natural con fórmulas premium.</p>
-                <a href="/marcas/eclat-collection" class="bg-black text-white px-8 py-3 font-bold uppercase tracking-widest text-xs hover:bg-gray-800 transition-colors">
-                    Ver colección
-                </a>
-            </div>
-            <div class="order-1 md:order-2 h-full min-h-[300px] relative">
-                 <img src="/assets/exclusive-promo.jpg" alt="Éclat Collection" class="absolute inset-0 w-full h-full object-cover" />
-            </div>
-         </div>
-      </div>
-  </section>
-
-  {/* 6. SERVICES MOSAIC */}
-  <section class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-gray-100">
-     <h2 class="text-center text-2xl font-bold uppercase tracking-widest mb-12">Servicios Éclat</h2>
-     <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-        {[
-            { title: 'Tarjeta Regalo', icon: '🎁', desc: 'El regalo perfecto' },
-            { title: 'App Éclat', icon: '📱', desc: 'Descarga nuestra App' },
-            { title: 'Brow Bar', icon: '👁️', desc: 'Servicio de cejas' },
-            { title: 'Maquillaje', icon: '💄', desc: 'Servicios en tienda' },
-        ].map(service => (
-            <div class="text-center group cursor-pointer hover:bg-gray-50 p-4 rounded-lg transition-colors">
-                <div class="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{service.icon}</div>
-                <h3 class="font-bold uppercase tracking-widest text-sm mb-2">{service.title}</h3>
-                <p class="text-xs text-gray-500">{service.desc}</p>
-            </div>
-        ))}
-     </div>
-  </section>
-
-  {/* 8. TRUST SIGNALS */}
-  <section class="bg-black text-white py-8">
-      <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-gray-800">
-            <div>
-                <p class="font-bold uppercase tracking-widest text-xs mb-1">Envío Gratis</p>
-                <p class="text-[10px] text-gray-400">En pedidos +30€</p>
-            </div>
-             <div>
-                <p class="font-bold uppercase tracking-widest text-xs mb-1">Muestras Gratis</p>
-                <p class="text-[10px] text-gray-400">3 muestras en cada pedido</p>
-            </div>
-             <div>
-                <p class="font-bold uppercase tracking-widest text-xs mb-1">Devoluciones</p>
-                <p class="text-[10px] text-gray-400">Gratuitas y sencillas</p>
-            </div>
-             <div>
-                <p class="font-bold uppercase tracking-widest text-xs mb-1">Click & Collect</p>
-                <p class="text-[10px] text-gray-400">Recogida en tienda 2h</p>
-            </div>
+          <div class="min-w-[220px] md:min-w-[280px] snap-start">
+            <ProductCard product={{
+              ...product,
+              brand: product.brand?.name || 'Marca'
+            }} />
           </div>
+        ))}
       </div>
+    </div>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 md:hidden">
+      <a href="/productos" class="inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b border-black pb-1">
+        Ver todos los productos
+      </a>
+    </div>
+  </section>
+
+  {/* 4. BRAND SPOTLIGHT - Elegant Grid */}
+  <section class="bg-black text-white py-20 lg:py-28">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <span class="inline-block text-white/50 text-[10px] uppercase tracking-[0.3em] mb-4">Descubre</span>
+        <h2 class="text-3xl md:text-4xl font-serif font-light mb-4">Marcas Estrella</h2>
+        <div class="w-12 h-px bg-beauty-red mx-auto"></div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        {['Rare Beauty', 'Fenty Beauty', 'Dior', 'Charlotte Tilbury'].map((brand, i) => (
+          <a 
+            href={`/marcas/${brand.toLowerCase().replace(' ', '-')}`}
+            class={`relative h-64 md:h-80 bg-black-soft group overflow-hidden ${i === 0 ? 'md:col-span-2 md:h-96' : ''}`}
+          >
+            <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-gray-dark/30 to-black/60">
+              <span class="text-white/10 font-serif text-5xl md:text-6xl uppercase tracking-wider group-hover:text-white/5 transition-all duration-500">
+                {brand}
+              </span>
+            </div>
+            
+            <div class="absolute inset-0 flex flex-col items-center justify-center p-6 opacity-100 group-hover:opacity-0 transition-opacity duration-300">
+              <h3 class="text-xl md:text-2xl font-serif font-light tracking-wide mb-3 text-center">{brand}</h3>
+              <div class="w-8 h-px bg-white/30"></div>
+            </div>
+            
+            <div class="absolute inset-0 flex flex-col items-center justify-center p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40">
+              <span class="text-[10px] font-medium uppercase tracking-[0.2em] border-b border-white pb-1">
+                Descubrir
+              </span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* 5. EXCLUSIVES BANNER - Sophisticated */}
+  <section class="py-20 lg:py-28">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div class="order-2 lg:order-1">
+          <span class="inline-block text-beauty-red text-[10px] uppercase tracking-[0.3em] mb-6 font-medium">Solo en Éclat</span>
+          <h2 class="text-4xl md:text-5xl font-serif font-light text-black mb-6 leading-tight">
+            Éclat Collection
+          </h2>
+          <p class="text-gray-dark text-lg leading-relaxed mb-10 max-w-md">
+            Descubre nuestra propia línea de maquillaje, diseñada para realzar tu belleza natural con fórmulas premium.
+          </p>
+          <a 
+            href="/marcas/eclat-collection" 
+            class="inline-block bg-black text-white px-10 py-4 text-xs font-medium uppercase tracking-[0.2em] hover:bg-beauty-red transition-all duration-300"
+          >
+            Ver Colección
+          </a>
+        </div>
+        <div class="order-1 lg:order-2">
+          <div class="relative aspect-[4/5] bg-gray-light overflow-hidden">
+            <img 
+              src="/assets/exclusive-promo.jpg" 
+              alt="Éclat Collection" 
+              class="w-full h-full object-cover transition-transform duration-700 ease-elegant hover:scale-105" 
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* 6. SERVICES - Minimal Icons */}
+  <section class="bg-white-off py-20 lg:py-24 border-t border-gray-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <span class="inline-block text-gray-medium text-[10px] uppercase tracking-[0.3em] mb-4">Experiencia</span>
+        <h2 class="text-3xl md:text-4xl font-serif font-light text-black">Servicios Éclat</h2>
+      </div>
+      
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
+        {[
+          { title: 'Tarjeta Regalo', icon: '🎁', desc: 'El regalo perfecto' },
+          { title: 'App Éclat', icon: '📱', desc: 'Descarga nuestra App' },
+          { title: 'Brow Bar', icon: '✨', desc: 'Servicio de cejas' },
+          { title: 'Maquillaje', icon: '💄', desc: 'Servicios en tienda' },
+        ].map(service => (
+          <a href="#" class="text-center group p-6 rounded-lg hover:bg-white hover:shadow-soft transition-all duration-300">
+            <div class="text-4xl mb-5 group-hover:scale-110 transition-transform duration-300">{service.icon}</div>
+            <h3 class="font-medium text-sm uppercase tracking-[0.1em] mb-2 text-black">{service.title}</h3>
+            <p class="text-xs text-gray-medium">{service.desc}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* 7. TRUST SIGNALS - Premium Style */}
+  <section class="bg-black text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
+        {[
+          { title: 'Envío Gratis', desc: 'En pedidos +30€' },
+          { title: 'Muestras Gratis', desc: '3 muestras en cada pedido' },
+          { title: 'Devoluciones', desc: 'Gratuitas y sencillas' },
+          { title: 'Click & Collect', desc: 'Recogida en tienda 2h' },
+        ].map((item, i) => (
+          <div class={`text-center py-4 ${i < 3 ? 'md:border-r md:border-white/10' : ''}`}>
+            <p class="font-medium text-[11px] uppercase tracking-[0.15em] mb-1.5">{item.title}</p>
+            <p class="text-[10px] text-white/50">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   </section>
 
 </PublicLayout>
@@ -178,5 +250,7 @@ const { data: brands } = await supabase
   .scrollbar-hide {
       -ms-overflow-style: none;  /* IE and Edge */
       scrollbar-width: none;  /* Firefox */
+  }
+</style>
   }
 </style>

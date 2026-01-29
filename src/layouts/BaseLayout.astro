@@ -25,17 +25,17 @@ const { title, description = 'ÉCLAT - Belleza Premium y Cuidado Personal' } = A
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts - Optimized Loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
     
     <title>{title}</title>
   </head>
-  <body class="bg-white-off text-black font-sans antialiased">
+  <body class="bg-white text-black font-sans antialiased selection:bg-beauty-red selection:text-white">
     <slot />
     <script>
       import '../lib/auth-sync';
@@ -49,26 +49,107 @@ const { title, description = 'ÉCLAT - Belleza Premium y Cuidado Personal' } = A
   @tailwind utilities;
 
   @layer base {
+    /* Smooth scrolling for entire page */
+    html {
+      scroll-behavior: smooth;
+    }
+    
     * {
-      @apply border-gray-500;
+      @apply border-gray-border;
     }
     
     body {
-      @apply min-h-screen;
+      @apply min-h-screen leading-relaxed;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     }
     
-    h1, h2 {
-      @apply font-serif font-bold text-black uppercase tracking-tight;
+    /* Typography Hierarchy - Premium Feel */
+    h1 {
+      @apply font-serif font-medium text-black tracking-tight;
+    }
+    
+    h2 {
+      @apply font-serif font-medium text-black tracking-tight;
     }
 
     h3, h4, h5, h6 {
-      @apply font-sans font-bold text-black uppercase tracking-tight;
+      @apply font-sans font-semibold text-black tracking-tight;
+    }
+    
+    /* Elegant Links */
+    a {
+      @apply transition-colors duration-300;
+    }
+    
+    /* Form Elements Base */
+    input, textarea, select {
+      @apply transition-all duration-300 ease-elegant;
+    }
+    
+    /* Focus States - Consistent */
+    input:focus, textarea:focus, select:focus {
+      @apply outline-none ring-2 ring-beauty-red/20 border-beauty-red;
+    }
+    
+    /* Button Focus */
+    button:focus-visible {
+      @apply outline-none ring-2 ring-beauty-red ring-offset-2;
+    }
+    
+    /* Image optimization */
+    img {
+      @apply max-w-full h-auto;
+    }
+  }
+
+  @layer components {
+    /* Premium Badge */
+    .badge-premium {
+      @apply inline-flex items-center px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest;
+    }
+    
+    /* Elegant Divider */
+    .divider-elegant {
+      @apply w-12 h-px bg-beauty-red mx-auto;
+    }
+    
+    /* Section Spacing */
+    .section-padding {
+      @apply py-16 md:py-24 lg:py-32;
+    }
+    
+    /* Container Elegant */
+    .container-elegant {
+      @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
     }
   }
 
   @layer utilities {
     .text-balance {
       text-wrap: balance;
+    }
+    
+    /* Smooth image hover zoom */
+    .img-zoom {
+      @apply transition-transform duration-700 ease-elegant;
+    }
+    
+    .img-zoom:hover {
+      @apply scale-105;
+    }
+    
+    /* Underline animation */
+    .link-underline {
+      @apply relative;
+    }
+    
+    .link-underline::after {
+      content: '';
+      @apply absolute bottom-0 left-0 w-0 h-px bg-current transition-all duration-300;
+    }
+    
+    .link-underline:hover::after {
+      @apply w-full;
     }
   }
 </style>

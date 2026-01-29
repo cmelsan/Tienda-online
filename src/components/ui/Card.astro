@@ -2,12 +2,19 @@
 interface Props {
   class?: string;
   hover?: boolean;
+  variant?: 'default' | 'elevated' | 'flat';
 }
 
-const { class: className = '', hover = true } = Astro.props;
+const { class: className = '', hover = true, variant = 'default' } = Astro.props;
 
-const hoverStyles = hover ? 'hover:shadow-md hover:-translate-y-0.5' : '';
-const classes = `bg-white rounded-none overflow-hidden transition-all duration-200 ${hoverStyles} ${className}`;
+const variantStyles = {
+  default: 'bg-white shadow-card',
+  elevated: 'bg-white shadow-soft',
+  flat: 'bg-white-off',
+};
+
+const hoverStyles = hover ? 'hover:shadow-card-hover hover:-translate-y-1' : '';
+const classes = `overflow-hidden transition-all duration-500 ease-elegant ${variantStyles[variant]} ${hoverStyles} ${className}`;
 ---
 
 <div class={classes}>

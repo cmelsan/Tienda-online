@@ -23,87 +23,87 @@ const offersEnabled = settings?.value === true;
 ---
 
 <BaseLayout title={title} description={description}>
-  <!-- Header - MAC Style: Black background, white text -->
-  <header class="sticky top-0 z-50 bg-black border-b border-gray-900">
+  <!-- Header - Premium Sephora Style -->
+  <header class="sticky top-0 z-50 bg-black/95 backdrop-blur-md border-b border-white/5">
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
-        <!-- Logo -->
+        <!-- Logo - Refined -->
         <a href="/" class="flex items-center group">
-          <span class="text-2xl font-bold text-white tracking-wider uppercase group-hover:text-beauty-red transition-colors">
+          <span class="text-xl font-medium text-white tracking-[0.3em] uppercase group-hover:text-beauty-red transition-colors duration-300">
             ÉCLAT
           </span>
         </a>
 
-        <!-- Navigation - MAC Style Mega Menu -->
+        <!-- Navigation - Premium Mega Menu -->
         <div class="hidden md:flex items-center h-full">
           <!-- MARCAS -->
           <div class="group h-full flex items-center">
-            <a href="/marcas" class="px-4 py-2 text-xs font-semibold text-white hover:text-beauty-red transition-colors uppercase tracking-wider relative h-full flex items-center">
+            <a href="/marcas" class="px-5 py-2 text-[11px] font-medium text-white/90 hover:text-white transition-colors uppercase tracking-[0.15em] relative h-full flex items-center">
               Marcas
-              <span class="absolute bottom-0 left-0 w-full h-0.5 bg-beauty-red transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-beauty-red group-hover:w-3/4 transition-all duration-300"></span>
             </a>
             
-            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border-t border-gray-100 transform z-40">
+            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-elegant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform z-40">
               <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                  <div class="grid grid-cols-4 gap-8">
                     <!-- Column 1 -->
                     <div>
-                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Marcas de A-Z</h4>
-                       <ul class="space-y-2 text-sm text-gray-600 mb-8 font-medium">
-                          <li><a href="/marcas/guerlain" class="hover:text-black transition-colors">Guerlain</a></li>
-                          <li><a href="/marcas/haus-labs" class="hover:text-black transition-colors">Haus Labs</a></li>
-                          <li><a href="/marcas/les-secrets-de-loly" class="hover:text-black transition-colors">Les Secrets de Loly</a></li>
-                          <li><a href="/marcas/tarte" class="hover:text-black transition-colors">Tarte</a></li>
+                       <h4 class="font-medium text-[10px] mb-5 border-b border-gray-border pb-2 inline-block uppercase tracking-[0.2em] text-gray-dark">Marcas de A-Z</h4>
+                       <ul class="space-y-2.5 text-sm text-gray-dark mb-10">
+                          <li><a href="/marcas/guerlain" class="hover:text-black hover:pl-1 transition-all duration-200">Guerlain</a></li>
+                          <li><a href="/marcas/haus-labs" class="hover:text-black hover:pl-1 transition-all duration-200">Haus Labs</a></li>
+                          <li><a href="/marcas/les-secrets-de-loly" class="hover:text-black hover:pl-1 transition-all duration-200">Les Secrets de Loly</a></li>
+                          <li><a href="/marcas/tarte" class="hover:text-black hover:pl-1 transition-all duration-200">Tarte</a></li>
                        </ul>
 
-                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Marcas nuevas</h4>
-                       <ul class="space-y-2 text-sm font-medium">
-                          <li><a href="#" class="text-beauty-red hover:text-black transition-colors">¡Novedad! Glowery</a></li>
-                          <li><a href="#" class="text-beauty-red hover:text-black transition-colors">¡Novedad! Lightinderm</a></li>
-                          <li><a href="#" class="text-beauty-red hover:text-black transition-colors">¡Novedad! ONE/SIZE Beauty</a></li>
-                          <li><a href="#" class="text-beauty-red hover:text-black transition-colors">¡Novedad! Nooance</a></li>
-                          <li><a href="#" class="text-gray-600 hover:text-black transition-colors mt-2 block">Le Monde Gourmand</a></li>
-                          <li><a href="#" class="text-gray-600 hover:text-black transition-colors">Miu Miu</a></li>
-                          <li><a href="#" class="text-gray-600 hover:text-black transition-colors">Biodance</a></li>
-                          <li><a href="#" class="text-gray-600 hover:text-black transition-colors">Tatcha</a></li>
+                       <h4 class="font-medium text-[10px] mb-5 border-b border-gray-border pb-2 inline-block uppercase tracking-[0.2em] text-gray-dark">Marcas nuevas</h4>
+                       <ul class="space-y-2.5 text-sm">
+                          <li><a href="#" class="text-beauty-red font-medium hover:text-black transition-colors">¡Novedad! Glowery</a></li>
+                          <li><a href="#" class="text-beauty-red font-medium hover:text-black transition-colors">¡Novedad! Lightinderm</a></li>
+                          <li><a href="#" class="text-beauty-red font-medium hover:text-black transition-colors">¡Novedad! ONE/SIZE Beauty</a></li>
+                          <li><a href="#" class="text-beauty-red font-medium hover:text-black transition-colors">¡Novedad! Nooance</a></li>
+                          <li><a href="#" class="text-gray-dark hover:text-black hover:pl-1 mt-3 block transition-all duration-200">Le Monde Gourmand</a></li>
+                          <li><a href="#" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Miu Miu</a></li>
+                          <li><a href="#" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Biodance</a></li>
+                          <li><a href="#" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Tatcha</a></li>
                        </ul>
                     </div>
 
                     <!-- Column 2 -->
                     <div>
-                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Solo en Éclat</h4>
-                       <ul class="space-y-2 text-sm text-gray-600 font-medium">
-                          <li><a href="#" class="text-pink-500 font-bold hover:text-black transition-colors">Éclat Collection</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Rare Beauty</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Huda Beauty</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Fenty Beauty</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Haus Labs</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Makeup by Mario</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Glow Recipe</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Gisou</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Benefit Cosmetics</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Kayali</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Yepoda</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Tatcha</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Kosas</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Tarte</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Valentino Makeup</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Les Secrets de Loly</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Rem Beauty</a></li>
+                       <h4 class="font-medium text-[10px] mb-5 border-b border-gray-border pb-2 inline-block uppercase tracking-[0.2em] text-gray-dark">Solo en Éclat</h4>
+                       <ul class="space-y-2.5 text-sm text-gray-dark">
+                          <li><a href="#" class="text-beauty-pink font-semibold hover:text-black transition-colors">Éclat Collection</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Rare Beauty</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Huda Beauty</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Fenty Beauty</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Haus Labs</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Makeup by Mario</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Glow Recipe</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Gisou</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Benefit Cosmetics</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Kayali</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Yepoda</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Tatcha</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Kosas</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Tarte</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Valentino Makeup</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Les Secrets de Loly</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Rem Beauty</a></li>
                        </ul>
                     </div>
 
                     <!-- Column 3 -->
                     <div>
-                       <h4 class="font-bold uppercase tracking-widest text-xs mb-4 border-b border-black pb-1 inline-block">Top marcas</h4>
-                       <ul class="space-y-2 text-sm text-gray-600 font-medium">
-                          <li><a href="#" class="hover:text-black transition-colors">Charlotte Tilbury</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Sol de Janeiro</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Rare Beauty</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Byoma</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Dior</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Too Faced</a></li>
-                          <li><a href="#" class="hover:text-black transition-colors">Erborian</a></li>
+                       <h4 class="font-medium text-[10px] mb-5 border-b border-gray-border pb-2 inline-block uppercase tracking-[0.2em] text-gray-dark">Top marcas</h4>
+                       <ul class="space-y-2.5 text-sm text-gray-dark">
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Charlotte Tilbury</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Sol de Janeiro</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Rare Beauty</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Byoma</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Dior</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Too Faced</a></li>
+                          <li><a href="#" class="hover:text-black hover:pl-1 transition-all duration-200">Erborian</a></li>
                        </ul>
                     </div>
 
@@ -116,22 +116,21 @@ const offersEnabled = settings?.value === true;
 
           <!-- MAQUILLAJE -->
           <div class="group h-full flex items-center">
-            <a href="/categoria/maquillaje" class="px-4 py-2 text-xs font-semibold text-white hover:text-beauty-red transition-colors uppercase tracking-wider relative h-full flex items-center">
+            <a href="/categoria/maquillaje" class="px-5 py-2 text-[11px] font-medium text-white/90 hover:text-white transition-colors uppercase tracking-[0.15em] relative h-full flex items-center">
               Maquillaje
-              <!-- Hover Indicator -->
-              <span class="absolute bottom-0 left-0 w-full h-0.5 bg-beauty-red transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-beauty-red group-hover:w-3/4 transition-all duration-300"></span>
             </a>
             
             <!-- Mega Dropdown -->
-            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border-t border-gray-100 transform z-40">
-              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                 <ul class="space-y-2 text-sm font-medium">
-                    <li><a href="/categoria/maquillaje" class="block font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Ver todo Maquillaje</a></li>
-                    <li><a href="/categoria/maquillaje/rostro" class="hover:text-black transition-colors">Rostro</a></li>
-                    <li><a href="/categoria/maquillaje/labios" class="hover:text-black transition-colors">Labios</a></li>
-                    <li><a href="/categoria/maquillaje/ojos" class="hover:text-black transition-colors">Ojos</a></li>
-                    <li><a href="/categoria/maquillaje/cejas" class="hover:text-black transition-colors">Cejas</a></li>
-                    <li><a href="/categoria/maquillaje/brochas-y-accesorios" class="hover:text-black transition-colors">Brochas y Accesorios</a></li>
+            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-elegant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform z-40">
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                 <ul class="space-y-3 text-sm">
+                    <li><a href="/categoria/maquillaje" class="block font-medium text-[10px] uppercase tracking-[0.2em] text-black hover:text-beauty-red transition-colors">Ver todo Maquillaje</a></li>
+                    <li class="pt-2"><a href="/categoria/maquillaje/rostro" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Rostro</a></li>
+                    <li><a href="/categoria/maquillaje/labios" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Labios</a></li>
+                    <li><a href="/categoria/maquillaje/ojos" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Ojos</a></li>
+                    <li><a href="/categoria/maquillaje/cejas" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Cejas</a></li>
+                    <li><a href="/categoria/maquillaje/brochas-y-accesorios" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Brochas y Accesorios</a></li>
                  </ul>
               </div>
             </div>
@@ -139,18 +138,18 @@ const offersEnabled = settings?.value === true;
 
           <!-- CABELLO -->
           <div class="group h-full flex items-center">
-            <a href="/categoria/cabello" class="px-4 py-2 text-xs font-semibold text-white hover:text-beauty-red transition-colors uppercase tracking-wider relative h-full flex items-center">
+            <a href="/categoria/cabello" class="px-5 py-2 text-[11px] font-medium text-white/90 hover:text-white transition-colors uppercase tracking-[0.15em] relative h-full flex items-center">
               Cabello
-              <span class="absolute bottom-0 left-0 w-full h-0.5 bg-beauty-red transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-beauty-red group-hover:w-3/4 transition-all duration-300"></span>
             </a>
-             <div class="absolute left-0 top-16 w-full bg-white text-black shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border-t border-gray-100 transform z-40">
-              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                 <ul class="space-y-2 text-sm font-medium">
-                    <li><a href="/categoria/cabello" class="block font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Ver todo Cabello</a></li>
-                    <li><a href="/categoria/cabello/champu" class="hover:text-black transition-colors">Champú</a></li>
-                    <li><a href="/categoria/cabello/acondicionador" class="hover:text-black transition-colors">Acondicionador</a></li>
-                    <li><a href="/categoria/cabello/tratamientos" class="hover:text-black transition-colors">Tratamientos</a></li>
-                    <li><a href="/categoria/cabello/styling" class="hover:text-black transition-colors">Styling</a></li>
+             <div class="absolute left-0 top-16 w-full bg-white text-black shadow-elegant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform z-40">
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                 <ul class="space-y-3 text-sm">
+                    <li><a href="/categoria/cabello" class="block font-medium text-[10px] uppercase tracking-[0.2em] text-black hover:text-beauty-red transition-colors">Ver todo Cabello</a></li>
+                    <li class="pt-2"><a href="/categoria/cabello/champu" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Champú</a></li>
+                    <li><a href="/categoria/cabello/acondicionador" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Acondicionador</a></li>
+                    <li><a href="/categoria/cabello/tratamientos" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Tratamientos</a></li>
+                    <li><a href="/categoria/cabello/styling" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Styling</a></li>
                  </ul>
               </div>
             </div>
@@ -158,18 +157,18 @@ const offersEnabled = settings?.value === true;
 
           <!-- CUERPO -->
           <div class="group h-full flex items-center">
-            <a href="/categoria/cuerpo" class="px-4 py-2 text-xs font-semibold text-white hover:text-beauty-red transition-colors uppercase tracking-wider relative h-full flex items-center">
+            <a href="/categoria/cuerpo" class="px-5 py-2 text-[11px] font-medium text-white/90 hover:text-white transition-colors uppercase tracking-[0.15em] relative h-full flex items-center">
               Cuerpo
-               <span class="absolute bottom-0 left-0 w-full h-0.5 bg-beauty-red transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-beauty-red group-hover:w-3/4 transition-all duration-300"></span>
             </a>
-            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border-t border-gray-100 transform z-40">
-              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                 <ul class="space-y-2 text-sm font-medium">
-                    <li><a href="/categoria/cuerpo" class="block font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Ver todo Cuerpo</a></li>
-                    <li><a href="/categoria/cuerpo/exfoliante" class="hover:text-black transition-colors">Exfoliante corporal</a></li>
-                    <li><a href="/categoria/cuerpo/aceite" class="hover:text-black transition-colors">Aceite cuerpo</a></li>
-                    <li><a href="/categoria/cuerpo/leche" class="hover:text-black transition-colors">Leche corporal</a></li>
-                    <li><a href="/categoria/cuerpo/desodorante" class="hover:text-black transition-colors">Desodorante</a></li>
+            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-elegant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform z-40">
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                 <ul class="space-y-3 text-sm">
+                    <li><a href="/categoria/cuerpo" class="block font-medium text-[10px] uppercase tracking-[0.2em] text-black hover:text-beauty-red transition-colors">Ver todo Cuerpo</a></li>
+                    <li class="pt-2"><a href="/categoria/cuerpo/exfoliante" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Exfoliante corporal</a></li>
+                    <li><a href="/categoria/cuerpo/aceite" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Aceite cuerpo</a></li>
+                    <li><a href="/categoria/cuerpo/leche" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Leche corporal</a></li>
+                    <li><a href="/categoria/cuerpo/desodorante" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Desodorante</a></li>
                  </ul>
               </div>
             </div>
@@ -177,18 +176,18 @@ const offersEnabled = settings?.value === true;
           
            <!-- PERFUMES -->
           <div class="group h-full flex items-center">
-            <a href="/categoria/perfumes" class="px-4 py-2 text-xs font-semibold text-white hover:text-beauty-red transition-colors uppercase tracking-wider relative h-full flex items-center">
+            <a href="/categoria/perfumes" class="px-5 py-2 text-[11px] font-medium text-white/90 hover:text-white transition-colors uppercase tracking-[0.15em] relative h-full flex items-center">
               Perfumes
-               <span class="absolute bottom-0 left-0 w-full h-0.5 bg-beauty-red transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-beauty-red group-hover:w-3/4 transition-all duration-300"></span>
             </a>
-            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border-t border-gray-100 transform z-40">
-              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                 <ul class="space-y-2 text-sm font-medium">
-                    <li><a href="/categoria/perfumes" class="block font-bold uppercase tracking-widest hover:text-beauty-red transition-colors">Ver todo Perfumes</a></li>
-                    <li><a href="/categoria/perfumes" class="hover:text-black transition-colors">Perfume mujer</a></li>
-                    <li><a href="/categoria/perfumes" class="hover:text-black transition-colors">Perfume hombre</a></li>
-                    <li><a href="/categoria/perfumes" class="hover:text-black transition-colors">Velas y difusores</a></li>
-                    <li><a href="/categoria/perfumes" class="hover:text-black transition-colors">Estuches perfume</a></li>
+            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-elegant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform z-40">
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                 <ul class="space-y-3 text-sm">
+                    <li><a href="/categoria/perfumes" class="block font-medium text-[10px] uppercase tracking-[0.2em] text-black hover:text-beauty-red transition-colors">Ver todo Perfumes</a></li>
+                    <li class="pt-2"><a href="/categoria/perfumes" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Perfume mujer</a></li>
+                    <li><a href="/categoria/perfumes" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Perfume hombre</a></li>
+                    <li><a href="/categoria/perfumes" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Velas y difusores</a></li>
+                    <li><a href="/categoria/perfumes" class="text-gray-dark hover:text-black hover:pl-1 transition-all duration-200">Estuches perfume</a></li>
                  </ul>
               </div>
             </div>
@@ -196,30 +195,30 @@ const offersEnabled = settings?.value === true;
            <!-- OFERTAS -->
 {offersEnabled && (
           <div class="group h-full flex items-center">
-            <a href="/ofertas" class="px-4 py-2 text-xs font-bold text-beauty-red hover:text-white transition-colors uppercase tracking-wider relative h-full flex items-center">
+            <a href="/ofertas" class="px-5 py-2 text-[11px] font-semibold text-beauty-red hover:text-beauty-pink transition-colors uppercase tracking-[0.15em] relative h-full flex items-center">
               Ofertas
-               <span class="absolute bottom-0 left-0 w-full h-0.5 bg-beauty-red transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+              <span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-px bg-beauty-red group-hover:w-3/4 transition-all duration-300"></span>
             </a>
-            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border-t border-gray-100 transform z-40">
+            <div class="absolute left-0 top-16 w-full bg-white text-black shadow-elegant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform z-40">
               <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                  <div class="grid grid-cols-4 gap-8">
                     <div class="col-span-1">
                        <ul class="space-y-4">
-                          <li><a href="#" class="block font-bold uppercase tracking-widest text-sm hover:text-beauty-red transition-colors">Todas las ofertas</a></li>
-                          <li><a href="#" class="block font-bold uppercase tracking-widest text-sm text-beauty-red hover:text-black transition-colors">Rebajas hasta -50%*</a></li>
-                          <li><a href="#" class="block font-bold uppercase tracking-widest text-sm hover:text-beauty-red transition-colors">Regalos por compra</a></li>
-                          <li><a href="#" class="block font-bold uppercase tracking-widest text-sm hover:text-beauty-red transition-colors">Productos al mejor precio</a></li>
-                          <li><a href="#" class="block text-xs text-gray-500 hover:text-black transition-colors mt-8">*Exclusiones ofertas</a></li>
+                          <li><a href="#" class="block font-medium text-sm hover:text-beauty-red transition-colors">Todas las ofertas</a></li>
+                          <li><a href="#" class="block font-semibold text-sm text-beauty-red hover:text-black transition-colors">Rebajas hasta -50%*</a></li>
+                          <li><a href="#" class="block font-medium text-sm hover:text-beauty-red transition-colors">Regalos por compra</a></li>
+                          <li><a href="#" class="block font-medium text-sm hover:text-beauty-red transition-colors">Productos al mejor precio</a></li>
+                          <li><a href="#" class="block text-[10px] text-gray-medium hover:text-black transition-colors mt-8">*Exclusiones ofertas</a></li>
                        </ul>
                     </div>
                     
                     <!-- Empty columns for spacing/layout to match minimalist look or add more content later -->
                     <div class="col-span-2"></div>
 
-                    <div class="relative h-64 bg-gray-100 overflow-hidden group/image cursor-pointer">
-                        <img src="/assets/promo-online.png" alt="Ofertas Especiales" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/image:scale-105" />
-                         <div class="absolute bottom-4 left-4 bg-white/90 px-4 py-2">
-                           <span class="text-xs font-bold uppercase tracking-widest">OFERTAS EXCLUSIVAS</span>
+                    <div class="relative h-64 bg-gray-light overflow-hidden group/image cursor-pointer">
+                        <img src="/assets/promo-online.png" alt="Ofertas Especiales" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-elegant group-hover/image:scale-105" />
+                         <div class="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm px-4 py-2">
+                           <span class="text-[10px] font-medium uppercase tracking-[0.15em]">OFERTAS EXCLUSIVAS</span>
                         </div>
                     </div>
                  </div>
@@ -229,43 +228,42 @@ const offersEnabled = settings?.value === true;
           )}
         </div>
 
-        <!-- Actions -->
-        <div class="flex items-center space-x-6">
+        <!-- Actions - Refined -->
+        <div class="flex items-center space-x-5">
           <!-- Search -->
-          {/* Search */}
           <SearchBar client:load />
 
           <!-- Store Locator -->
-          <a href="#" class="hidden xl:flex items-center space-x-2 group hover:opacity-80 transition-opacity">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          <a href="#" class="hidden xl:flex items-center space-x-2 group">
+            <svg class="w-4 h-4 text-white/80 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <span class="text-xs font-bold text-white uppercase tracking-widest">Localizador de Tiendas</span>
+            <span class="text-[10px] font-medium text-white/80 uppercase tracking-[0.1em] group-hover:text-white transition-colors">Tiendas</span>
           </a>
 
           <!-- Login / Account -->
-          <div id="auth-container" class="hidden lg:flex items-center space-x-2 group hover:opacity-80 transition-opacity cursor-pointer">
+          <div id="auth-container" class="hidden lg:flex items-center space-x-2 group cursor-pointer">
              <a href="/login" id="auth-link" class="flex items-center space-x-2">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <svg class="w-4 h-4 text-white/80 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span id="auth-text" class="text-xs font-bold text-white uppercase tracking-widest">Iniciar Sesión</span>
+                <span id="auth-text" class="text-[10px] font-medium text-white/80 uppercase tracking-[0.1em] group-hover:text-white transition-colors">Iniciar Sesión</span>
              </a>
           </div>
 
-          <!-- Cart Icon -->
+          <!-- Cart Icon - Premium -->
           <button
             id="cart-trigger"
-            class="relative p-2 text-white hover:text-beauty-red transition-colors group"
+            class="relative p-2 text-white/80 hover:text-white transition-colors group"
             aria-label="Abrir carrito"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
             <span
               id="cart-count-badge"
-              class="absolute -top-1 -right-1 bg-beauty-red text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center"
+              class="absolute -top-0.5 -right-0.5 bg-beauty-red text-white text-[9px] font-semibold rounded-full w-4 h-4 flex items-center justify-center animate-scale-in"
               style="display: none;"
             >
               0
@@ -281,27 +279,29 @@ const offersEnabled = settings?.value === true;
     <slot />
   </main>
 
-  <!-- Footer - MAC Style: Mega Footer (Newsletter + Columns) -->
+  <!-- Footer - Premium Elegant Design -->
   <footer class="bg-black text-white mt-24">
-    <!-- Newsletter Section (Full Width, Distinct) -->
-    <div class="border-b border-white/20">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div class="flex flex-col md:flex-row items-center justify-between gap-8">
-          <div class="text-center md:text-left">
-            <h3 class="text-2xl font-bold uppercase tracking-widest mb-2 font-head">Mantente al Día</h3>
-            <p class="text-gray-400 text-sm tracking-wide font-body">Suscríbete para recibir noticias, lanzamientos y ofertas exclusivas.</p>
+    <!-- Newsletter Section - Refined -->
+    <div class="border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-10">
+          <div class="text-center lg:text-left max-w-md">
+            <h3 class="text-2xl lg:text-3xl font-serif font-light tracking-wide mb-3">Mantente al día</h3>
+            <p class="text-white/60 text-sm leading-relaxed">Suscríbete para recibir noticias, lanzamientos exclusivos y ofertas especiales.</p>
           </div>
-          <form id="newsletter-form" class="w-full md:w-auto flex flex-col sm:flex-row gap-4 items-stretch">
-            <input 
-              name="email"
-              type="email" 
-              placeholder="TU EMAIL" 
-              class="w-full md:w-80 bg-transparent border-b border-white text-white placeholder-gray-500 py-2 focus:outline-none focus:border-beauty-red transition-colors uppercase text-sm font-body"
-              required
-            />
+          <form id="newsletter-form" class="w-full lg:w-auto flex flex-col sm:flex-row gap-4 items-stretch">
+            <div class="relative">
+              <input 
+                name="email"
+                type="email" 
+                placeholder="Tu dirección de email" 
+                class="w-full sm:w-80 bg-transparent border border-white/30 text-white placeholder-white/40 px-5 py-3.5 focus:outline-none focus:border-white transition-colors text-sm"
+                required
+              />
+            </div>
             <button 
               type="submit" 
-              class="bg-white text-black px-8 py-2 font-bold uppercase text-xs tracking-widest hover:bg-beauty-red hover:text-white transition-colors"
+              class="bg-white text-black px-8 py-3.5 font-medium text-xs tracking-[0.15em] uppercase hover:bg-beauty-red hover:text-white transition-all duration-300"
             >
               Suscribirse
             </button>
@@ -311,26 +311,26 @@ const offersEnabled = settings?.value === true;
       </div>
     </div>
 
-    <!-- Links Section -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-12">
+    <!-- Links Section - Clean Grid -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-10 lg:gap-16">
         <!-- Brand & Social -->
         <div class="col-span-2 md:col-span-1 space-y-8">
           <div>
-            <h3 class="text-2xl font-bold mb-4 uppercase tracking-widest font-head">ÉCLAT</h3>
-            <p class="text-gray-400 text-sm leading-relaxed font-body">
+            <h3 class="text-xl font-medium mb-5 tracking-[0.2em] uppercase">ÉCLAT</h3>
+            <p class="text-white/50 text-sm leading-relaxed">
               Belleza premium y cuidado personal. Arte y sofisticación en cada producto.
             </p>
           </div>
-          <div class="flex space-x-6">
-            <!-- Social Icons (Kept same) -->
-             <a href="#" class="text-white hover:text-beauty-red transition-colors" aria-label="Instagram">
+          <div class="flex space-x-5">
+            <!-- Social Icons - Refined -->
+             <a href="#" class="text-white/60 hover:text-white transition-colors duration-300" aria-label="Instagram">
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
             </a>
-            <a href="#" class="text-white hover:text-beauty-red transition-colors" aria-label="TikTok">
+            <a href="#" class="text-white/60 hover:text-white transition-colors duration-300" aria-label="TikTok">
                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
             </a>
-             <a href="#" class="text-white hover:text-beauty-red transition-colors" aria-label="Pinterest">
+             <a href="#" class="text-white/60 hover:text-white transition-colors duration-300" aria-label="Pinterest">
                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.399.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.951-7.252 4.173 0 7.41 2.967 7.41 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.367 18.62 0 12.017 0z"/></svg>
             </a>
           </div>
@@ -338,41 +338,43 @@ const offersEnabled = settings?.value === true;
 
         <!-- Atencion al Cliente -->
         <div>
-          <h4 class="font-bold mb-6 uppercase text-xs tracking-widest text-white font-head">Atención al Cliente</h4>
-          <ul class="space-y-3 text-sm font-body">
-            <li><a href="/mi-cuenta/pedidos" class="text-gray-400 hover:text-white transition-colors">Estado del Pedido</a></li>
-            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Envíos y Entregas</a></li>
-            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Devoluciones</a></li>
-            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
-            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Contáctanos</a></li>
+          <h4 class="font-medium mb-6 text-[10px] uppercase tracking-[0.2em] text-white/80">Atención al Cliente</h4>
+          <ul class="space-y-3 text-sm">
+            <li><a href="/mi-cuenta/pedidos" class="text-white/50 hover:text-white transition-colors duration-300">Estado del Pedido</a></li>
+            <li><a href="#" class="text-white/50 hover:text-white transition-colors duration-300">Envíos y Entregas</a></li>
+            <li><a href="#" class="text-white/50 hover:text-white transition-colors duration-300">Devoluciones</a></li>
+            <li><a href="#" class="text-white/50 hover:text-white transition-colors duration-300">FAQ</a></li>
+            <li><a href="#" class="text-white/50 hover:text-white transition-colors duration-300">Contáctanos</a></li>
           </ul>
         </div>
 
         <!-- Sobre Nosotros -->
         <div>
-          <h4 class="font-bold mb-6 uppercase text-xs tracking-widest text-white font-head">Sobre Nosotros</h4>
-          <ul class="space-y-3 text-sm font-body">
-            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Nuestra Historia</a></li>
-            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Carreras</a></li>
-            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Sostenibilidad</a></li>
-            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Compromiso Social</a></li>
+          <h4 class="font-medium mb-6 text-[10px] uppercase tracking-[0.2em] text-white/80">Sobre Nosotros</h4>
+          <ul class="space-y-3 text-sm">
+            <li><a href="#" class="text-white/50 hover:text-white transition-colors duration-300">Nuestra Historia</a></li>
+            <li><a href="#" class="text-white/50 hover:text-white transition-colors duration-300">Carreras</a></li>
+            <li><a href="#" class="text-white/50 hover:text-white transition-colors duration-300">Sostenibilidad</a></li>
+            <li><a href="#" class="text-white/50 hover:text-white transition-colors duration-300">Compromiso Social</a></li>
           </ul>
         </div>
 
         <!-- Mi Cuenta -->
         <div>
-          <h4 class="font-bold mb-6 uppercase text-xs tracking-widest text-white font-head">Mi Cuenta</h4>
-          <ul class="space-y-3 text-sm font-body">
-            <li><a href="/login" class="text-gray-400 hover:text-white transition-colors">Iniciar Sesión</a></li>
-            <li><a href="/registro" class="text-gray-400 hover:text-white transition-colors">Crear Cuenta</a></li>
-            <li><a href="/mi-cuenta/pedidos" class="text-gray-400 hover:text-white transition-colors">Mis Pedidos</a></li>
-            <li><a href="/mi-cuenta/deseos" class="text-gray-400 hover:text-white transition-colors">Lista de Deseos</a></li>
+          <h4 class="font-medium mb-6 text-[10px] uppercase tracking-[0.2em] text-white/80">Mi Cuenta</h4>
+          <ul class="space-y-3 text-sm">
+            <li><a href="/login" class="text-white/50 hover:text-white transition-colors duration-300">Iniciar Sesión</a></li>
+            <li><a href="/registro" class="text-white/50 hover:text-white transition-colors duration-300">Crear Cuenta</a></li>
+            <li><a href="/mi-cuenta/pedidos" class="text-white/50 hover:text-white transition-colors duration-300">Mis Pedidos</a></li>
+            <li><a href="/mi-cuenta/deseos" class="text-white/50 hover:text-white transition-colors duration-300">Lista de Deseos</a></li>
           </ul>
         </div>
       </div>
 
-      <div class="border-t border-white/20 mt-12 pt-8 text-center text-xs text-gray-500 font-body">
-        <p>&copy; {new Date().getFullYear()} ÉCLAT Beauty. Todos los derechos reservados. Diseñado en Madrid.</p>
+      <!-- Bottom Bar -->
+      <div class="border-t border-white/10 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <p class="text-xs text-white/40">&copy; {new Date().getFullYear()} ÉCLAT Beauty. Todos los derechos reservados.</p>
+        <p class="text-xs text-white/40">Diseñado con ♥ en Madrid</p>
       </div>
     </div>
   </footer>

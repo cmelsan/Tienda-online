@@ -58,9 +58,10 @@ export default {
                 'card': '8px',
             },
             animation: {
-                'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                'slide-up': 'slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                'scale-in': 'scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                'fadeIn': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                'slideUp': 'slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.2s',
+                'slideRight': 'slideRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.4s',
+                'scaleIn': 'scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                 'shimmer': 'shimmer 2s linear infinite',
             },
             keyframes: {
@@ -71,6 +72,10 @@ export default {
                 slideUp: {
                     '0%': { transform: 'translateY(30px)', opacity: '0' },
                     '100%': { transform: 'translateY(0)', opacity: '1' },
+                },
+                slideRight: {
+                    '0%': { width: '0', opacity: '0' },
+                    '100%': { width: '100%', opacity: '1' },
                 },
                 scaleIn: {
                     '0%': { opacity: '0', transform: 'scale(0.95)' },

@@ -91,7 +91,7 @@ if (!imageUrl || imageUrl.includes('placeholder')) {
         <img
           src={imageUrl}
           alt={product.name}
-          class="w-full h-full object-cover transition-transform duration-700 ease-elegant group-hover:scale-105"
+          class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-125"
           loading="lazy"
           onerror={`this.onerror=null; this.src='${fallbackImage || '/placeholder-product.jpg'}'`}
         />

@@ -103,29 +103,55 @@ const { data: brands } = await supabase
       {/* Banners Grid */}
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
         {/* Banner 1: Nuevas Colecciones - Pink */}
-        <a href="/productos" class="relative h-[400px] md:h-[500px] bg-gradient-to-br from-pink-300 via-pink-200 to-pink-300 overflow-hidden group border-4 border-black">
-          <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-          <div class="relative z-10 h-full flex flex-col items-start justify-end p-10 md:p-14">
-            <span class="inline-block text-black text-[10px] uppercase tracking-[0.3em] mb-4 font-medium">Colecciones</span>
-            <h3 class="text-4xl md:text-5xl font-sans font-bold text-black mb-4">Nuevas Llegadas</h3>
+        <a href="/productos" class="relative h-[400px] md:h-[500px] overflow-hidden group border-4 border-black">
+          {/* Background Image */}
+          <div class="absolute inset-0 bg-gradient-to-br from-pink-300 via-pink-200 to-pink-300"></div>
+          
+          {/* Decorative Elements */}
+          <div class="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -mr-48 -mt-48 group-hover:scale-125 transition-transform duration-500"></div>
+          <div class="absolute bottom-0 left-0 w-72 h-72 bg-black/5 rounded-full blur-3xl -ml-36 -mb-36 group-hover:scale-110 transition-transform duration-500"></div>
+          
+          {/* Overlay */}
+          <div class="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/0 group-hover:from-black/35 transition-all duration-300"></div>
+          
+          {/* Content */}
+          <div class="relative z-10 h-full flex flex-col items-start justify-end p-10 md:p-14 transform group-hover:scale-105 transition-transform duration-300 origin-bottom-left">
+            <span class="inline-block text-black text-[10px] uppercase tracking-[0.3em] mb-4 font-medium opacity-90">Colecciones</span>
+            <h3 class="text-4xl md:text-5xl font-sans font-bold text-black mb-4 leading-tight">Nuevas Llegadas</h3>
             <p class="text-black/80 text-base mb-8 max-w-sm leading-relaxed">Descubre nuestras últimas colecciones con fórmulas innovadoras y colores exclusivos.</p>
-            <span class="inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b-2 border-black pb-1 group-hover:border-rose-600 group-hover:text-rose-600 transition-colors">
+            <span class="inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b-2 border-black pb-1 group-hover:border-rose-600 group-hover:text-rose-600 transition-all duration-300">
               Explorar Colección
             </span>
           </div>
+          
+          {/* Shine Effect */}
+          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-full group-hover:translate-x-0 transition-transform duration-700 opacity-0 group-hover:opacity-100"></div>
         </a>
 
         {/* Banner 2: Bestsellers - Gray */}
-        <a href="/productos" class="relative h-[400px] md:h-[500px] bg-gray-400 overflow-hidden group border-4 border-black">
-          <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-black/10"></div>
-          <div class="relative z-10 h-full flex flex-col items-start justify-end p-10 md:p-14">
+        <a href="/productos" class="relative h-[400px] md:h-[500px] overflow-hidden group border-4 border-black">
+          {/* Background Image */}
+          <div class="absolute inset-0 bg-gradient-to-br from-gray-400 via-gray-500 to-gray-600"></div>
+          
+          {/* Decorative Elements */}
+          <div class="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -mr-48 -mt-48 group-hover:scale-125 transition-transform duration-500"></div>
+          <div class="absolute bottom-0 left-0 w-72 h-72 bg-black/20 rounded-full blur-3xl -ml-36 -mb-36 group-hover:scale-110 transition-transform duration-500"></div>
+          
+          {/* Overlay */}
+          <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent group-hover:from-black/50 transition-all duration-300"></div>
+          
+          {/* Content */}
+          <div class="relative z-10 h-full flex flex-col items-start justify-end p-10 md:p-14 transform group-hover:scale-105 transition-transform duration-300 origin-bottom-left">
             <span class="inline-block text-white/90 text-[10px] uppercase tracking-[0.3em] mb-4 font-medium">Top Productos</span>
-            <h3 class="text-4xl md:text-5xl font-sans font-bold text-white mb-4">Bestsellers</h3>
+            <h3 class="text-4xl md:text-5xl font-sans font-bold text-white mb-4 leading-tight">Bestsellers</h3>
             <p class="text-white/90 text-base mb-8 max-w-sm leading-relaxed">Los productos más amados por nuestras clientes. Calidad y resultados garantizados.</p>
-            <span class="inline-block bg-white text-black px-7 py-3 text-[10px] font-medium uppercase tracking-[0.15em] group-hover:bg-black group-hover:text-white transition-all duration-300 border border-white">
+            <span class="inline-block bg-white text-black px-7 py-3 text-[10px] font-medium uppercase tracking-[0.15em] group-hover:bg-black group-hover:text-white transition-all duration-300 border border-white transform group-hover:scale-110">
               Ver Bestsellers
             </span>
           </div>
+          
+          {/* Shine Effect */}
+          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-full group-hover:translate-x-0 transition-transform duration-700 opacity-0 group-hover:opacity-100"></div>
         </a>
       </div>
 

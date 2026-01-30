@@ -193,10 +193,13 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
   const imagesField = formData.get('images')?.toString() || '';
   const images = imagesField.split('\n').filter(img => img.trim());
   
+  const priceInEuros = parseFloat(formData.get('price') || '0');
+  const priceInCents = Math.round(priceInEuros * 100);
+  
   const data = {
     name: formData.get('name'),
     description: formData.get('description'),
-    price: parseFloat(formData.get('price') || '0'),
+    price: priceInCents,
     stock: parseInt(formData.get('stock') || '0'),
     category_id: formData.get('category_id'),
     subcategory_id: formData.get('subcategory_id') || null,

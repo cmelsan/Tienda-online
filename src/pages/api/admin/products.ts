@@ -51,6 +51,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     const slug = slugify(name);
+    // Ensure price is in cents (integer) to avoid floating point precision issues
+    const priceInCents = typeof price === 'string' ? Math.round(parseFloat(price) * 100) : Math.round(price * 100);
 
     const { data: product, error } = await supabase
       .from('products')
@@ -59,7 +61,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           name,
           slug,
           description,
-          price,
+          price: priceInCents,
           stock,
           category_id,
           subcategory_id: subcategory_id || null,

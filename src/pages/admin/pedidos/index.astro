@@ -31,7 +31,8 @@ if (error) {
 const stats = {
     total: orders?.length || 0,
     paid: orders?.filter(o => o.status === 'paid').length || 0,
-    pending: orders?.filter(o => o.status === 'pending').length || 0,
+    pending: orders?.filter(o => o.status === 'awaiting_payment').length || 0,
+    shipped: orders?.filter(o => o.status === 'shipped').length || 0,
     delivered: orders?.filter(o => o.status === 'delivered').length || 0,
 };
 ---
@@ -54,6 +55,14 @@ const stats = {
             <div class="bg-yellow-50 px-4 py-2 border border-yellow-100 shadow-sm rounded-md">
                 <span class="block text-xs font-bold text-yellow-600 uppercase">Pendientes</span>
                 <span class="text-lg font-bold text-yellow-700">{stats.pending}</span>
+            </div>
+            <div class="bg-blue-50 px-4 py-2 border border-blue-100 shadow-sm rounded-md">
+                <span class="block text-xs font-bold text-blue-600 uppercase">Enviados</span>
+                <span class="text-lg font-bold text-blue-700">{stats.shipped}</span>
+            </div>
+            <div class="bg-purple-50 px-4 py-2 border border-purple-100 shadow-sm rounded-md">
+                <span class="block text-xs font-bold text-purple-600 uppercase">Entregados</span>
+                <span class="text-lg font-bold text-purple-700">{stats.delivered}</span>
             </div>
         </div>
     </div>

@@ -43,15 +43,18 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
 
             const data = await response.json();
 
-            if (!data.success) {
-                throw new Error(data.message || 'Error updating status');
+            if (!response.ok || !data.success) {
+                const errorMsg = data.message || `Error: ${response.status}`;
+                console.error('Status update error:', data);
+                alert(`Error: ${errorMsg}\n\nDetalles: ${data.details || data.hint || 'Sin detalles'}`);
+                return;
             }
 
             setStatus(newStatus);
-            alert(`Pedido actualizado a: ${newStatus}`);
+            alert(`✅ Pedido actualizado a: ${newStatus}`);
         } catch (error) {
             console.error('Error updating status:', error);
-            alert('Error al actualizar el estado: ' + (error instanceof Error ? error.message : 'Unknown error'));
+            alert('❌ Error de conexión: ' + (error instanceof Error ? error.message : 'Unknown error'));
         } finally {
             setIsUpdating(false);
         }

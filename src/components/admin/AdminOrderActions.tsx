@@ -185,23 +185,25 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
     const currentAction = availableActions.find(a => a.type === modalAction);
 
     return (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2 items-start">
             {/* Status Badge */}
             <div className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 {STATUS_LABELS[order.status] || order.status}
             </div>
 
-            {/* Action Buttons */}
-            {availableActions.map(action => (
-                <button
-                    key={action.type}
-                    onClick={() => handleActionClick(action.type, action.requiresConfirm || action.requiresNotes || false)}
-                    disabled={isLoading}
-                    className="px-4 py-2 border border-gray-300 text-gray-900 font-medium text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                    {isLoading && modalAction === action.type ? 'Procesando...' : action.label}
-                </button>
-            ))}
+            {/* Action Buttons - Horizontal Row */}
+            <div className="flex gap-2 flex-wrap">
+                {availableActions.map(action => (
+                    <button
+                        key={action.type}
+                        onClick={() => handleActionClick(action.type, action.requiresConfirm || action.requiresNotes || false)}
+                        disabled={isLoading}
+                        className="px-3 py-2 border border-gray-300 text-gray-900 font-medium text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50 whitespace-nowrap"
+                    >
+                        {isLoading && modalAction === action.type ? 'Procesando...' : action.label}
+                    </button>
+                ))}
+            </div>
 
             {/* Modal */}
             {showModal && currentAction && (

@@ -80,33 +80,35 @@ export default function OrderActionsClient({
     };
 
     return (
-        <div className="flex flex-col gap-4 items-end">
+        <div className="flex flex-col gap-2 items-end">
             {/* Status Badge */}
-            <div className={`text-xs font-bold uppercase tracking-wider ${STATUS_COLORS[currentStatus] || STATUS_COLORS.awaiting_payment}`}>
+            <div className="text-xs font-bold uppercase tracking-wider text-gray-600">
                 {STATUS_LABELS[currentStatus] || currentStatus}
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-2 items-end">
-                {canCancel && (
-                    <button
-                        onClick={handleCancelOrder}
-                        disabled={isCancelling}
-                        className="px-6 py-2 border border-gray-300 text-gray-900 font-medium text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50"
-                    >
-                        {isCancelling ? 'Cancelando...' : 'Cancelar Pedido'}
-                    </button>
-                )}
+            {/* Action Buttons - Horizontal */}
+            {(canCancel || canRequestReturn) && (
+                <div className="flex gap-2 flex-wrap justify-end">
+                    {canCancel && (
+                        <button
+                            onClick={handleCancelOrder}
+                            disabled={isCancelling}
+                            className="px-3 py-2 border border-gray-300 text-gray-900 font-medium text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50 whitespace-nowrap"
+                        >
+                            {isCancelling ? 'Cancelando...' : 'Cancelar Pedido'}
+                        </button>
+                    )}
 
-                {canRequestReturn && (
-                    <button
-                        onClick={() => setIsReturnModalOpen(true)}
-                        className="px-6 py-2 border border-gray-300 text-gray-900 font-medium text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors"
-                    >
-                        Solicitar Devolución
-                    </button>
-                )}
-            </div>
+                    {canRequestReturn && (
+                        <button
+                            onClick={() => setIsReturnModalOpen(true)}
+                            className="px-3 py-2 border border-gray-300 text-gray-900 font-medium text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors whitespace-nowrap"
+                        >
+                            Solicitar Devolución
+                        </button>
+                    )}
+                </div>
+            )}
 
             {error && (
                 <div className="text-xs text-red-600">

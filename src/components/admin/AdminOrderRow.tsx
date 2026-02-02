@@ -40,21 +40,19 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
     };
 
     return (
-        <tr className="hover:bg-gray-50 transition-colors" suppressHydrationWarning>
-            <td className="py-4 px-6 text-sm font-medium text-gray-900 border-b border-gray-100">#{orderId}</td>
-            <td className="py-4 px-6 text-sm text-gray-500 border-b border-gray-100">{dateStr}</td>
-            <td className="py-4 px-6 text-sm text-gray-900 border-b border-gray-100">
-                <div className="flex flex-col">
-                    <span className="font-bold">{customerEmail}</span>
-                    {userId && <span className="text-xs text-gray-400">ID: {userId}</span>}
-                </div>
+        <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+            <td className="py-3 px-6 text-xs font-bold text-gray-900">#{orderId}</td>
+            <td className="py-3 px-6 text-xs text-gray-500">{dateStr}</td>
+            <td className="py-3 px-6 text-xs text-gray-900">
+                <span className="font-bold block">{customerEmail}</span>
+                {userId && <span className="text-gray-400">ID: {userId}</span>}
             </td>
-            <td className="py-4 px-6 text-sm text-gray-500 border-b border-gray-100">
-                {itemCount} productos
-                <div className="text-xs text-gray-400 truncate max-w-xs">{products}</div>
+            <td className="py-3 px-6 text-xs text-gray-500">
+                <span className="block">{itemCount} productos</span>
+                <span className="text-xs text-gray-400 truncate max-w-xs block">{products}</span>
             </td>
-            <td className="py-4 px-6 text-sm font-bold text-gray-900 border-b border-gray-100">{total}</td>
-            <td className="py-4 px-6 border-b border-gray-100">
+            <td className="py-3 px-6 text-xs font-bold text-gray-900">{total}</td>
+            <td className="py-3 px-6">
                 <AdminOrderActions 
                     order={{ ...order, status: currentStatus }} 
                     onActionComplete={handleActionComplete}

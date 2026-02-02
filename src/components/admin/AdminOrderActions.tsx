@@ -185,24 +185,22 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
     const currentAction = availableActions.find(a => a.type === modalAction);
 
     if (availableActions.length === 0) {
-        return <div className="text-xs text-gray-400">-</div>;
+        return <span className="text-xs text-gray-400">-</span>;
     }
 
     return (
-        <>
+        <div className="flex gap-2">
             {/* Action Buttons - Inline like coupons */}
-            <div className="flex gap-2">
-                {availableActions.map(action => (
-                    <button
-                        key={action.type}
-                        onClick={() => handleActionClick(action.type, action.requiresConfirm || action.requiresNotes || false)}
-                        disabled={isLoading}
-                        className="text-blue-600 hover:text-blue-800 font-semibold"
-                    >
-                        {isLoading && modalAction === action.type ? 'Procesando...' : action.label}
-                    </button>
-                ))}
-            </div>
+            {availableActions.map(action => (
+                <button
+                    key={action.type}
+                    onClick={() => handleActionClick(action.type, action.requiresConfirm || action.requiresNotes || false)}
+                    disabled={isLoading}
+                    className="text-blue-600 hover:text-blue-800 font-semibold"
+                >
+                    {isLoading && modalAction === action.type ? 'Procesando...' : action.label}
+                </button>
+            ))}
             
             {/* Modal */}
             {showModal && currentAction && (
@@ -280,6 +278,6 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 }

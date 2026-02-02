@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import AdminOrderActions from './AdminOrderActions';
 
 interface OrderItem {
     quantity: number;
@@ -24,48 +25,7 @@ interface AdminOrderRowProps {
 }
 
 export default function AdminOrderRow({ order }: AdminOrderRowProps) {
-    const [status, setStatus] = useState<string>(() => {
-        return order?.status ?? 'awaiting_payment';
-    });
-    const [isUpdating, setIsUpdating] = useState(false);
-
-    useEffect(() => {
-        console.log('✅ AdminOrderRow mounted for order:', order?.id);
-    }, [order?.id]);
-
-    const handleStatusChange = async (newStatus: string) => {
-        console.log('🔄 Changing status to:', newStatus);
-        setIsUpdating(true);
-        
-        try {
-            const response = await fetch('/api/admin/updatestatus', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    orderId: order?.id,
-                    newStatus: newStatus
-                })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                alert(`❌ Error: ${data.message}`);
-                setIsUpdating(false);
-                return;
-            }
-
-            console.log('✅ Status updated to:', newStatus);
-            setStatus(newStatus);
-            alert(`✅ Pedido actualizado a: ${newStatus}`);
-            setIsUpdating(false);
-            
-        } catch (error) {
-            console.error('❌ Error:', error);
-            alert('❌ Error de conexión');
-            setIsUpdating(false);
-        }
-    };
+    const [currentStatus, setCurrentStatus] = useState<string>(order?.status ?? 'awaiting_payment');
 
     const orderId = order?.id?.slice(0, 8) || 'N/A';
     const customerEmail = order?.guest_email || 'Usuario Registrado';
@@ -75,15 +35,8 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
     const total = order?.total_amount ? new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(order.total_amount / 100) : '-';
     const products = order?.items?.map(i => i?.product?.name).filter(Boolean).join(', ') || '-';
 
-    const statusColors: Record<string, string> = {
-        paid: 'text-green-600 bg-green-50',
-        awaiting_payment: 'text-yellow-600 bg-yellow-50',
-        shipped: 'text-blue-600 bg-blue-50',
-        delivered: 'text-purple-600 bg-purple-50',
-        cancelled: 'text-red-600 bg-red-50',
-        return_requested: 'text-orange-600 bg-orange-50',
-        returned: 'text-indigo-600 bg-indigo-50',
-        refunded: 'text-gray-600 bg-gray-50',
+    const handleActionComplete = (newStatus: string) => {
+        setCurrentStatus(newStatus);
     };
 
     return (
@@ -102,21 +55,10 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
             </td>
             <td className="py-4 px-6 text-sm font-bold text-gray-900 border-b border-gray-100">{total}</td>
             <td className="py-4 px-6 border-b border-gray-100">
-                <select
-                    value={status}
-                    onChange={(e) => handleStatusChange(e.target.value)}
-                    disabled={isUpdating || status === 'cancelled' || status === 'refunded'}
-                    className={`block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm text-xs font-bold uppercase ${statusColors[status] || 'text-gray-600 bg-gray-50'}`}
-                >
-                    <option value="awaiting_payment">Pendiente</option>
-                    <option value="paid">Pagado</option>
-                    <option value="shipped">Enviado</option>
-                    <option value="delivered">Entregado</option>
-                    <option value="return_requested">Devolución</option>
-                    <option value="returned">Devuelto</option>
-                    <option value="refunded">Reembolsado</option>
-                    <option value="cancelled">Cancelado</option>
-                </select>
+                <AdminOrderActions 
+                    order={{ ...order, status: currentStatus }} 
+                    onActionComplete={handleActionComplete}
+                />
             </td>
         </tr>
     );

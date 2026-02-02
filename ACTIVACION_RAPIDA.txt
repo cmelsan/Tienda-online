@@ -1,0 +1,138 @@
+🚀 ACTIVACIÓN RÁPIDA - 5 MINUTOS
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 1: Ejecutar SQL (2 min)
+───────────────────────────────────────────────────────────────────────────────
+
+1. Ve a: https://supabase.com/dashboard/project/YOUR_PROJECT_ID/sql
+2. Click: "New Query" (arriba a la derecha)
+3. Borra cualquier texto
+4. Copia ABSOLUTAMENTE TODO esto:
+   └─ rpc_admin_post_sale.sql (archivo en tu proyecto)
+5. Pega en el editor de Supabase
+6. Click: "RUN" (arriba a la derecha, botón verde)
+7. Espera 3-5 segundos
+8. Verifica que aparezca: "Query executed successfully" ✓
+
+Si ves error → Revisa que hayas copiado TODO el archivo completo
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 2: Verificar .env.local (1 min)
+───────────────────────────────────────────────────────────────────────────────
+
+Abre tu .env.local y verifica que tengas:
+
+    SUPABASE_URL=https://xxxxxxx.supabase.co
+    SUPABASE_ANON_KEY=eyXxxxxxx...
+    SUPABASE_SERVICE_ROLE_KEY=eyXxxxxxx... ← CRÍTICO
+
+Si no tienes SERVICE_ROLE_KEY:
+  1. Ve a Supabase Settings → API Keys
+  2. Copia la "service_role" key
+  3. Pégala en .env.local como SUPABASE_SERVICE_ROLE_KEY
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 3: Build & Test (1 min)
+───────────────────────────────────────────────────────────────────────────────
+
+En terminal:
+
+    npm run build
+
+Verifica: "Complete!" sin errores
+
+    npm run dev
+
+Verifica: "ready in X ms" sin errores
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 4: Prueba en browser (1 min)
+───────────────────────────────────────────────────────────────────────────────
+
+1. Ve a: http://localhost:3000/admin/pedidos
+
+2. Busca un pedido con status "Pagado" (paid)
+
+3. En la última columna (Actions), verás:
+   ├─ Badge verde: "Pagado"
+   ├─ Botón: "📦 Marcar Enviado"
+   └─ Botón: "❌ Cancelar Pedido"
+
+4. Click en "❌ Cancelar Pedido"
+   → Debe aparecer un MODAL de confirmación
+
+5. Añade notas (opcional) y haz click "Confirmar"
+
+6. Espera 2-3 segundos
+
+7. Verifica:
+   ✅ Notificación de éxito
+   ✅ Badge cambió a rojo: "Cancelado"
+   ✅ Los botones desaparecieron
+
+8. Ve a Supabase Dashboard:
+   → "order_status_history" tabla
+   → Busca tu order_id
+   → Verifica: to_status = 'cancelled' ✓
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 5: Verificar stock restaurado (1 min)
+───────────────────────────────────────────────────────────────────────────────
+
+1. Ve a Supabase: table "products"
+
+2. Busca los productos de ese pedido
+
+3. Verifica que el stock aumentó:
+   └─ Si pedido tenía 2x Producto X:
+      stock de Producto X debe haber +2
+
+4. ✅ ¡TODO FUNCIONA!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+LISTO. Ya está en producción.
+
+Git:
+    git add .
+    git commit -m "feat: admin post-sale management system"
+    git push
+
+═══════════════════════════════════════════════════════════════════════════════
+
+TROUBLESHOOTING RÁPIDO
+
+❌ Build falla
+   → Abre src/components/admin/AdminOrderActions.tsx
+   → Verifica que tenga "import { useState, ... }"
+   → npm run build nuevamente
+
+❌ Error 500 en API
+   → Verifica que SUPABASE_SERVICE_ROLE_KEY esté en .env.local
+   → Verifica que el usuario sea admin (profiles.is_admin = true)
+   → Revisa Supabase logs
+
+❌ Botones no aparecen
+   → Pedido debe estar en status 'paid'
+   → Abre DevTools (F12) → verifica no hay console errors
+   → Recarga la página
+
+❌ Stock no se restaura
+   → Verifica que las RPC functions existan en Supabase
+   → Ejecuta rpc_admin_post_sale.sql nuevamente
+   → Verifica en order_status_history que haya registro
+
+═══════════════════════════════════════════════════════════════════════════════
+
+¿PROBLEMAS? Lee estos archivos EN ORDEN:
+
+1. SISTEMA_POST_VENTA_RESUMEN.md     (Resumen técnico)
+2. ADMIN_POST_SALE_SETUP.md          (Setup detallado)
+3. MATRIZ_VALIDACION_BUGS.md         (Evitar bugs)
+
+═══════════════════════════════════════════════════════════════════════════════

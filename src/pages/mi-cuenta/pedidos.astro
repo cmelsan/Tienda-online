@@ -1,6 +1,6 @@
 ---
 import PublicLayout from '@/layouts/PublicLayout.astro';
-import OrderActions from '@/components/orders/OrderActions';
+import OrderActionsClient from '@/components/orders/OrderActionsClient';
 import { createServerSupabaseClient } from '@/lib/supabase';
 
 // 1. Auth Check
@@ -82,9 +82,15 @@ const formatPrice = (amount: number) => {
                                 </div>
                             </div>
                             
-                            {/* Order Status Badge is handled in OrderActions for logic, but can be displayed here too */}
+                            {/* Order Status Badge and Actions */}
                             <div className="flex items-center">
-                                <OrderActions client:visible orderId={order.id} status={order.status} deliveredAt={order.delivered_at} />
+                                <OrderActionsClient 
+                                    client:load
+                                    orderId={order.id} 
+                                    status={order.status}
+                                    deliveredAt={order.delivered_at}
+                                    returnDeadline={order.return_deadline}
+                                />
                             </div>
                         </div>
 

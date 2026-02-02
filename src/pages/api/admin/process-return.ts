@@ -1,49 +1,58 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, getAdminSupabaseClient } from '@/lib/supabase';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
-        const { orderId } = await request.json();
+        const { orderId, newStatus, restoreStock, notes } = await request.json();
 
-        if (!orderId) {
+        if (!orderId || !newStatus) {
             return new Response(
-                JSON.stringify({ success: false, message: 'Order ID is required' }),
+                JSON.stringify({ success: false, message: 'Order ID and new status are required' }),
                 { status: 400 }
             );
         }
 
-        const userClient = await createServerSupabaseClient({ cookies });
-        const { data: { user } } = await userClient.auth.getUser();
+        // Validate status
+        if (!['returned', 'refunded'].includes(newStatus)) {
+            return new Response(
+                JSON.stringify({ success: false, message: 'Invalid status. Must be returned or refunded' }),
+                { status: 400 }
+            );
+        }
 
-        if (!user) {
+        // Use admin cookies (isAdmin = true)
+        const userClient = await createServerSupabaseClient({ cookies }, true);
+        const { data: { session } } = await userClient.auth.getSession();
+
+        if (!session) {
             return new Response(
                 JSON.stringify({ success: false, message: 'Unauthorized' }),
                 { status: 401 }
             );
         }
 
-        // Verify order belongs to user
-        const { data: order } = await userClient
-            .from('orders')
-            .select('user_id')
-            .eq('id', orderId)
+        const { data: profile, error: profileError } = await userClient
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', session.user.id)
             .single();
 
-        if (!order || order.user_id !== user.id) {
+        if (profileError || !profile?.is_admin) {
             return new Response(
-                JSON.stringify({ success: false, message: 'Forbidden' }),
+                JSON.stringify({ success: false, message: 'Admin access required' }),
                 { status: 403 }
             );
         }
 
-        // Call RPC: admin_cancel_order_atomic
-        // User initiates cancellation
+        // Call RPC using authenticated client (SECURITY DEFINER handles permissions)
         const { data: result, error: rpcError } = await userClient.rpc(
-            'admin_cancel_order_atomic',
+            'admin_process_return',
             {
                 p_order_id: orderId,
-                p_admin_id: user.id,
-                p_notes: 'Cancelled by customer'
+                p_admin_id: session.user.id,
+                p_new_status: newStatus,
+                p_restore_stock: restoreStock || false,
+                p_notes: notes || null
             }
         );
 

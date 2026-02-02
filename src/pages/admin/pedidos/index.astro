@@ -1,5 +1,70 @@
 ---
-// Pedidos section disabled - redirecting to admin dashboard
-return Astro.redirect('/admin');
+export const prerender = false; // SSR
+
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import AdminOrderRow from '@/components/admin/AdminOrderRow';
+import { supabase } from '@/lib/supabase';
+
+// Fetch orders with items
+const { data: orders, error } = await supabase
+  .from('orders')
+  .select(`
+    id,
+    created_at,
+    status,
+    total_amount,
+    user_id,
+    guest_email,
+    order_items (
+      id,
+      quantity,
+      price_at_purchase,
+      product:product_id (
+        id,
+        name,
+        stock
+      )
+    )
+  `)
+  .order('created_at', { ascending: false });
+
+if (error) {
+  console.error('Error fetching orders:', error);
+}
+
+const orderList = orders || [];
 ---
 
+<AdminLayout title="Pedidos">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Gestión de Pedidos</h1>
+    <p class="text-gray-600">Total: {orderList.length} pedidos</p>
+  </div>
+
+  <!-- Orders Table -->
+  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="py-4 px-6 text-left text-xs font-semibold text-gray-700 uppercase">ID</th>
+          <th class="py-4 px-6 text-left text-xs font-semibold text-gray-700 uppercase">Fecha</th>
+          <th class="py-4 px-6 text-left text-xs font-semibold text-gray-700 uppercase">Cliente</th>
+          <th class="py-4 px-6 text-left text-xs font-semibold text-gray-700 uppercase">Productos</th>
+          <th class="py-4 px-6 text-left text-xs font-semibold text-gray-700 uppercase">Total</th>
+          <th class="py-4 px-6 text-left text-xs font-semibold text-gray-700 uppercase">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {orderList.map((order) => (
+          <AdminOrderRow client:load order={order} />
+        ))}
+      </tbody>
+    </table>
+
+    {orderList.length === 0 && (
+      <div class="p-8 text-center text-gray-500">
+        <p>No hay pedidos disponibles</p>
+      </div>
+    )}
+  </div>
+</AdminLayout>

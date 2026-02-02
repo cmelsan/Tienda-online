@@ -111,7 +111,7 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
             </td>
             <td className="py-4 px-6 text-sm text-gray-900 border-b border-gray-100">
                 <div className="flex flex-col">
-                    <span className="font-bold">{order.guest_email || order.customer_name || 'Usuario Registrado'}</span>
+                    <span className="font-bold">{order.guest_email || 'Usuario Registrado'}</span>
                     {order.user_id && <span className="text-xs text-gray-400">ID: {order.user_id.slice(0, 8)}</span>}
                 </div>
             </td>

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, getAdminSupabaseClient } from '@/lib/supabase';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
@@ -11,10 +11,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             return new Response(JSON.stringify({ success: false, message: 'Order ID and status are required' }), { status: 400 });
         }
 
-        const supabase = await createServerSupabaseClient({ cookies });
-
-        // Verify session
-        const { data: { session } } = await supabase.auth.getSession();
+        // First, verify the user is logged in and is an admin
+        const userClient = await createServerSupabaseClient({ cookies });
+        const { data: { session } } = await userClient.auth.getSession();
+        
         console.log('[API] Session user:', session?.user?.email);
         if (!session) {
             return new Response(JSON.stringify({ success: false, message: 'Unauthorized' }), { status: 401 });
@@ -28,7 +28,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
         // Check if user is admin by checking profiles table
         console.log('[API] Checking if user is admin...');
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await userClient
             .from('profiles')
             .select('is_admin')
             .eq('id', session.user.id)
@@ -41,42 +41,40 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             return new Response(JSON.stringify({ success: false, message: 'Unauthorized: Admin access required' }), { status: 403 });
         }
 
-        // Use RPC function with elevated privileges for the update
-        console.log('[API] Calling update_order_status RPC...');
-        const { data: rpcResult, error: rpcError } = await supabase.rpc('update_order_status', {
-            p_order_id: orderId,
-            p_new_status: newStatus
-        });
-
-        if (rpcError) {
-            console.error('[API] RPC error:', rpcError);
-            // If RPC fails, try direct update as fallback
-            console.log('[API] RPC failed, trying direct update...');
-            
-            const { error: updateError } = await supabase
-                .from('orders')
-                .update({ 
-                    status: newStatus,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', orderId);
-
-            if (updateError) {
-                console.error('[API] Direct update also failed:', updateError);
-                return new Response(JSON.stringify({ 
-                    success: false, 
-                    message: `Error actualizando pedido: ${updateError.message}`,
-                    details: updateError.details
-                }), { status: 500 });
-            }
+        // Now use the admin client to perform the actual update (bypasses RLS)
+        const adminClient = getAdminSupabaseClient();
+        
+        if (!adminClient) {
+            console.error('[API] Admin client not available - SUPABASE_SERVICE_ROLE_KEY not configured');
+            return new Response(JSON.stringify({ 
+                success: false, 
+                message: 'Server misconfiguration: Admin operations not available'
+            }), { status: 500 });
         }
 
-        console.log('[API] Update successful');
+        console.log('[API] Using admin client to update order...');
+        const { error: updateError } = await adminClient
+            .from('orders')
+            .update({ 
+                status: newStatus,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', orderId);
+
+        if (updateError) {
+            console.error('[API] Update error:', updateError);
+            return new Response(JSON.stringify({ 
+                success: false, 
+                message: `Error actualizando pedido: ${updateError.message}`,
+                details: updateError.details
+            }), { status: 500 });
+        }
+
+        console.log('[API] Update successful for order:', orderId);
 
         return new Response(JSON.stringify({ 
             success: true, 
-            message: 'Order status updated',
-            data: rpcResult
+            message: 'Order status updated successfully'
         }), { status: 200 });
 
     } catch (err: any) {

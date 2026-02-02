@@ -24,15 +24,14 @@ interface AdminOrderRowProps {
 }
 
 export default function AdminOrderRow({ order }: AdminOrderRowProps) {
-    const [status, setStatus] = useState<string>('');
+    const [status, setStatus] = useState<string>(() => {
+        return order?.status ?? 'awaiting_payment';
+    });
     const [isUpdating, setIsUpdating] = useState(false);
-    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setStatus(order?.status || 'awaiting_payment');
-        setMounted(true);
         console.log('✅ AdminOrderRow mounted for order:', order?.id);
-    }, [order?.id, order?.status]);
+    }, [order?.id]);
 
     const handleStatusChange = async (newStatus: string) => {
         console.log('🔄 Changing status to:', newStatus);
@@ -67,14 +66,6 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
             setIsUpdating(false);
         }
     };
-
-    if (!mounted) {
-        return (
-            <tr suppressHydrationWarning>
-                <td colSpan={6} className="py-4 px-6 text-center text-gray-500">Cargando...</td>
-            </tr>
-        );
-    }
 
     const orderId = order?.id?.slice(0, 8) || 'N/A';
     const customerEmail = order?.guest_email || 'Usuario Registrado';

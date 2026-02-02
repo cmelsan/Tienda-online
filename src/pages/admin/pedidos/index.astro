@@ -82,7 +82,7 @@ const stats = {
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     {orders?.map((order) => (
-                        <AdminOrderRow client:load order={order} />
+                        <AdminOrderRow key={order.id} client:load order={order} />
                     ))}
                     {(!orders || orders.length === 0) && (
                          <tr>

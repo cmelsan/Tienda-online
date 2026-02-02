@@ -20,14 +20,14 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-    awaiting_payment: 'bg-yellow-50 text-yellow-700 border border-yellow-200',
-    paid: 'bg-green-50 text-green-700 border border-green-200',
-    shipped: 'bg-blue-50 text-blue-700 border border-blue-200',
-    delivered: 'bg-purple-50 text-purple-700 border border-purple-200',
-    cancelled: 'bg-red-50 text-red-700 border border-red-200',
-    return_requested: 'bg-orange-50 text-orange-700 border border-orange-200',
-    returned: 'bg-indigo-50 text-indigo-700 border border-indigo-200',
-    refunded: 'bg-teal-50 text-teal-700 border border-teal-200'
+    awaiting_payment: 'text-gray-600',
+    paid: 'text-gray-600',
+    shipped: 'text-gray-600',
+    delivered: 'text-gray-600',
+    cancelled: 'text-gray-400',
+    return_requested: 'text-gray-600',
+    returned: 'text-gray-600',
+    refunded: 'text-gray-600'
 };
 
 export default function OrderActionsClient({
@@ -48,7 +48,7 @@ export default function OrderActionsClient({
     const canRequestReturn = currentStatus === 'delivered';
 
     const handleCancelOrder = async () => {
-        if (!confirm('¿Estás seguro? Esta acción no se puede deshacer.')) return;
+        if (!confirm('¿Estás seguro de que deseas cancelar este pedido? Esta acción no se puede deshacer.')) return;
 
         setIsCancelling(true);
         setError(null);
@@ -63,52 +63,53 @@ export default function OrderActionsClient({
             const data = await response.json();
 
             if (data.success) {
-                alert('✅ Pedido cancelado. El stock ha sido restaurado.');
+                alert('Pedido cancelado exitosamente. El stock ha sido restaurado.');
                 setCurrentStatus('cancelled');
-                // Reload to show updated status
                 setTimeout(() => window.location.reload(), 500);
             } else {
                 setError(data.message || 'Error al cancelar');
-                alert('❌ ' + (data.message || 'Error desconocido'));
+                alert('Error: ' + (data.message || 'Error desconocido'));
             }
         } catch (err: any) {
             const msg = err.message || 'Error de conexión';
             setError(msg);
-            alert('❌ ' + msg);
+            alert('Error: ' + msg);
         } finally {
             setIsCancelling(false);
         }
     };
 
     return (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4 items-end">
             {/* Status Badge */}
-            <div className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${STATUS_COLORS[currentStatus] || STATUS_COLORS.awaiting_payment}`}>
+            <div className={`text-xs font-bold uppercase tracking-wider ${STATUS_COLORS[currentStatus] || STATUS_COLORS.awaiting_payment}`}>
                 {STATUS_LABELS[currentStatus] || currentStatus}
             </div>
 
             {/* Action Buttons */}
-            {canCancel && (
-                <button
-                    onClick={handleCancelOrder}
-                    disabled={isCancelling}
-                    className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 font-medium text-sm rounded transition-colors disabled:opacity-50"
-                >
-                    {isCancelling ? '⏳ Cancelando...' : '❌ Cancelar Pedido'}
-                </button>
-            )}
+            <div className="flex flex-col gap-2 items-end">
+                {canCancel && (
+                    <button
+                        onClick={handleCancelOrder}
+                        disabled={isCancelling}
+                        className="px-6 py-2 border border-gray-300 text-gray-900 font-medium text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    >
+                        {isCancelling ? 'Cancelando...' : 'Cancelar Pedido'}
+                    </button>
+                )}
 
-            {canRequestReturn && (
-                <button
-                    onClick={() => setIsReturnModalOpen(true)}
-                    className="px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 font-medium text-sm rounded transition-colors"
-                >
-                    📦 Solicitar Devolución
-                </button>
-            )}
+                {canRequestReturn && (
+                    <button
+                        onClick={() => setIsReturnModalOpen(true)}
+                        className="px-6 py-2 border border-gray-300 text-gray-900 font-medium text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors"
+                    >
+                        Solicitar Devolución
+                    </button>
+                )}
+            </div>
 
             {error && (
-                <div className="text-xs text-red-600 bg-red-50 p-2 rounded border border-red-100">
+                <div className="text-xs text-red-600">
                     {error}
                 </div>
             )}

@@ -19,18 +19,7 @@ const ACTION_ENDPOINTS: Record<ActionType, string> = {
     ship: '/api/admin/mark-shipped',
     deliver: '/api/admin/mark-delivered',
     process_return: '/api/admin/process-return',
-    refund: '/api/admin/process-return' // Same endpoint, different params
-};
-
-const STATUS_COLORS: Record<string, string> = {
-    awaiting_payment: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    paid: 'bg-green-50 text-green-700 border-green-200',
-    shipped: 'bg-blue-50 text-blue-700 border-blue-200',
-    delivered: 'bg-purple-50 text-purple-700 border-purple-200',
-    cancelled: 'bg-red-50 text-red-700 border-red-200',
-    return_requested: 'bg-orange-50 text-orange-700 border-orange-200',
-    returned: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    refunded: 'bg-gray-50 text-gray-700 border-gray-200',
+    refund: '/api/admin/process-return'
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -57,7 +46,6 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
         const actions: Array<{
             type: ActionType;
             label: string;
-            variant: 'danger' | 'warning' | 'success' | 'info';
             requiresNotes?: boolean;
             requiresConfirm?: boolean;
             showRestoreStock?: boolean;
@@ -65,19 +53,16 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
 
         switch (order.status) {
             case 'awaiting_payment':
-                // Can't do much, just view
                 break;
             case 'paid':
                 actions.push({
                     type: 'ship',
-                    label: '📦 Marcar Enviado',
-                    variant: 'success',
+                    label: 'Marcar Enviado',
                     requiresConfirm: true
                 });
                 actions.push({
                     type: 'cancel',
-                    label: '❌ Cancelar Pedido',
-                    variant: 'danger',
+                    label: 'Cancelar Pedido',
                     requiresNotes: true,
                     requiresConfirm: true
                 });
@@ -85,27 +70,23 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
             case 'shipped':
                 actions.push({
                     type: 'deliver',
-                    label: '✓ Marcar Entregado',
-                    variant: 'success',
+                    label: 'Marcar Entregado',
                     requiresConfirm: true
                 });
                 break;
             case 'delivered':
-                // View returns section
                 break;
             case 'return_requested':
                 actions.push({
                     type: 'process_return',
-                    label: '✓ Aceptar Devolución',
-                    variant: 'success',
+                    label: 'Aceptar Devolución',
                     requiresNotes: false,
                     requiresConfirm: true,
                     showRestoreStock: true
                 });
                 actions.push({
                     type: 'refund',
-                    label: '💰 Reembolsar',
-                    variant: 'info',
+                    label: 'Procesar Reembolso',
                     requiresNotes: true,
                     requiresConfirm: true
                 });
@@ -113,13 +94,11 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
             case 'returned':
                 actions.push({
                     type: 'refund',
-                    label: '💰 Reembolsar',
-                    variant: 'success',
+                    label: 'Procesar Reembolso',
                     requiresNotes: true,
                     requiresConfirm: true
                 });
                 break;
-            // cancelled, refunded: No actions
         }
 
         return actions;
@@ -150,19 +129,15 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                 notes: notes || undefined
             };
 
-            // Build payload based on action type
             switch (action) {
                 case 'process_return':
-                    // Aceptar devolución: devolver status 'returned'
                     payload.newStatus = 'returned';
                     payload.restoreStock = restoreStock;
                     break;
                 case 'refund':
-                    // Reembolsar: cambiar status a 'refunded'
                     payload.newStatus = 'refunded';
-                    payload.restoreStock = false; // No restaurar stock en reembolso
+                    payload.restoreStock = false;
                     break;
-                // cancel, ship, deliver: no need extra params
             }
 
             const response = await fetch(endpoint, {
@@ -178,17 +153,15 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                 return;
             }
 
-            // Success
             setShowModal(false);
             setNotes('');
             setRestoreStock(false);
             
-            // Notify parent
             if (onActionComplete && data.data?.new_status) {
                 onActionComplete(data.data.new_status);
             }
 
-            alert(`✅ ${data.data?.message || 'Acción completada'}`);
+            alert(data.data?.message || 'Acción completada exitosamente');
         } catch (err: any) {
             setError(err.message || 'Error de conexión');
         } finally {
@@ -214,7 +187,7 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
     return (
         <div className="flex flex-wrap gap-2">
             {/* Status Badge */}
-            <div className={`px-3 py-1 rounded-full text-sm font-medium border ${STATUS_COLORS[order.status] || STATUS_COLORS.awaiting_payment}`}>
+            <div className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 {STATUS_LABELS[order.status] || order.status}
             </div>
 
@@ -224,17 +197,9 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                     key={action.type}
                     onClick={() => handleActionClick(action.type, action.requiresConfirm || action.requiresNotes || false)}
                     disabled={isLoading}
-                    className={`
-                        px-3 py-1 rounded text-sm font-medium 
-                        transition-all duration-200
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                        ${action.variant === 'danger' ? 'bg-red-100 hover:bg-red-200 text-red-700' : ''}
-                        ${action.variant === 'success' ? 'bg-green-100 hover:bg-green-200 text-green-700' : ''}
-                        ${action.variant === 'warning' ? 'bg-yellow-100 hover:bg-yellow-200 text-yellow-700' : ''}
-                        ${action.variant === 'info' ? 'bg-blue-100 hover:bg-blue-200 text-blue-700' : ''}
-                    `}
+                    className="px-4 py-2 border border-gray-300 text-gray-900 font-medium text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
-                    {isLoading && modalAction === action.type ? '⏳...' : action.label}
+                    {isLoading && modalAction === action.type ? 'Procesando...' : action.label}
                 </button>
             ))}
 
@@ -242,7 +207,7 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
             {showModal && currentAction && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-                        <h3 className="text-lg font-semibold mb-4">
+                        <h3 className="text-lg font-semibold mb-6 text-gray-900">
                             {currentAction.label}
                         </h3>
 
@@ -256,7 +221,7 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
                                     placeholder="Añade notas sobre esta acción..."
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-400"
                                     rows={3}
                                 />
                             </div>
@@ -270,7 +235,7 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                                     id="restore-stock"
                                     checked={restoreStock}
                                     onChange={(e) => setRestoreStock(e.target.checked)}
-                                    className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                    className="h-4 w-4 text-gray-900 border-gray-300"
                                 />
                                 <label htmlFor="restore-stock" className="ml-2 text-sm text-gray-700">
                                     Restaurar stock del inventario
@@ -286,12 +251,12 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                         )}
 
                         {/* Confirmation Message */}
-                        <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded text-blue-700 text-sm">
-                            {modalAction === 'ship' && '¿Marcar este pedido como enviado?'}
-                            {modalAction === 'deliver' && '¿Marcar este pedido como entregado? Se calculará el plazo de devolución (14 días).'}
-                            {modalAction === 'cancel' && '⚠️ ¿Cancelar este pedido y restaurar stock? Esta acción no se puede deshacer.'}
-                            {modalAction === 'process_return' && '¿Aceptar esta devolución?'}
-                            {modalAction === 'refund' && '¿Procesar el reembolso? El dinero se enviará al método de pago original.'}
+                        <div className="mb-6 p-3 bg-gray-50 border border-gray-200 rounded text-gray-700 text-sm">
+                            {modalAction === 'ship' && 'Marcar este pedido como enviado.'}
+                            {modalAction === 'deliver' && 'Marcar este pedido como entregado. Se calculará el plazo de devolución (14 días).'}
+                            {modalAction === 'cancel' && 'Cancelar este pedido y restaurar stock. Esta acción no se puede deshacer.'}
+                            {modalAction === 'process_return' && 'Aceptar esta devolución del cliente.'}
+                            {modalAction === 'refund' && 'Procesar el reembolso. El dinero se enviará al método de pago original.'}
                         </div>
 
                         {/* Buttons */}
@@ -299,22 +264,16 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                             <button
                                 onClick={handleCloseModal}
                                 disabled={isLoading}
-                                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors disabled:opacity-50"
+                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-900 rounded font-medium hover:bg-gray-50 transition-colors"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={handleConfirm}
                                 disabled={isLoading}
-                                className={`
-                                    flex-1 px-4 py-2 rounded-lg font-medium text-white transition-colors
-                                    ${currentAction.variant === 'danger' ? 'bg-red-600 hover:bg-red-700' : ''}
-                                    ${currentAction.variant === 'success' ? 'bg-green-600 hover:bg-green-700' : ''}
-                                    ${currentAction.variant === 'info' ? 'bg-blue-600 hover:bg-blue-700' : ''}
-                                    disabled:opacity-50 disabled:cursor-not-allowed
-                                `}
+                                className="flex-1 px-4 py-2 bg-black text-white rounded font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
                             >
-                                {isLoading ? '⏳...' : 'Confirmar'}
+                                {isLoading ? 'Procesando...' : 'Confirmar'}
                             </button>
                         </div>
                     </div>

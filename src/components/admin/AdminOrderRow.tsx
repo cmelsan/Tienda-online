@@ -71,10 +71,13 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
     const getStatusColor = (s: string) => {
         switch (s) {
             case 'paid': return 'text-green-600 bg-green-50';
-            case 'pending': return 'text-yellow-600 bg-yellow-50';
+            case 'awaiting_payment': return 'text-yellow-600 bg-yellow-50';
             case 'shipped': return 'text-blue-600 bg-blue-50';
             case 'delivered': return 'text-purple-600 bg-purple-50';
             case 'cancelled': return 'text-red-600 bg-red-50';
+            case 'return_requested': return 'text-orange-600 bg-orange-50';
+            case 'returned': return 'text-indigo-600 bg-indigo-50';
+            case 'refunded': return 'text-gray-600 bg-gray-50';
             default: return 'text-gray-600 bg-gray-50';
         }
     };
@@ -106,13 +109,16 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
                 <select
                     value={status}
                     onChange={(e) => handleStatusChange(e.target.value)}
-                    disabled={isUpdating || status === 'cancelled'}
+                    disabled={isUpdating || status === 'cancelled' || status === 'refunded'}
                     className={`block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-xs font-bold uppercase tracking-wider ${getStatusColor(status)}`}
                 >
-                    <option value="pending">Pendiente</option>
+                    <option value="awaiting_payment">Pendiente</option>
                     <option value="paid">Pagado</option>
                     <option value="shipped">Enviado</option>
                     <option value="delivered">Entregado</option>
+                    <option value="return_requested">Devolución Solicitada</option>
+                    <option value="returned">Devuelto</option>
+                    <option value="refunded">Reembolsado</option>
                     <option value="cancelled">Cancelado</option>
                 </select>
             </td>

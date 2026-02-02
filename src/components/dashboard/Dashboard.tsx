@@ -21,9 +21,9 @@ export function Dashboard({
   orderStatusDistribution,
 }: DashboardProps) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <KPICard
           title="Ventas Mes Actual"
           value={`€${(totalSalesMonth / 100).toLocaleString('es-ES', { maximumFractionDigits: 0 })}`}

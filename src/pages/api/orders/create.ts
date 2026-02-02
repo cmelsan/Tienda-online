@@ -44,9 +44,18 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             const customerEmail = session?.user?.email || guestEmail;
             const customerName = session?.user?.user_metadata?.name || 'Cliente';
 
+            console.log('[Order API] Email details:', {
+              sessionEmail: session?.user?.email,
+              guestEmail,
+              finalEmail: customerEmail,
+              customerName
+            });
+
             // Enviar email de confirmación
             if (customerEmail) {
                 try {
+                    console.log('[Order API] Preparing to send confirmation email to:', customerEmail);
+                    
                     const htmlContent = getOrderConfirmationTemplate(
                         data.order_id,
                         customerName,
@@ -54,11 +63,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                         total
                     );
 
+                    console.log('[Order API] HTML content generated, length:', htmlContent.length);
+
                     const emailResult = await sendEmail({
                         to: customerEmail,
                         subject: `📦 Pedido confirmado #${data.order_id}`,
                         htmlContent
                     });
+
+                    console.log('[Order API] Email result:', emailResult);
 
                     if (emailResult.success) {
                         console.log('[Order API] Confirmation email sent:', emailResult.messageId);
@@ -68,8 +81,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                     }
                 } catch (emailErr: any) {
                     console.error('[Order API] Exception sending email:', emailErr.message);
+                    console.error('[Order API] Full error:', emailErr);
                     // Log the error but don't fail the order
                 }
+            } else {
+                console.warn('[Order API] No customer email found for order:', data.order_id);
             }
 
             // Register coupon usage if a coupon was applied

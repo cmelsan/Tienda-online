@@ -17,12 +17,19 @@ interface EmailParams {
 
 export async function sendEmail(params: EmailParams): Promise<{ success: boolean; messageId?: string; error?: string }> {
   if (!BREVO_API_KEY) {
-    console.error('BREVO_API_KEY not configured');
+    console.error('[Brevo] API_KEY not configured');
     return { success: false, error: 'Email service not configured' };
   }
 
   try {
     const toList = Array.isArray(params.to) ? params.to : [params.to];
+
+    console.log('[Brevo] Preparing email:', {
+      apiKeyPresent: !!BREVO_API_KEY,
+      fromEmail: FROM_EMAIL,
+      toList,
+      subject: params.subject
+    });
 
     const payload = {
       sender: {
@@ -38,6 +45,8 @@ export async function sendEmail(params: EmailParams): Promise<{ success: boolean
       ...(params.bcc && { bcc: params.bcc.map(email => ({ email })) })
     };
 
+    console.log('[Brevo] Sending to API');
+
     const response = await axios.post(`${BREVO_API_URL}/smtp/email`, payload, {
       headers: {
         'api-key': BREVO_API_KEY,
@@ -45,12 +54,18 @@ export async function sendEmail(params: EmailParams): Promise<{ success: boolean
       }
     });
 
+    console.log('[Brevo] Success! Message ID:', response.data.messageId);
+
     return {
       success: true,
       messageId: response.data.messageId
     };
-  } catch (error) {
-    console.error('Brevo email error:', error);
+  } catch (error: any) {
+    console.error('[Brevo] Error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data
+    });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'

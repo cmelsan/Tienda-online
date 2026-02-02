@@ -1,7 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { incrementCouponUsage } from '@/lib/coupons';
-import { sendEmail, getOrderConfirmationTemplate } from '@/lib/brevo';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
@@ -40,53 +39,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         if (data && data.success) {
             console.log('[Order API] Success! Order ID:', data.order_id);
 
-            // Determinar email del cliente
-            const customerEmail = session?.user?.email || guestEmail;
-            const customerName = session?.user?.user_metadata?.name || 'Cliente';
-
-            console.log('[Order API] Email details:', {
-              sessionEmail: session?.user?.email,
-              guestEmail,
-              finalEmail: customerEmail,
-              customerName
-            });
-
-            // Enviar email de confirmación
-            if (customerEmail) {
-                try {
-                    console.log('[Order API] Preparing to send confirmation email to:', customerEmail);
-                    
-                    const htmlContent = getOrderConfirmationTemplate(
-                        data.order_id,
-                        customerName,
-                        items,
-                        total
-                    );
-
-                    console.log('[Order API] HTML content generated, length:', htmlContent.length);
-
-                    const emailResult = await sendEmail({
-                        to: customerEmail,
-                        subject: `📦 Pedido confirmado #${data.order_id}`,
-                        htmlContent
-                    });
-
-                    console.log('[Order API] Email result:', emailResult);
-
-                    if (emailResult.success) {
-                        console.log('[Order API] Confirmation email sent:', emailResult.messageId);
-                    } else {
-                        console.warn('[Order API] Failed to send confirmation email:', emailResult.error);
-                        // No fallar el pedido si el email no se envía
-                    }
-                } catch (emailErr: any) {
-                    console.error('[Order API] Exception sending email:', emailErr.message);
-                    console.error('[Order API] Full error:', emailErr);
-                    // Log the error but don't fail the order
-                }
-            } else {
-                console.warn('[Order API] No customer email found for order:', data.order_id);
-            }
+            // NOTE: Confirmation email will be sent by Stripe webhook after payment is confirmed
 
             // Register coupon usage if a coupon was applied
             if (couponId && discountAmount) {
@@ -96,7 +49,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 } catch (couponErr: any) {
                     console.error('[Order API] Failed to register coupon usage:', couponErr.message);
                     // Log the error but don't fail the order
-                    // The order was created successfully, only the usage tracking failed
                     console.warn('[Order API] Coupon usage tracking failed, but order was created');
                 }
             }

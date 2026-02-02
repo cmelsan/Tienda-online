@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Email Brevo</title>
+    <style>
+        body { font-family: Arial; max-width: 600px; margin: 50px auto; padding: 20px; }
+        input, textarea { width: 100%; padding: 10px; margin: 10px 0; }
+        button { padding: 10px 20px; background: #ec4899; color: white; border: none; cursor: pointer; font-size: 16px; }
+        button:hover { background: #be185d; }
+        .result { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+        .success { background: #d1fae5; color: #065f46; }
+        .error { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Email Brevo</h1>
+    
+    <div>
+        <label>Email de prueba:</label>
+        <input type="email" id="email" placeholder="tu-email@example.com" value="melladosanchezclaudia@gmail.com">
+    </div>
+
+    <div>
+        <label>Asunto:</label>
+        <input type="text" id="subject" placeholder="Asunto del email" value="🧪 Test ÉCLAT Beauty">
+    </div>
+
+    <div>
+        <label>Contenido HTML:</label>
+        <textarea id="htmlContent" rows="6" placeholder="Contenido HTML aquí..."><h1>Hola desde ÉCLAT Beauty</h1><p>Este es un email de prueba para verificar que Brevo está funcionando correctamente.</p></textarea>
+    </div>
+
+    <button onclick="sendTestEmail()">Enviar Email de Prueba</button>
+
+    <div id="result" style="display:none;" class="result">
+        <h3>Resultado:</h3>
+        <pre id="resultText"></pre>
+    </div>
+
+    <script>
+        async function sendTestEmail() {
+            const email = document.getElementById('email').value;
+            const subject = document.getElementById('subject').value;
+            const htmlContent = document.getElementById('htmlContent').value;
+
+            if (!email || !subject || !htmlContent) {
+                alert('Por favor rellena todos los campos');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/emails/test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, subject, htmlContent })
+                });
+
+                const result = await response.json();
+                const resultDiv = document.getElementById('result');
+                const resultText = document.getElementById('resultText');
+
+                resultText.textContent = JSON.stringify(result, null, 2);
+                resultDiv.className = 'result ' + (result.success ? 'success' : 'error');
+                resultDiv.style.display = 'block';
+
+                if (result.success) {
+                    alert('✅ Email enviado! ID: ' + result.messageId);
+                } else {
+                    alert('❌ Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

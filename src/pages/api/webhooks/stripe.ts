@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail, getOrderConfirmationTemplate } from '@/lib/brevo';
 
 // Initialize Supabase client for webhooks
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
@@ -38,23 +39,93 @@ export const POST: APIRoute = async ({ request }) => {
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object as Stripe.Checkout.Session;
         const orderId = session.metadata?.orderId;
+        const customerEmail = session.customer_email;
 
         console.log(`[Stripe Webhook] Payment successful for Order ID: ${orderId}`);
+        console.log(`[Stripe Webhook] Customer email: ${customerEmail}`);
 
         if (orderId && supabaseUrl && supabaseAnonKey) {
             const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
             try {
-                // Call RPC to update order status
-                const { data, error } = await supabase.rpc('update_order_status', {
+                // 1. Get order details
+                const { data: orderData, error: fetchError } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('id', orderId)
+                    .single();
+
+                if (fetchError) {
+                    console.error('[Stripe Webhook] Error fetching order:', fetchError);
+                } else {
+                    console.log('[Stripe Webhook] Order data fetched');
+                }
+
+                // 2. Update order status to 'paid'
+                const { data: updateData, error: updateError } = await supabase.rpc('update_order_status', {
                     p_order_id: orderId,
                     p_status: 'paid'
                 });
 
-                if (error) {
-                    console.error('[Stripe Webhook] Error updating order status:', error);
+                if (updateError) {
+                    console.error('[Stripe Webhook] Error updating order status:', updateError);
                 } else {
-                    console.log('[Stripe Webhook] Order status updated successfully');
+                    console.log('[Stripe Webhook] Order status updated to paid');
+                }
+
+                // 3. Send confirmation email if we have customer email
+                if (customerEmail && orderData) {
+                    try {
+                        console.log('[Stripe Webhook] Preparing to send confirmation email to:', customerEmail);
+                        
+                        // Get order items
+                        const { data: itemsData, error: itemsError } = await supabase
+                            .from('order_items')
+                            .select('*')
+                            .eq('order_id', orderId);
+
+                        if (itemsError) {
+                            console.error('[Stripe Webhook] Error fetching order items:', itemsError);
+                        } else {
+                            console.log('[Stripe Webhook] Order items fetched:', itemsData?.length || 0);
+                        }
+
+                        // Prepare items for email template
+                        const emailItems = itemsData?.map((item: any) => ({
+                            product_id: item.product_id,
+                            name: item.product_name || 'Producto',
+                            quantity: item.quantity,
+                            price: item.price
+                        })) || [];
+
+                        // Generate email template
+                        const htmlContent = getOrderConfirmationTemplate(
+                            orderId,
+                            orderData.customer_name || 'Cliente',
+                            emailItems,
+                            orderData.total_amount
+                        );
+
+                        console.log('[Stripe Webhook] HTML content generated, length:', htmlContent.length);
+
+                        // Send email
+                        const emailResult = await sendEmail({
+                            to: customerEmail,
+                            subject: `📦 Pedido confirmado #${orderId}`,
+                            htmlContent
+                        });
+
+                        if (emailResult.success) {
+                            console.log('[Stripe Webhook] Confirmation email sent:', emailResult.messageId);
+                        } else {
+                            console.warn('[Stripe Webhook] Failed to send confirmation email:', emailResult.error);
+                        }
+                    } catch (emailErr: any) {
+                        console.error('[Stripe Webhook] Exception sending email:', emailErr.message);
+                        // Don't fail the webhook if email fails
+                    }
+                } else {
+                    console.warn('[Stripe Webhook] No customer email found or order data missing');
                 }
             } catch (err: any) {
                 console.error('[Stripe Webhook] Exception updating order:', err.message);

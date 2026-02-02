@@ -102,18 +102,19 @@ export const POST: APIRoute = async ({ request }) => {
                             product_id: item.product_id,
                             name: item.product_name || 'Producto',
                             quantity: item.quantity,
-                            price: item.price
+                            price: item.price // asegurarse que sea centavos para el email
                         })) || [];
 
-                        // Generate email template
+                        // El total también debe estar en centavos
+                        const totalInCents = orderData.total_amount;
+
+                        // Generate email template with correct price formatting
                         const htmlContent = getOrderConfirmationTemplate(
                             orderId,
                             orderData.customer_name || 'Cliente',
                             emailItems,
-                            orderData.total_amount
+                            totalInCents
                         );
-
-                        console.log('[Stripe Webhook] HTML content generated, length:', htmlContent.length);
 
                         // Send email
                         const emailResult = await sendEmail({

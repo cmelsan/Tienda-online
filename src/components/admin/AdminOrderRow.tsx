@@ -1,6 +1,17 @@
 import { useState } from 'react';
 import AdminOrderActions from './AdminOrderActions';
 
+const STATUS_LABELS: Record<string, string> = {
+    awaiting_payment: 'Esperando Pago',
+    paid: 'Pagado',
+    shipped: 'Enviado',
+    delivered: 'Entregado',
+    cancelled: 'Cancelado',
+    return_requested: 'Devolución Solicitada',
+    returned: 'Devuelto',
+    refunded: 'Reembolsado',
+};
+
 interface OrderItem {
     quantity: number;
     price_at_purchase: number;
@@ -41,18 +52,19 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
 
     return (
         <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-            <td className="py-3 px-6 text-xs font-bold text-gray-900">#{orderId}</td>
-            <td className="py-3 px-6 text-xs text-gray-500">{dateStr}</td>
-            <td className="py-3 px-6 text-xs text-gray-900">
-                <span className="font-bold block">{customerEmail}</span>
-                {userId && <span className="text-gray-400">ID: {userId}</span>}
+            <td className="py-3 px-4 text-xs font-bold text-gray-900">#{orderId}</td>
+            <td className="py-3 px-4 text-xs text-gray-500">{dateStr}</td>
+            <td className="py-3 px-4 text-xs text-gray-900">
+                <span className="font-medium block">{customerEmail}</span>
+                {userId && <span className="text-gray-400 text-xs">{userId}</span>}
             </td>
-            <td className="py-3 px-6 text-xs text-gray-500">
-                <span className="block">{itemCount} productos</span>
+            <td className="py-3 px-4 text-xs text-gray-500">
+                <span className="block">{itemCount} prods</span>
                 <span className="text-xs text-gray-400 truncate max-w-xs block">{products}</span>
             </td>
-            <td className="py-3 px-6 text-xs font-bold text-gray-900">{total}</td>
-            <td className="py-3 px-6">
+            <td className="py-3 px-4 text-xs font-bold text-gray-900">{total}</td>
+            <td className="py-3 px-4 text-xs font-semibold text-gray-600">{STATUS_LABELS[currentStatus] || currentStatus}</td>
+            <td className="py-3 px-4">
                 <AdminOrderActions 
                     order={{ ...order, status: currentStatus }} 
                     onActionComplete={handleActionComplete}

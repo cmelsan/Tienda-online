@@ -184,27 +184,24 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
 
     const currentAction = availableActions.find(a => a.type === modalAction);
 
-    return (
-        <div className="flex flex-col gap-2 items-start">
-            {/* Status Badge */}
-            <div className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                {STATUS_LABELS[order.status] || order.status}
-            </div>
+    if (availableActions.length === 0) {
+        return <div className="text-xs text-gray-400">-</div>;
+    }
 
-            {/* Action Buttons - Horizontal Row */}
-            <div className="flex gap-2 flex-wrap">
-                {availableActions.map(action => (
-                    <button
-                        key={action.type}
-                        onClick={() => handleActionClick(action.type, action.requiresConfirm || action.requiresNotes || false)}
-                        disabled={isLoading}
-                        className="px-3 py-2 border border-gray-300 text-gray-900 font-medium text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50 whitespace-nowrap"
+    return (
+        <div className="flex gap-2 items-center justify-start flex-wrap">
+            {/* Action Buttons - Compact Row */}
+            {availableActions.map(action => (
+                <button
+                    key={action.type}
+                    onClick={() => handleActionClick(action.type, action.requiresConfirm || action.requiresNotes || false)}
+                    disabled={isLoading}
+                        className="px-2.5 py-1.5 border border-gray-300 text-gray-900 font-medium text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50 whitespace-nowrap rounded"
                     >
                         {isLoading && modalAction === action.type ? 'Procesando...' : action.label}
                     </button>
                 ))}
-            </div>
-
+            
             {/* Modal */}
             {showModal && currentAction && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

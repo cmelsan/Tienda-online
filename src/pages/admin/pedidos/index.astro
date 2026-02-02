@@ -44,17 +44,18 @@ const orderList = orders || [];
   <!-- Orders Table -->
   <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
     <table class="w-full">
-      <thead class="bg-gray-50 border-b border-gray-200">
+      <thead class="bg-gray-50 border-b border-gray-100">
         <tr>
-          <th class="py-4 px-6 text-left text-xs font-semibold text-gray-700 uppercase">ID</th>
-          <th class="py-4 px-6 text-left text-xs font-semibold text-gray-700 uppercase">Fecha</th>
-          <th class="py-4 px-6 text-left text-xs font-semibold text-gray-700 uppercase">Cliente</th>
-          <th class="py-4 px-6 text-left text-xs font-semibold text-gray-700 uppercase">Productos</th>
-          <th class="py-4 px-6 text-left text-xs font-semibold text-gray-700 uppercase">Total</th>
-          <th class="py-4 px-6 text-left text-xs font-semibold text-gray-700 uppercase">Acciones</th>
+          <th class="py-3 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">ID</th>
+          <th class="py-3 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Fecha</th>
+          <th class="py-3 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Cliente</th>
+          <th class="py-3 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Productos</th>
+          <th class="py-3 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Total</th>
+          <th class="py-3 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Estado</th>
+          <th class="py-3 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Acciones</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody class="divide-y divide-gray-100">
         {orderList.map((order) => (
           <AdminOrderRow client:load order={order} />
         ))}
@@ -62,7 +63,7 @@ const orderList = orders || [];
     </table>
 
     {orderList.length === 0 && (
-      <div class="p-8 text-center text-gray-500">
+      <div class="p-6 text-center text-gray-400 text-sm">
         <p>No hay pedidos disponibles</p>
       </div>
     )}

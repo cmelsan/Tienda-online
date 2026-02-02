@@ -32,6 +32,7 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
     const handleStatusChange = async (newStatus: string) => {
         console.log('🔄 Attempting to change status to:', newStatus);
         setIsUpdating(true);
+        
         try {
             console.log('📡 Sending request to /api/admin/updatestatus');
             const response = await fetch('/api/admin/updatestatus', {
@@ -51,16 +52,22 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
                 const errorMsg = data.message || `Error: ${response.status}`;
                 console.error('❌ Status update error:', data);
                 alert(`Error: ${errorMsg}\n\nDetalles: ${data.details || data.hint || 'Sin detalles'}`);
+                setIsUpdating(false);
                 return;
             }
 
             console.log('✅ Status changed successfully to:', newStatus);
             setStatus(newStatus);
             alert(`✅ Pedido actualizado a: ${newStatus}`);
+            
+            // Reload page to get fresh data from server
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+            
         } catch (error) {
             console.error('❌ Catch error updating status:', error);
             alert('❌ Error de conexión: ' + (error instanceof Error ? error.message : 'Unknown error'));
-        } finally {
             setIsUpdating(false);
         }
     };

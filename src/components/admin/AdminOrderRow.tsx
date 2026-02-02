@@ -26,13 +26,13 @@ interface AdminOrderRowProps {
 }
 
 export default function AdminOrderRow({ order }: AdminOrderRowProps) {
-    const [status, setStatus] = useState(order.status);
+    const [status, setStatus] = useState(order?.status || 'awaiting_payment');
     const [isUpdating, setIsUpdating] = useState(false);
 
     // Log on mount
     useEffect(() => {
-        console.log('✅ AdminOrderRow component mounted for order:', order.id, 'Status:', order.status);
-    }, [order.id, order.status]);
+        console.log('✅ AdminOrderRow component mounted for order:', order?.id, 'Status:', order?.status);
+    }, [order?.id, order?.status]);
 
     const handleStatusChange = async (newStatus: string) => {
         console.log('🔄 Attempting to change status to:', newStatus);
@@ -84,8 +84,14 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
         }
     };
 
-    const formatDate = (date: string) => new Date(date).toLocaleDateString();
-    const formatCurrency = (amount: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount / 100);
+    const formatDate = (date: string) => {
+        if (!date) return '-';
+        return new Date(date).toLocaleDateString();
+    };
+    const formatCurrency = (amount: number) => {
+        if (!amount && amount !== 0) return '-';
+        return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount / 100);
+    };
 
     const getStatusColor = (s: string) => {
         switch (s) {
@@ -104,25 +110,25 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
     return (
         <tr className="hover:bg-gray-50 transition-colors">
             <td className="py-4 px-6 text-sm font-medium text-gray-900 border-b border-gray-100">
-                #{order.id.slice(0, 8)}
+                #{order?.id?.slice(0, 8) || 'N/A'}
             </td>
             <td className="py-4 px-6 text-sm text-gray-500 border-b border-gray-100">
-                {formatDate(order.created_at)}
+                {formatDate(order?.created_at)}
             </td>
             <td className="py-4 px-6 text-sm text-gray-900 border-b border-gray-100">
                 <div className="flex flex-col">
-                    <span className="font-bold">{order.guest_email || 'Usuario Registrado'}</span>
-                    {order.user_id && <span className="text-xs text-gray-400">ID: {order.user_id.slice(0, 8)}</span>}
+                    <span className="font-bold">{order?.guest_email || 'Usuario Registrado'}</span>
+                    {order?.user_id && <span className="text-xs text-gray-400">ID: {order?.user_id?.slice(0, 8)}</span>}
                 </div>
             </td>
             <td className="py-4 px-6 text-sm text-gray-500 border-b border-gray-100">
-                {order.items.length} productos
+                {order?.items?.length || 0} productos
                 <div className="text-xs text-gray-400 truncate max-w-[200px]">
-                    {order.items.map(i => i.product?.name).join(', ')}
+                    {order?.items?.map(i => i?.product?.name).filter(Boolean).join(', ') || '-'}
                 </div>
             </td>
             <td className="py-4 px-6 text-sm font-bold text-gray-900 border-b border-gray-100">
-                {formatCurrency(order.total_amount)}
+                {formatCurrency(order?.total_amount)}
             </td>
             <td className="py-4 px-6 border-b border-gray-100">
                 <select

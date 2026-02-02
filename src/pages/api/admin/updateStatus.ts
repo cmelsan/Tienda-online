@@ -5,6 +5,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     try {
         const { orderId, newStatus } = await request.json();
 
+        console.log('[API] updateStatus called with:', { orderId, newStatus });
+
         if (!orderId || !newStatus) {
             return new Response(JSON.stringify({ success: false, message: 'Order ID and status are required' }), { status: 400 });
         }
@@ -13,24 +15,30 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
         // Verify session
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('[API] Session:', session?.user?.email);
         if (!session) {
             return new Response(JSON.stringify({ success: false, message: 'Unauthorized' }), { status: 401 });
         }
 
-        // Call RPC to update order status
-        console.log('[Admin] Calling update_order_status RPC with:', { orderId, newStatus });
-        const { data, error } = await supabase.rpc('update_order_status', {
-            p_order_id: orderId,
-            p_new_status: newStatus
-        });
+        // Validate status
+        const validStatuses = ['awaiting_payment', 'paid', 'shipped', 'delivered', 'cancelled', 'return_requested', 'returned', 'refunded'];
+        if (!validStatuses.includes(newStatus)) {
+            return new Response(JSON.stringify({ success: false, message: `Invalid status: ${newStatus}` }), { status: 400 });
+        }
+
+        // Update order status directly
+        console.log('[API] Updating order status directly in database...');
+        const { data, error } = await supabase
+            .from('orders')
+            .update({ 
+                status: newStatus,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', orderId)
+            .select();
 
         if (error) {
-            console.error('[Admin] RPC error:', {
-                message: error.message,
-                code: error.code,
-                details: error.details,
-                hint: error.hint
-            });
+            console.error('[API] Update error:', error);
             return new Response(JSON.stringify({ 
                 success: false, 
                 message: `Error actualizando pedido: ${error.message}`,
@@ -39,16 +47,24 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             }), { status: 500 });
         }
 
-        console.log('[Admin] RPC success:', data);
+        if (!data || data.length === 0) {
+            console.error('[API] Order not found');
+            return new Response(JSON.stringify({ 
+                success: false, 
+                message: 'Order not found'
+            }), { status: 404 });
+        }
+
+        console.log('[API] Update success:', data);
 
         return new Response(JSON.stringify({ 
             success: true, 
             message: 'Order status updated',
-            data: data
+            data: data[0]
         }), { status: 200 });
 
     } catch (err: any) {
-        console.error('[Admin] API error:', err);
+        console.error('[API] Catch error:', err);
         return new Response(JSON.stringify({ success: false, message: err.message }), { status: 500 });
     }
 };

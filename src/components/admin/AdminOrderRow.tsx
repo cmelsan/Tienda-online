@@ -32,17 +32,26 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
     const handleStatusChange = async (newStatus: string) => {
         setIsUpdating(true);
         try {
-            const { error } = await supabase
-                .from('orders')
-                .update({ status: newStatus, updated_at: new Date().toISOString() })
-                .eq('id', order.id);
+            const response = await fetch('/api/admin/update-order-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: order.id,
+                    newStatus: newStatus
+                })
+            });
 
-            if (error) throw error;
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.message || 'Error updating status');
+            }
+
             setStatus(newStatus);
-            // Optional: Toast notification here
+            alert(`Pedido actualizado a: ${newStatus}`);
         } catch (error) {
             console.error('Error updating status:', error);
-            alert('Error al actualizar el estado');
+            alert('Error al actualizar el estado: ' + (error instanceof Error ? error.message : 'Unknown error'));
         } finally {
             setIsUpdating(false);
         }

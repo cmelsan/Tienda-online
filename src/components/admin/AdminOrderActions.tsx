@@ -189,18 +189,20 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
     }
 
     return (
-        <div className="flex gap-2 items-center justify-start flex-wrap">
-            {/* Action Buttons - Compact Row */}
-            {availableActions.map(action => (
-                <button
-                    key={action.type}
-                    onClick={() => handleActionClick(action.type, action.requiresConfirm || action.requiresNotes || false)}
-                    disabled={isLoading}
-                        className="px-2.5 py-1.5 border border-gray-300 text-gray-900 font-medium text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50 whitespace-nowrap rounded"
+        <>
+            {/* Action Buttons - Inline like coupons */}
+            <div className="flex gap-2">
+                {availableActions.map(action => (
+                    <button
+                        key={action.type}
+                        onClick={() => handleActionClick(action.type, action.requiresConfirm || action.requiresNotes || false)}
+                        disabled={isLoading}
+                        className="text-blue-600 hover:text-blue-800 font-semibold"
                     >
                         {isLoading && modalAction === action.type ? 'Procesando...' : action.label}
                     </button>
                 ))}
+            </div>
             
             {/* Modal */}
             {showModal && currentAction && (
@@ -278,6 +280,6 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 }

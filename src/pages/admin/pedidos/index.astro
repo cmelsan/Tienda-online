@@ -1,5 +1,5 @@
 ---
-export const prerender = false; // SSR
+export const prerender = false;
 
 import AdminLayout from '@/layouts/AdminLayout.astro';
 import AdminOrderRow from '@/components/admin/AdminOrderRow';
@@ -36,36 +36,39 @@ const orderList = orders || [];
 ---
 
 <AdminLayout title="Pedidos">
-  <div class="mb-8">
-    <h1 class="text-3xl font-bold text-gray-900 mb-2">Gestión de Pedidos</h1>
-    <p class="text-gray-600">Total: {orderList.length} pedidos</p>
+  <div class="mb-8 flex justify-between items-center">
+    <div>
+      <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest">Ventas</h3>
+      <p class="text-xs text-gray-400 mt-1">Gestiona pedidos y devoluciones</p>
+    </div>
   </div>
 
-  <!-- Orders Table -->
-  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-    <table class="w-full">
-      <thead class="bg-gray-50 border-b border-gray-100">
-        <tr>
-          <th class="py-3 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">ID</th>
-          <th class="py-3 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Fecha</th>
-          <th class="py-3 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Cliente</th>
-          <th class="py-3 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Productos</th>
-          <th class="py-3 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Total</th>
-          <th class="py-3 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Estado</th>
-          <th class="py-3 px-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Acciones</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-100">
-        {orderList.map((order) => (
-          <AdminOrderRow client:load order={order} />
-        ))}
-      </tbody>
-    </table>
-
-    {orderList.length === 0 && (
-      <div class="p-6 text-center text-gray-400 text-sm">
-        <p>No hay pedidos disponibles</p>
+  {orderList && orderList.length > 0 ? (
+    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">ID</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Fecha</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Cliente</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Productos</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Total</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Estado</th>
+              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {orderList.map((order) => (
+              <AdminOrderRow client:load order={order} />
+            ))}
+          </tbody>
+        </table>
       </div>
-    )}
-  </div>
+    </div>
+  ) : (
+    <div class="bg-white border border-gray-200 p-12 text-center">
+      <p class="text-sm text-gray-600">No hay pedidos disponibles</p>
+    </div>
+  )}
 </AdminLayout>

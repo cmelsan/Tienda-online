@@ -33,7 +33,7 @@ const { data: coupons } = await supabase
   </div>
 
   {coupons && coupons.length > 0 ? (
-    <div class="bg-white border border-gray-200">
+    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead class="bg-gray-50 border-b border-gray-200">
@@ -48,37 +48,35 @@ const { data: coupons } = await supabase
               <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Acciones</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200">
+          <tbody class="divide-y divide-gray-100">
             {coupons.map((coupon) => (
               <tr class="hover:bg-gray-50 transition-colors">
-                <td class="py-3 px-4 text-sm font-bold text-black">{coupon.code}</td>
-                <td class="py-3 px-4 text-sm text-gray-600">{coupon.description || '-'}</td>
-                <td class="py-3 px-4 text-sm text-gray-600">
-                  <span class="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-semibold">
-                    {coupon.discount_type === 'percentage' ? '%' : '€'}
-                  </span>
+                <td class="py-3 px-4 text-xs font-bold text-black">{coupon.code}</td>
+                <td class="py-3 px-4 text-xs text-gray-600">{coupon.description || '-'}</td>
+                <td class="py-3 px-4 text-xs text-gray-600">
+                  {coupon.discount_type === 'percentage' ? '%' : '€'}
                 </td>
-                <td class="py-3 px-4 text-sm font-medium text-black">
+                <td class="py-3 px-4 text-xs font-medium text-black">
                   {coupon.discount_type === 'percentage' 
                     ? `${coupon.discount_value}%` 
                     : `€${(coupon.discount_value / 100).toFixed(2)}`}
                 </td>
-                <td class="py-3 px-4 text-sm text-gray-600">
+                <td class="py-3 px-4 text-xs text-gray-600">
                   {coupon.max_uses ? `${coupon.current_uses} / ${coupon.max_uses}` : 'Ilimitado'}
                 </td>
-                <td class="py-3 px-4 text-sm text-gray-600">
+                <td class="py-3 px-4 text-xs text-gray-600">
                   {new Date(coupon.valid_until || '2099-12-31').toLocaleDateString('es-ES')}
                 </td>
                 <td class="py-3 px-4">
-                  <span class={`inline-block px-2 py-1 rounded text-xs font-semibold ${
+                  <span class={`inline-block text-xs font-semibold ${
                     coupon.is_active 
-                      ? 'bg-green-50 text-green-700' 
-                      : 'bg-red-50 text-red-700'
+                      ? 'text-green-700' 
+                      : 'text-gray-400'
                   }`}>
                     {coupon.is_active ? 'Activo' : 'Inactivo'}
                   </span>
                 </td>
-                <td class="py-3 px-4 text-sm space-x-2">
+                <td class="py-3 px-4 text-xs space-x-2 flex gap-2">
                   <a
                     href={`/admin/cupones/editar/${coupon.id}`}
                     class="text-blue-600 hover:text-blue-800 font-semibold"

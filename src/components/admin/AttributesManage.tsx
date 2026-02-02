@@ -180,78 +180,76 @@ export default function AttributesManage({ token: initialToken, categories, subc
 
       {/* SUBCATEGORIES SECTION */}
       {activeTab === 'subcategories' && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-            <div className="flex items-center gap-4">
-              <label className="text-sm font-bold text-gray-700">Filtrar por Categoría:</label>
-              <select 
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="rounded-md border border-gray-300 shadow-sm focus:border-black focus:ring-black px-3 py-2"
-              >
-                <option value="all">Todas</option>
-                {categories?.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
+        <div className="space-y-4">
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex flex-col md:flex-row gap-4 md:items-end md:justify-between">
+              <div className="flex items-center gap-3">
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider whitespace-nowrap">Filtrar:</label>
+                <select 
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="rounded border border-gray-300 text-xs px-3 py-2 focus:outline-none focus:ring-1 focus:ring-gray-400"
+                >
+                  <option value="all">Todas</option>
+                  {categories?.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Add Subcategory Form */}
+              <form onSubmit={handleAddSubcategory} className="flex gap-2 flex-wrap md:flex-nowrap">
+                <select 
+                  value={newSubCategory}
+                  onChange={(e) => setNewSubCategory(e.target.value)}
+                  required 
+                  className="rounded border border-gray-300 text-xs px-3 py-2 focus:outline-none focus:ring-1 focus:ring-gray-400"
+                >
+                  <option value="">Categoría Padre</option>
+                  {categories?.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+                <input 
+                  type="text" 
+                  value={newSubName}
+                  onChange={(e) => setNewSubName(e.target.value)}
+                  placeholder="Nueva Subcategoría" 
+                  required 
+                  className="rounded border border-gray-300 text-xs px-3 py-2 flex-1 focus:outline-none focus:ring-1 focus:ring-gray-400"
+                />
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="bg-black text-white px-4 py-2 rounded text-xs font-bold hover:bg-gray-800 transition-colors disabled:opacity-50 whitespace-nowrap"
+                >
+                  {isSubmitting ? 'Añadiendo...' : 'Añadir'}
+                </button>
+              </form>
             </div>
-            
-            {/* Add Subcategory Form */}
-            <form onSubmit={handleAddSubcategory} className="flex gap-2">
-              <select 
-                value={newSubCategory}
-                onChange={(e) => setNewSubCategory(e.target.value)}
-                required 
-                className="rounded-md border border-gray-300 shadow-sm text-sm px-3 py-2"
-              >
-                <option value="">Selecciona Categoría Padre</option>
-                {categories?.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-              <input 
-                type="text" 
-                value={newSubName}
-                onChange={(e) => setNewSubName(e.target.value)}
-                placeholder="Nueva Subcategoría (ej. Rostro)" 
-                required 
-                className="rounded-md border border-gray-300 shadow-sm text-sm w-64 px-3 py-2"
-              />
-              <button 
-                type="submit" 
-                disabled={isSubmitting}
-                className="bg-black text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-gray-800 transition-colors disabled:opacity-50"
-              >
-                {isSubmitting ? 'Añadiendo...' : '+ Añadir'}
-              </button>
-            </form>
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <table className="min-w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subcategoría</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría Padre</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Subcategoría</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Categoría Padre</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Slug</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-100">
                 {filteredSubs?.map(sub => (
-                  <tr key={sub.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{sub.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        {sub.category?.name}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 italic">{sub.slug}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <tr key={sub.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-3 text-xs font-bold text-gray-900">{sub.name}</td>
+                    <td className="px-6 py-3 text-xs text-gray-600">{sub.category?.name}</td>
+                    <td className="px-6 py-3 text-xs text-gray-500 italic">{sub.slug}</td>
+                    <td className="px-6 py-3 text-xs">
                       <button 
                         onClick={() => handleDeleteSubcategory(sub.id)}
                         disabled={isSubmitting}
-                        className="text-red-600 hover:text-red-900 font-bold disabled:opacity-50"
+                        className="text-red-600 hover:text-red-800 font-semibold disabled:opacity-50"
                       >
                         Eliminar
                       </button>
@@ -266,38 +264,38 @@ export default function AttributesManage({ token: initialToken, categories, subc
 
       {/* BRANDS SECTION */}
       {activeTab === 'brands' && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-            <h2 className="text-lg font-bold">Listado de Marcas</h2>
+        <div className="space-y-4">
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Listado de Marcas</h2>
             
             {/* Add Brand Form */}
-            <form onSubmit={handleAddBrand} className="flex gap-2">
+            <form onSubmit={handleAddBrand} className="flex gap-2 flex-1 md:flex-none">
               <input 
                 type="text" 
                 value={newBrandName}
                 onChange={(e) => setNewBrandName(e.target.value)}
-                placeholder="Nombre de la Nueva Marca" 
+                placeholder="Nueva Marca" 
                 required 
-                className="rounded-md border border-gray-300 shadow-sm text-sm w-64 px-3 py-2"
+                className="rounded border border-gray-300 text-xs px-3 py-2 flex-1 md:w-64 focus:outline-none focus:ring-1 focus:ring-gray-400"
               />
               <button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="bg-black text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-gray-800 transition-colors disabled:opacity-50"
+                className="bg-black text-white px-4 py-2 rounded text-xs font-bold hover:bg-gray-800 transition-colors disabled:opacity-50 whitespace-nowrap"
               >
-                {isSubmitting ? 'Añadiendo...' : '+ Añadir Marca'}
+                {isSubmitting ? 'Añadiendo...' : 'Añadir'}
               </button>
             </form>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {brandsList?.map(brand => (
-              <div key={brand.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center group hover:border-black transition-colors">
-                <span className="font-bold text-sm truncate">{brand.name}</span>
+              <div key={brand.id} className="bg-white p-3 rounded border border-gray-200 flex justify-between items-center group hover:border-gray-400 transition-colors">
+                <span className="font-bold text-xs text-gray-900 truncate">{brand.name}</span>
                 <button 
                   onClick={() => handleDeleteBrand(brand.id)}
                   disabled={isSubmitting}
-                  className="text-gray-400 hover:text-red-600 p-1 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                  className="text-red-600 hover:text-red-800 p-1 disabled:opacity-50"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

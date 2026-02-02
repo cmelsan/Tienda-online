@@ -5,7 +5,7 @@ import AdminLayout from '@/layouts/AdminLayout.astro';
 import AdminOrderRow from '@/components/admin/AdminOrderRow';
 import { supabase } from '@/lib/supabase';
 
-// Fetch orders with items and user info
+// Fetch orders with items
 const { data: orders, error } = await supabase
   .from('orders')
   .select(`
@@ -15,7 +15,6 @@ const { data: orders, error } = await supabase
     total_amount,
     user_id,
     guest_email,
-    user:profiles(id, name, email),
     order_items (
       id,
       quantity,

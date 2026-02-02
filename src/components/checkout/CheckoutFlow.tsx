@@ -176,6 +176,9 @@ export default function CheckoutFlow() {
                 product: item.product,
             }));
 
+            // Get customer name from user session or shipping address
+            const customerName = user?.user_metadata?.full_name || shippingAddress?.fullName || 'Cliente';
+
             // Step 1: Create order
             const createOrderResponse = await fetch('/api/orders/create', {
                 method: 'POST',
@@ -186,7 +189,8 @@ export default function CheckoutFlow() {
                     shippingAddress,
                     couponId: coupon?.id || null,
                     discountAmount: coupon?.discount_amount || 0,
-                    total: total
+                    total: total,
+                    customerName
                 })
             });
 

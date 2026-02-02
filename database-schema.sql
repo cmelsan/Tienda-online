@@ -413,6 +413,7 @@ CREATE TABLE IF NOT EXISTS orders (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id), -- Nullable for guests
   guest_email VARCHAR(255),               -- Required if user_id is null
+  customer_name VARCHAR(255),             -- Customer name for email
   status VARCHAR(20) NOT NULL DEFAULT 'awaiting_payment' CHECK (status IN ('awaiting_payment', 'paid', 'shipped', 'delivered', 'cancelled', 'return_requested', 'returned', 'refunded')),
   delivered_at TIMESTAMP WITH TIME ZONE, -- Set when status changes to 'delivered'
   return_initiated_at TIMESTAMP WITH TIME ZONE, -- Set when customer requests return
@@ -632,7 +633,8 @@ CREATE OR REPLACE FUNCTION create_order(
   p_items JSONB,           -- Array of {product_id, quantity, price}
   p_total_amount INTEGER,  -- Total calculated by client
   p_shipping_address JSONB,
-  p_guest_email VARCHAR DEFAULT NULL -- Optional email for guest checkout
+  p_guest_email VARCHAR DEFAULT NULL, -- Optional email for guest checkout
+  p_customer_name VARCHAR DEFAULT NULL -- Customer name for email
 )
 RETURNS JSONB
 LANGUAGE plpgsql
@@ -646,9 +648,11 @@ DECLARE
   v_order_id UUID;
   v_item_price INTEGER;
   v_user_id UUID;
+  v_customer_name VARCHAR;
 BEGIN
   -- 1. Identify User (Auth vs Guest)
   v_user_id := auth.uid();
+  v_customer_name := COALESCE(p_customer_name, 'Cliente');
   
   IF v_user_id IS NULL AND p_guest_email IS NULL THEN
       RETURN jsonb_build_object('success', false, 'message', 'Email is required for guest checkout');
@@ -672,9 +676,9 @@ BEGIN
 
   -- 3. Deduct Stock & Create Order (Transaction starts automatically)
   
-  -- Create Order
-  INSERT INTO orders (user_id, guest_email, status, total_amount, shipping_address)
-  VALUES (v_user_id, p_guest_email, 'paid', p_total_amount, p_shipping_address) 
+  -- Create Order with customer_name
+  INSERT INTO orders (user_id, guest_email, customer_name, status, total_amount, shipping_address)
+  VALUES (v_user_id, p_guest_email, v_customer_name, 'paid', p_total_amount, p_shipping_address) 
   RETURNING id INTO v_order_id;
 
   -- Process Items

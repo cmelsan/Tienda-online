@@ -4,7 +4,7 @@ import { incrementCouponUsage } from '@/lib/coupons';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
-        const { items, total, shippingAddress, guestEmail, couponId, discountAmount } = await request.json();
+        const { items, total, shippingAddress, guestEmail, couponId, discountAmount, customerName } = await request.json();
 
         // Create server-side Supabase client
         const supabase = await createServerSupabaseClient({ cookies });
@@ -15,6 +15,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         console.log('[Order API] Session:', session ? 'Found' : 'Not found');
         console.log('[Order API] User ID:', session?.user?.id || 'none');
         console.log('[Order API] Guest Email:', guestEmail || 'none');
+        console.log('[Order API] Customer Name:', customerName || 'none');
         console.log('[Order API] Coupon ID:', couponId || 'none');
 
         // Call RPC - server will use auth.uid() correctly
@@ -22,7 +23,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             p_items: items,
             p_total_amount: total,
             p_shipping_address: shippingAddress,
-            p_guest_email: guestEmail
+            p_guest_email: guestEmail,
+            p_customer_name: customerName
         });
 
         if (error) {

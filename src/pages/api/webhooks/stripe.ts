@@ -68,17 +68,9 @@ export const POST: APIRoute = async ({ request }) => {
                     console.log('[Stripe Webhook] Order data fetched');
                 }
 
-                // Get customer name from auth if available
-                let customerName = 'Cliente';
-                if (orderData?.user_id) {
-                    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(orderData.user_id);
-                    if (userData?.user?.user_metadata?.full_name) {
-                        customerName = userData.user.user_metadata.full_name;
-                    }
-                    console.log('[Stripe Webhook] Customer name from auth:', customerName);
-                } else {
-                    console.log('[Stripe Webhook] Guest order, using default name');
-                }
+                // Get customer name from order (stored when order was created)
+                const customerName = orderData?.customer_name || 'Cliente';
+                console.log('[Stripe Webhook] Customer name:', customerName);
 
                 // 2. Update order status to 'paid'
                 const { data: updateData, error: updateError } = await supabase.rpc('update_order_status', {

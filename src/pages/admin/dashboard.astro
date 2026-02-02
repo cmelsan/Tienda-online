@@ -34,9 +34,19 @@ const [
 <AdminLayout title="Dashboard Ejecutivo">
   <div class="space-y-8">
     <!-- Header -->
-    <div>
-      <h1 class="text-3xl font-bold text-gray-900">Dashboard Ejecutivo</h1>
-      <p class="text-sm text-gray-600 mt-2">Análisis completo de ventas, pedidos y desempeño</p>
+    <div class="relative overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-to-r from-rose-100 via-pink-50 to-red-100 opacity-60 blur-2xl"></div>
+      <div class="relative">
+        <h1 class="text-4xl md:text-5xl font-black bg-gradient-to-r from-rose-600 via-pink-600 to-red-600 bg-clip-text text-transparent">
+          Dashboard Ejecutivo
+        </h1>
+        <p class="text-sm text-gray-600 mt-3 font-medium">Análisis completo de ventas, pedidos y desempeño en tiempo real</p>
+        <div class="mt-4 flex gap-2">
+          <div class="h-1 w-16 bg-gradient-to-r from-rose-400 to-rose-600 rounded-full"></div>
+          <div class="h-1 w-8 bg-gradient-to-r from-pink-400 to-pink-600 rounded-full"></div>
+          <div class="h-1 w-4 bg-gradient-to-r from-red-400 to-red-600 rounded-full"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Dashboard Content (Client Component) -->
@@ -52,3 +62,9 @@ const [
     />
   </div>
 </AdminLayout>
+
+<style>
+  :global(body) {
+    background: linear-gradient(135deg, #fff5f7 0%, #fffbfc 100%);
+  }
+</style>

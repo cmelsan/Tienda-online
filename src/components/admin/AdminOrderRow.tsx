@@ -30,8 +30,10 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
     const [isUpdating, setIsUpdating] = useState(false);
 
     const handleStatusChange = async (newStatus: string) => {
+        console.log('🔄 Attempting to change status to:', newStatus);
         setIsUpdating(true);
         try {
+            console.log('📡 Sending request to /api/admin/update-order-status');
             const response = await fetch('/api/admin/update-order-status', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -41,19 +43,22 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
                 })
             });
 
+            console.log('📨 Response status:', response.status);
             const data = await response.json();
+            console.log('📦 Response data:', data);
 
             if (!response.ok || !data.success) {
                 const errorMsg = data.message || `Error: ${response.status}`;
-                console.error('Status update error:', data);
+                console.error('❌ Status update error:', data);
                 alert(`Error: ${errorMsg}\n\nDetalles: ${data.details || data.hint || 'Sin detalles'}`);
                 return;
             }
 
+            console.log('✅ Status changed successfully to:', newStatus);
             setStatus(newStatus);
             alert(`✅ Pedido actualizado a: ${newStatus}`);
         } catch (error) {
-            console.error('Error updating status:', error);
+            console.error('❌ Catch error updating status:', error);
             alert('❌ Error de conexión: ' + (error instanceof Error ? error.message : 'Unknown error'));
         } finally {
             setIsUpdating(false);

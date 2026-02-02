@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { formatPrice } from '@/lib/utils'; // Assuming this utility exists or I'll implement inline if needed
 
 interface OrderItem {
     quantity: number;
@@ -26,125 +24,104 @@ interface AdminOrderRowProps {
 }
 
 export default function AdminOrderRow({ order }: AdminOrderRowProps) {
-    const [status, setStatus] = useState(order?.status || 'awaiting_payment');
+    const [status, setStatus] = useState<string>('');
     const [isUpdating, setIsUpdating] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
-    // Log on mount
     useEffect(() => {
-        console.log('✅ AdminOrderRow component mounted for order:', order?.id, 'Status:', order?.status);
+        setStatus(order?.status || 'awaiting_payment');
+        setMounted(true);
+        console.log('✅ AdminOrderRow mounted for order:', order?.id);
     }, [order?.id, order?.status]);
 
     const handleStatusChange = async (newStatus: string) => {
-        console.log('🔄 Attempting to change status to:', newStatus);
+        console.log('🔄 Changing status to:', newStatus);
         setIsUpdating(true);
         
         try {
-            console.log('📡 Sending request to /api/admin/updatestatus');
             const response = await fetch('/api/admin/updatestatus', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    orderId: order.id,
+                    orderId: order?.id,
                     newStatus: newStatus
                 })
             });
 
-            console.log('📨 Response status:', response.status);
-            console.log('📨 Response statusText:', response.statusText);
-            
             const data = await response.json();
-            console.log('📦 Response data:', data);
 
             if (!response.ok || !data.success) {
-                const errorMsg = data.message || `Error: ${response.status}`;
-                console.error('❌ Status update error:', {
-                    status: response.status,
-                    message: data.message,
-                    details: data.details,
-                    fullData: data
-                });
-                alert(`❌ Error: ${errorMsg}\n\nDetalles: ${data.details || 'Sin detalles'}`);
+                alert(`❌ Error: ${data.message}`);
                 setIsUpdating(false);
                 return;
             }
 
-            console.log('✅ Status changed successfully to:', newStatus);
+            console.log('✅ Status updated to:', newStatus);
             setStatus(newStatus);
             alert(`✅ Pedido actualizado a: ${newStatus}`);
-            
-            // Reload page to get fresh data from server
-            setTimeout(() => {
-                window.location.reload();
-            }, 500);
+            setTimeout(() => window.location.reload(), 500);
             
         } catch (error) {
-            console.error('❌ Catch error updating status:', error);
-            alert('❌ Error de conexión: ' + (error instanceof Error ? error.message : 'Unknown error'));
+            console.error('❌ Error:', error);
+            alert('❌ Error de conexión');
             setIsUpdating(false);
         }
     };
 
-    const formatDate = (date: string) => {
-        if (!date) return '-';
-        return new Date(date).toLocaleDateString();
-    };
-    const formatCurrency = (amount: number) => {
-        if (!amount && amount !== 0) return '-';
-        return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount / 100);
-    };
+    if (!mounted) {
+        return (
+            <tr suppressHydrationWarning>
+                <td colSpan={6} className="py-4 px-6 text-center text-gray-500">Cargando...</td>
+            </tr>
+        );
+    }
 
-    const getStatusColor = (s: string) => {
-        switch (s) {
-            case 'paid': return 'text-green-600 bg-green-50';
-            case 'awaiting_payment': return 'text-yellow-600 bg-yellow-50';
-            case 'shipped': return 'text-blue-600 bg-blue-50';
-            case 'delivered': return 'text-purple-600 bg-purple-50';
-            case 'cancelled': return 'text-red-600 bg-red-50';
-            case 'return_requested': return 'text-orange-600 bg-orange-50';
-            case 'returned': return 'text-indigo-600 bg-indigo-50';
-            case 'refunded': return 'text-gray-600 bg-gray-50';
-            default: return 'text-gray-600 bg-gray-50';
-        }
+    const orderId = order?.id?.slice(0, 8) || 'N/A';
+    const customerEmail = order?.guest_email || 'Usuario Registrado';
+    const userId = order?.user_id?.slice(0, 8);
+    const itemCount = order?.items?.length || 0;
+    const dateStr = order?.created_at ? new Date(order.created_at).toLocaleDateString('es-ES') : '-';
+    const total = order?.total_amount ? new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(order.total_amount / 100) : '-';
+    const products = order?.items?.map(i => i?.product?.name).filter(Boolean).join(', ') || '-';
+
+    const statusColors: Record<string, string> = {
+        paid: 'text-green-600 bg-green-50',
+        awaiting_payment: 'text-yellow-600 bg-yellow-50',
+        shipped: 'text-blue-600 bg-blue-50',
+        delivered: 'text-purple-600 bg-purple-50',
+        cancelled: 'text-red-600 bg-red-50',
+        return_requested: 'text-orange-600 bg-orange-50',
+        returned: 'text-indigo-600 bg-indigo-50',
+        refunded: 'text-gray-600 bg-gray-50',
     };
 
     return (
-        <tr className="hover:bg-gray-50 transition-colors">
-            <td className="py-4 px-6 text-sm font-medium text-gray-900 border-b border-gray-100">
-                #{order?.id?.slice(0, 8) || 'N/A'}
-            </td>
-            <td className="py-4 px-6 text-sm text-gray-500 border-b border-gray-100">
-                {formatDate(order?.created_at)}
-            </td>
+        <tr className="hover:bg-gray-50 transition-colors" suppressHydrationWarning>
+            <td className="py-4 px-6 text-sm font-medium text-gray-900 border-b border-gray-100">#{orderId}</td>
+            <td className="py-4 px-6 text-sm text-gray-500 border-b border-gray-100">{dateStr}</td>
             <td className="py-4 px-6 text-sm text-gray-900 border-b border-gray-100">
                 <div className="flex flex-col">
-                    <span className="font-bold">{order?.guest_email || 'Usuario Registrado'}</span>
-                    {order?.user_id && <span className="text-xs text-gray-400">ID: {order?.user_id?.slice(0, 8)}</span>}
+                    <span className="font-bold">{customerEmail}</span>
+                    {userId && <span className="text-xs text-gray-400">ID: {userId}</span>}
                 </div>
             </td>
             <td className="py-4 px-6 text-sm text-gray-500 border-b border-gray-100">
-                {order?.items?.length || 0} productos
-                <div className="text-xs text-gray-400 truncate max-w-[200px]">
-                    {order?.items?.map(i => i?.product?.name).filter(Boolean).join(', ') || '-'}
-                </div>
+                {itemCount} productos
+                <div className="text-xs text-gray-400 truncate max-w-xs">{products}</div>
             </td>
-            <td className="py-4 px-6 text-sm font-bold text-gray-900 border-b border-gray-100">
-                {formatCurrency(order?.total_amount)}
-            </td>
+            <td className="py-4 px-6 text-sm font-bold text-gray-900 border-b border-gray-100">{total}</td>
             <td className="py-4 px-6 border-b border-gray-100">
                 <select
                     value={status}
-                    onChange={(e) => {
-                        console.log('🎯 Select onChange triggered with value:', e.target.value);
-                        handleStatusChange(e.target.value);
-                    }}
+                    onChange={(e) => handleStatusChange(e.target.value)}
                     disabled={isUpdating || status === 'cancelled' || status === 'refunded'}
-                    className={`block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-xs font-bold uppercase tracking-wider ${getStatusColor(status)}`}
+                    className={`block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm text-xs font-bold uppercase ${statusColors[status] || 'text-gray-600 bg-gray-50'}`}
                 >
                     <option value="awaiting_payment">Pendiente</option>
                     <option value="paid">Pagado</option>
                     <option value="shipped">Enviado</option>
                     <option value="delivered">Entregado</option>
-                    <option value="return_requested">Devolución Solicitada</option>
+                    <option value="return_requested">Devolución</option>
                     <option value="returned">Devuelto</option>
                     <option value="refunded">Reembolsado</option>
                     <option value="cancelled">Cancelado</option>

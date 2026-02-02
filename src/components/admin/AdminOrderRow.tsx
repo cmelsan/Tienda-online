@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/utils'; // Assuming this utility exists or I'll implement inline if needed
 
@@ -28,6 +28,11 @@ interface AdminOrderRowProps {
 export default function AdminOrderRow({ order }: AdminOrderRowProps) {
     const [status, setStatus] = useState(order.status);
     const [isUpdating, setIsUpdating] = useState(false);
+
+    // Log on mount
+    useEffect(() => {
+        console.log('✅ AdminOrderRow component mounted for order:', order.id, 'Status:', order.status);
+    }, [order.id, order.status]);
 
     const handleStatusChange = async (newStatus: string) => {
         console.log('🔄 Attempting to change status to:', newStatus);
@@ -122,7 +127,10 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
             <td className="py-4 px-6 border-b border-gray-100">
                 <select
                     value={status}
-                    onChange={(e) => handleStatusChange(e.target.value)}
+                    onChange={(e) => {
+                        console.log('🎯 Select onChange triggered with value:', e.target.value);
+                        handleStatusChange(e.target.value);
+                    }}
                     disabled={isUpdating || status === 'cancelled' || status === 'refunded'}
                     className={`block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black sm:text-xs font-bold uppercase tracking-wider ${getStatusColor(status)}`}
                 >

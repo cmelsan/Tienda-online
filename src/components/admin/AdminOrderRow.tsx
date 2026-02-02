@@ -45,13 +45,20 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
             });
 
             console.log('📨 Response status:', response.status);
+            console.log('📨 Response statusText:', response.statusText);
+            
             const data = await response.json();
             console.log('📦 Response data:', data);
 
             if (!response.ok || !data.success) {
                 const errorMsg = data.message || `Error: ${response.status}`;
-                console.error('❌ Status update error:', data);
-                alert(`Error: ${errorMsg}\n\nDetalles: ${data.details || data.hint || 'Sin detalles'}`);
+                console.error('❌ Status update error:', {
+                    status: response.status,
+                    message: data.message,
+                    details: data.details,
+                    fullData: data
+                });
+                alert(`❌ Error: ${errorMsg}\n\nDetalles: ${data.details || 'Sin detalles'}`);
                 setIsUpdating(false);
                 return;
             }

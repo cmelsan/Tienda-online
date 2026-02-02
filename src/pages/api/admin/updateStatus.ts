@@ -15,7 +15,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
         // Verify session
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('[API] Session:', session?.user?.email);
+        console.log('[API] Session user:', session?.user?.email);
         if (!session) {
             return new Response(JSON.stringify({ success: false, message: 'Unauthorized' }), { status: 401 });
         }
@@ -26,41 +26,57 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             return new Response(JSON.stringify({ success: false, message: `Invalid status: ${newStatus}` }), { status: 400 });
         }
 
-        // Update order status directly
-        console.log('[API] Updating order status directly in database...');
-        const { data, error } = await supabase
-            .from('orders')
-            .update({ 
-                status: newStatus,
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', orderId)
-            .select();
+        // Check if user is admin by checking profiles table
+        console.log('[API] Checking if user is admin...');
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', session.user.id)
+            .single();
 
-        if (error) {
-            console.error('[API] Update error:', error);
-            return new Response(JSON.stringify({ 
-                success: false, 
-                message: `Error actualizando pedido: ${error.message}`,
-                details: error.details,
-                hint: error.hint
-            }), { status: 500 });
+        console.log('[API] Profile check:', { profile, error: profileError?.message });
+
+        if (profileError || !profile?.is_admin) {
+            console.error('[API] User is not admin or profile lookup failed');
+            return new Response(JSON.stringify({ success: false, message: 'Unauthorized: Admin access required' }), { status: 403 });
         }
 
-        if (!data || data.length === 0) {
-            console.error('[API] Order not found');
-            return new Response(JSON.stringify({ 
-                success: false, 
-                message: 'Order not found'
-            }), { status: 404 });
+        // Use RPC function with elevated privileges for the update
+        console.log('[API] Calling update_order_status RPC...');
+        const { data: rpcResult, error: rpcError } = await supabase.rpc('update_order_status', {
+            p_order_id: orderId,
+            p_new_status: newStatus
+        });
+
+        if (rpcError) {
+            console.error('[API] RPC error:', rpcError);
+            // If RPC fails, try direct update as fallback
+            console.log('[API] RPC failed, trying direct update...');
+            
+            const { error: updateError } = await supabase
+                .from('orders')
+                .update({ 
+                    status: newStatus,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', orderId);
+
+            if (updateError) {
+                console.error('[API] Direct update also failed:', updateError);
+                return new Response(JSON.stringify({ 
+                    success: false, 
+                    message: `Error actualizando pedido: ${updateError.message}`,
+                    details: updateError.details
+                }), { status: 500 });
+            }
         }
 
-        console.log('[API] Update success:', data);
+        console.log('[API] Update successful');
 
         return new Response(JSON.stringify({ 
             success: true, 
             message: 'Order status updated',
-            data: data[0]
+            data: rpcResult
         }), { status: 200 });
 
     } catch (err: any) {

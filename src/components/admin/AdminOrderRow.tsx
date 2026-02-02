@@ -58,7 +58,7 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
             console.log('✅ Status updated to:', newStatus);
             setStatus(newStatus);
             alert(`✅ Pedido actualizado a: ${newStatus}`);
-            setTimeout(() => window.location.reload(), 500);
+            setIsUpdating(false);
             
         } catch (error) {
             console.error('❌ Error:', error);

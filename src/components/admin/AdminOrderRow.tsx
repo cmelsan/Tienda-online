@@ -33,8 +33,8 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
         console.log('🔄 Attempting to change status to:', newStatus);
         setIsUpdating(true);
         try {
-            console.log('📡 Sending request to /api/admin/update-order-status');
-            const response = await fetch('/api/admin/update-order-status', {
+            console.log('📡 Sending request to /api/admin/updatestatus');
+            const response = await fetch('/api/admin/updatestatus', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

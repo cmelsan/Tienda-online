@@ -48,8 +48,18 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             .single();
 
         if (error) {
-            console.error('Update order status error:', error);
-            return new Response(JSON.stringify({ success: false, message: error.message }), { status: 500 });
+            console.error('Supabase update error:', {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint
+            });
+            return new Response(JSON.stringify({ 
+                success: false, 
+                message: `Error actualizando pedido: ${error.message}`,
+                details: error.details,
+                hint: error.hint
+            }), { status: 500 });
         }
 
         // Log status change in history

@@ -11,6 +11,10 @@ export const POST: APIRoute = async ({ request }) => {
     const stripeSecretKey = import.meta.env.STRIPE_SECRET_KEY;
     const endpointSecret = import.meta.env.STRIPE_WEBHOOK_SECRET;
 
+    console.log('[Stripe Webhook] Request received');
+    console.log('[Stripe Webhook] Stripe Secret Key present:', !!stripeSecretKey);
+    console.log('[Stripe Webhook] Endpoint Secret present:', !!endpointSecret);
+
     if (!stripeSecretKey || !endpointSecret) {
         console.error('Missing Stripe configuration');
         return new Response('Missing Stripe Keys', { status: 500 });
@@ -22,6 +26,8 @@ export const POST: APIRoute = async ({ request }) => {
 
     const signature = request.headers.get('stripe-signature');
 
+    console.log('[Stripe Webhook] Stripe Signature present:', !!signature);
+
     if (!signature) {
         return new Response('No signature provided', { status: 400 });
     }
@@ -30,6 +36,7 @@ export const POST: APIRoute = async ({ request }) => {
     try {
         const body = await request.text(); // Read raw body
         event = stripe.webhooks.constructEvent(body, signature, endpointSecret);
+        console.log('[Stripe Webhook] Event type:', event.type);
     } catch (err: any) {
         console.error(`Webhook Signature Verification Failed: ${err.message}`);
         return new Response(`Webhook Error: ${err.message}`, { status: 400 });

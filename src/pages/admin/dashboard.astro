@@ -1,0 +1,54 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { Dashboard } from '../../components/dashboard/Dashboard';
+import {
+  getTotalSalesMonth,
+  getPendingOrdersCount,
+  getTopSellingProduct,
+  getReturnRate,
+  getSalesLast7Days,
+  getTopProducts,
+  getOrderStatusDistribution,
+} from '../../lib/dashboard';
+
+// Fetch all dashboard data
+const [
+  totalSalesMonth,
+  pendingOrders,
+  topProduct,
+  returnRate,
+  salesLast7Days,
+  topProducts,
+  orderStatusDistribution,
+] = await Promise.all([
+  getTotalSalesMonth(),
+  getPendingOrdersCount(),
+  getTopSellingProduct(),
+  getReturnRate(),
+  getSalesLast7Days(),
+  getTopProducts(),
+  getOrderStatusDistribution(),
+]);
+---
+
+<AdminLayout title="Dashboard Ejecutivo">
+  <div class="space-y-8">
+    <!-- Header -->
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Dashboard Ejecutivo</h1>
+      <p class="text-sm text-gray-600 mt-2">Análisis completo de ventas, pedidos y desempeño</p>
+    </div>
+
+    <!-- Dashboard Content (Client Component) -->
+    <Dashboard
+      client:load
+      totalSalesMonth={totalSalesMonth}
+      pendingOrders={pendingOrders}
+      topProduct={topProduct}
+      returnRate={returnRate}
+      salesLast7Days={salesLast7Days}
+      topProducts={topProducts}
+      orderStatusDistribution={orderStatusDistribution}
+    />
+  </div>
+</AdminLayout>

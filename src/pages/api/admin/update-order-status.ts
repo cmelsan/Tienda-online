@@ -17,38 +17,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             return new Response(JSON.stringify({ success: false, message: 'Unauthorized' }), { status: 401 });
         }
 
-        // Check if user is admin - for now just verify they're authenticated
-        // TODO: Add proper admin role check via profiles table
-        if (!session.user) {
-            return new Response(JSON.stringify({ success: false, message: 'Admin access required' }), { status: 403 });
-        }
-
-        // Valid statuses
-        const validStatuses = ['awaiting_payment', 'paid', 'shipped', 'delivered', 'cancelled', 'return_requested', 'returned', 'refunded'];
-        if (!validStatuses.includes(newStatus)) {
-            return new Response(JSON.stringify({ success: false, message: 'Invalid status' }), { status: 400 });
-        }
-
-        // Update order status
-        const updateData: any = { 
-            status: newStatus,
-            updated_at: new Date().toISOString()
-        };
-
-        // If marking as delivered, set delivered_at timestamp
-        if (newStatus === 'delivered') {
-            updateData.delivered_at = new Date().toISOString();
-        }
-
-        const { data, error } = await supabase
-            .from('orders')
-            .update(updateData)
-            .eq('id', orderId)
-            .select()
-            .single();
+        // Call RPC to update order status
+        console.log('[Admin] Calling update_order_status RPC with:', { orderId, newStatus });
+        const { data, error } = await supabase.rpc('update_order_status', {
+            p_order_id: orderId,
+            p_new_status: newStatus
+        });
 
         if (error) {
-            console.error('Supabase update error:', {
+            console.error('[Admin] RPC error:', {
                 message: error.message,
                 code: error.code,
                 details: error.details,
@@ -62,25 +39,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             }), { status: 500 });
         }
 
-        // Log status change in history
-        await supabase
-            .from('order_status_history')
-            .insert({
-                order_id: orderId,
-                from_status: data.status,
-                to_status: newStatus,
-                changed_by: session.user.id,
-                changed_by_type: 'admin'
-            });
+        console.log('[Admin] RPC success:', data);
 
         return new Response(JSON.stringify({ 
             success: true, 
             message: 'Order status updated',
-            status: newStatus
+            data: data
         }), { status: 200 });
 
     } catch (err: any) {
-        console.error('Update order status API error:', err);
+        console.error('[Admin] API error:', err);
         return new Response(JSON.stringify({ success: false, message: err.message }), { status: 500 });
     }
 };

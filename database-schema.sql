@@ -948,6 +948,52 @@ CREATE POLICY "Users can access their own cart"
   ON public.carts FOR ALL
   USING (auth.uid() = user_id);
 
+-- ============================================
+-- RPC: Update Order Status (Admin)
+-- ============================================
+CREATE OR REPLACE FUNCTION update_order_status(
+  p_order_id UUID,
+  p_new_status VARCHAR
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_old_status VARCHAR;
+BEGIN
+  -- Fetch old status
+  SELECT status INTO v_old_status
+  FROM orders
+  WHERE id = p_order_id;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Order not found');
+  END IF;
+
+  -- Validate status
+  IF p_new_status NOT IN ('awaiting_payment', 'paid', 'shipped', 'delivered', 'cancelled', 'return_requested', 'returned', 'refunded') THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Invalid status: ' || p_new_status);
+  END IF;
+
+  -- Update status
+  UPDATE orders
+  SET status = p_new_status,
+      updated_at = NOW(),
+      delivered_at = CASE WHEN p_new_status = 'delivered' THEN NOW() ELSE delivered_at END
+  WHERE id = p_order_id;
+
+  -- Log status change
+  INSERT INTO order_status_history (order_id, from_status, to_status, changed_by, changed_by_type)
+  VALUES (p_order_id, v_old_status, p_new_status, auth.uid(), 'admin');
+
+  RETURN jsonb_build_object('success', true, 'message', 'Order status updated', 'old_status', v_old_status, 'new_status', p_new_status);
+
+EXCEPTION WHEN OTHERS THEN
+  RETURN jsonb_build_object('success', false, 'message', SQLERRM);
+END;
+$$;
+
 CREATE POLICY "Access by session_id (app logic handles security)"
   ON public.carts FOR ALL
   USING (session_id IS NOT NULL);

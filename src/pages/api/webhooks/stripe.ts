@@ -68,6 +68,18 @@ export const POST: APIRoute = async ({ request }) => {
                     console.log('[Stripe Webhook] Order data fetched');
                 }
 
+                // Get customer name from auth if available
+                let customerName = 'Cliente';
+                if (orderData?.user_id) {
+                    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(orderData.user_id);
+                    if (userData?.user?.user_metadata?.full_name) {
+                        customerName = userData.user.user_metadata.full_name;
+                    }
+                    console.log('[Stripe Webhook] Customer name from auth:', customerName);
+                } else {
+                    console.log('[Stripe Webhook] Guest order, using default name');
+                }
+
                 // 2. Update order status to 'paid'
                 const { data: updateData, error: updateError } = await supabase.rpc('update_order_status', {
                     p_order_id: orderId,
@@ -85,10 +97,10 @@ export const POST: APIRoute = async ({ request }) => {
                     try {
                         console.log('[Stripe Webhook] Preparing to send confirmation email to:', customerEmail);
                         
-                        // Get order items
+                        // Get order items WITH product names
                         const { data: itemsData, error: itemsError } = await supabase
                             .from('order_items')
-                            .select('*')
+                            .select('*, products(name)')
                             .eq('order_id', orderId);
 
                         if (itemsError) {
@@ -100,9 +112,9 @@ export const POST: APIRoute = async ({ request }) => {
                         // Prepare items for email template
                         const emailItems = itemsData?.map((item: any) => ({
                             product_id: item.product_id,
-                            name: item.product_name || 'Producto',
+                            name: item.products?.name || 'Producto',
                             quantity: item.quantity,
-                            price: item.price // asegurarse que sea centavos para el email
+                            price: item.price_at_purchase // asegurarse que sea centavos para el email
                         })) || [];
 
                         // El total también debe estar en centavos
@@ -111,7 +123,7 @@ export const POST: APIRoute = async ({ request }) => {
                         // Generate email template with correct price formatting
                         const htmlContent = getOrderConfirmationTemplate(
                             orderId,
-                            orderData.customer_name || 'Cliente',
+                            customerName,
                             emailItems,
                             totalInCents
                         );

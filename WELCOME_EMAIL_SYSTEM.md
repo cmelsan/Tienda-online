@@ -32,8 +32,8 @@ Cuando un usuario se registra o se suscribe a la newsletter, automáticamente re
 | Aspecto | Registro de Usuario | Newsletter |
 |--------|-------------------|-----------|
 | **Plantilla** | `getWelcomeTemplate()` | `getNewsletterWelcomeTemplate()` |
-| **Cupón** | BIENVENIDO20 | BIENVENIDO20 |
-| **Descuento** | 20% | 20% |
+| **Cupón** | BIENVENIDO20 | NEWSLETTER10 |
+| **Descuento** | 20% | 10% |
 | **Beneficios** | Cuenta completa | Suscripción newsletter |
 | **Válido para** | Primera compra | Próxima compra |
 
@@ -49,9 +49,9 @@ discountPercentage: 20         // ← y aquí
 
 **Para Newsletter** (`/src/pages/api/newsletter.ts`):
 ```typescript
-const htmlContent = getNewsletterWelcomeTemplate(email, 'BIENVENIDO20', 20);
-                                                        ^^^^^^^^^^^^^^  ^^
-                                                        código    descuento %
+const htmlContent = getNewsletterWelcomeTemplate(email, 'NEWSLETTER10', 10);
+                                                        ^^^^^^^^^^^^^ ^^
+                                                        código   descuento %
 ```
 
 ### Cambiar el texto del email

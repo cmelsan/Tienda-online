@@ -25,7 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         // 2. Send welcome email with discount code
         try {
-            const htmlContent = getNewsletterWelcomeTemplate(email, 'BIENVENIDO20', 20);
+            const htmlContent = getNewsletterWelcomeTemplate(email, 'NEWSLETTER10', 10);
             
             const result = await sendEmail({
                 to: email,

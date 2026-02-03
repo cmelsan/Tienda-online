@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 
 interface Product {
   id: string;
@@ -15,90 +14,120 @@ export default function FlashSaleManager() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [token, setToken] = useState('');
 
   useEffect(() => {
-    fetchProducts();
+    fetchToken();
   }, []);
 
-  const fetchProducts = async () => {
+  const fetchToken = async () => {
+    try {
+      // Try to get token from localStorage first
+      const storedToken = localStorage.getItem('admin-token');
+      if (storedToken) {
+        setToken(storedToken);
+        await fetchProducts(storedToken);
+        return;
+      }
+
+      // Fallback: fetch from server
+      const response = await fetch('/api/admin/me', {
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (response.ok && data.token) {
+        setToken(data.token);
+        localStorage.setItem('admin-token', data.token);
+        await fetchProducts(data.token);
+      }
+    } catch (error) {
+      console.error('Error fetching token:', error);
+      setLoading(false);
+    }
+  };
+
+  const fetchProducts = async (authToken: string) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('products')
-        .select('id, name, slug, price, is_flash_sale, flash_sale_discount, flash_sale_end_time')
-        .order('name');
+      const response = await fetch('/api/admin/flash-sales', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
 
-      if (error) throw error;
-      setProducts(data || []);
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setProducts(data.data || []);
     } catch (error) {
       console.error('Error fetching products:', error);
+      alert('Error al cargar productos');
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleFlashSale = async (product: Product) => {
+  const updateFlashSale = async (productId: string, updateData: any) => {
     try {
       setUpdating(true);
       
-      const endTime = product.is_flash_sale 
-        ? null 
-        : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      if (!token) {
+        alert('Token no disponible. Por favor, recarga la página.');
+        return;
+      }
 
-      const { error } = await supabase
-        .from('products')
-        .update({
-          is_flash_sale: !product.is_flash_sale,
-          flash_sale_end_time: endTime,
-          flash_sale_discount: product.is_flash_sale ? 0 : product.flash_sale_discount || 20
-        })
-        .eq('id', product.id);
+      const response = await fetch('/api/admin/flash-sales', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          productId,
+          data: updateData,
+        }),
+      });
 
-      if (error) throw error;
-      
-      await fetchProducts();
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Error updating');
+      }
+
+      await fetchProducts(token);
     } catch (error) {
       console.error('Error updating flash sale:', error);
-      alert('Error al actualizar la oferta flash');
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setUpdating(false);
     }
+  };
+
+  const toggleFlashSale = async (product: Product) => {
+    const endTime = product.is_flash_sale 
+      ? null 
+      : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+    await updateFlashSale(product.id, {
+      is_flash_sale: !product.is_flash_sale,
+      flash_sale_end_time: endTime,
+      flash_sale_discount: product.is_flash_sale ? 0 : product.flash_sale_discount || 20
+    });
   };
 
   const updateDiscount = async (productId: string, discount: number) => {
-    try {
-      setUpdating(true);
-      const { error } = await supabase
-        .from('products')
-        .update({ flash_sale_discount: discount })
-        .eq('id', productId);
-
-      if (error) throw error;
-      await fetchProducts();
-    } catch (error) {
-      console.error('Error updating discount:', error);
-      alert('Error al actualizar el descuento');
-    } finally {
-      setUpdating(false);
-    }
+    await updateFlashSale(productId, { flash_sale_discount: discount });
   };
 
   const updateEndTime = async (productId: string, endTime: string) => {
-    try {
-      setUpdating(true);
-      const { error } = await supabase
-        .from('products')
-        .update({ flash_sale_end_time: new Date(endTime).toISOString() })
-        .eq('id', productId);
-
-      if (error) throw error;
-      await fetchProducts();
-    } catch (error) {
-      console.error('Error updating end time:', error);
-      alert('Error al actualizar la fecha de fin');
-    } finally {
-      setUpdating(false);
-    }
+    await updateFlashSale(productId, { 
+      flash_sale_end_time: new Date(endTime).toISOString() 
+    });
   };
 
   if (loading) {

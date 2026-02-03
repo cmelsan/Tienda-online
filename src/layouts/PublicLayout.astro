@@ -13,13 +13,13 @@ interface Props {
 const { title, description } = Astro.props;
 
 // Fetch Global Settings (Offers Visibility)
-const { data: settings } = await supabase
-  .from('settings')
+const { data: offersSettings } = await supabase
+  .from('app_settings')
   .select('value')
   .eq('key', 'offers_enabled')
   .single();
 
-const offersEnabled = settings?.value === true;
+const offersEnabled = offersSettings?.value === true;
 ---
 
 <BaseLayout title={title} description={description}>

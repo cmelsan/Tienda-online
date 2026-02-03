@@ -4,13 +4,13 @@ import ProductCard from '@/components/product/ProductCard.astro';
 import { supabase } from '@/lib/supabase';
 
 // Check Global Settings
-const { data: settings } = await supabase
-  .from('settings')
+const { data: offersSettings } = await supabase
+  .from('app_settings')
   .select('value')
   .eq('key', 'offers_enabled')
   .single();
 
-if (settings?.value === false) {
+if (offersSettings?.value === false) {
     return Astro.redirect('/');
 }
 

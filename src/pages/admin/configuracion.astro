@@ -11,13 +11,13 @@ const supabase = await createServerSupabaseClient(Astro);
 const { data: { session } } = await supabase.auth.getSession();
 
 // Fetch current settings
-const { data: settings } = await supabase
-  .from('settings')
+const { data: offersSettings } = await supabase
+  .from('app_settings')
   .select('*')
   .eq('key', 'offers_enabled')
   .single();
 
-const offersEnabled = settings?.value === true;
+const offersEnabled = offersSettings?.value === true;
 ---
 
 <AdminLayout title="Configuración Global">

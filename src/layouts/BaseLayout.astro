@@ -151,5 +151,15 @@ const { title, description = 'ÉCLAT - Belleza Premium y Cuidado Personal' } = A
     .link-underline:hover::after {
       @apply w-full;
     }
+
+    /* Hide scrollbar but keep functionality */
+    .scrollbar-hide {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+    
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;  /* Chrome, Safari and Opera */
+    }
   }
 </style>

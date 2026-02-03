@@ -285,88 +285,104 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
     <div class="w-full h-px bg-gray-200 mt-12"></div>
   </section>
 
-  {/* 4. FLASH SALE SECTION */}
+  {/* 4. FLASH SALE SECTION - CAROUSEL */}
   {flashSaleEnabled && flashSaleProducts && flashSaleProducts.length > 0 && (
-    <section class="py-20 lg:py-28 bg-gradient-to-r from-pink-50 via-white to-rose-50 border-y-8 border-black">
+    <section class="py-16 lg:py-24 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header with Timer */}
-        <div class="text-center mb-16">
-          <span class="inline-block bg-rose-600 text-white px-6 py-2 text-[10px] uppercase tracking-[0.3em] mb-6 font-bold rounded-full">
-            ⚡ Flash Sale Exclusivo
-          </span>
-          <h2 class="text-4xl md:text-5xl font-sans font-black text-black tracking-tight mb-8">
-            Ofertas Flash
-          </h2>
-          
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-8 mb-12">
+          <div>
+            <h2 class="text-3xl md:text-4xl font-sans font-black text-black tracking-tight mb-2">
+              Ofertas Flash
+            </h2>
+            <p class="text-gray-600 text-sm">Productos seleccionados con increíbles descuentos</p>
+          </div>
+
           {/* Countdown Timer */}
           {flashSaleEndTime && (
-            <div class="flex justify-center mb-8">
-              <div client:load>
-                <CountdownTimer client:only="react" endTime={flashSaleEndTime} />
-              </div>
+            <div client:load>
+              <CountdownTimer client:only="react" endTime={flashSaleEndTime} />
             </div>
           )}
-          
-          <p class="text-gray-700 text-lg max-w-2xl mx-auto">Productos seleccionados con increíbles descuentos. ¡Corre que se agotan!</p>
-          <div class="w-16 h-1 bg-gradient-to-r from-transparent via-rose-600 to-transparent mx-auto mt-6"></div>
         </div>
 
-        {/* Products Grid */}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {flashSaleProducts.map((product: any) => {
-            const discount = product.flash_sale_discount || 0;
-            const discountedPrice = Math.round(product.price * (1 - discount / 100));
-            
-            return (
-              <a 
-                href={`/productos/${product.slug}`}
-                class="group relative bg-white border-2 border-black hover:shadow-2xl transition-all duration-300 overflow-hidden"
-              >
-                {/* Flash Sale Badge */}
-                <div class="absolute top-4 left-4 z-10 flex flex-col gap-2">
-                  <div class="bg-rose-600 text-white px-4 py-2 text-sm font-black uppercase tracking-wider transform -rotate-12 shadow-lg">
-                    Flash Sale
-                  </div>
-                  <div class="bg-black text-white px-3 py-1 text-xs font-bold uppercase tracking-wider">
-                    -{discount}%
-                  </div>
-                </div>
+        {/* Carousel Container */}
+        <div class="relative group">
+          {/* Products Carousel */}
+          <div id="flashSaleCarousel" class="overflow-x-auto scrollbar-hide">
+            <div class="flex gap-6 pb-4">
+              {flashSaleProducts.map((product: any) => {
+                const discount = product.flash_sale_discount || 0;
+                const discountedPrice = Math.round(product.price * (1 - discount / 100));
+                
+                return (
+                  <a 
+                    href={`/productos/${product.slug}`}
+                    class="flex-none w-80 group/card bg-white border border-gray-200 hover:border-gray-400 transition-all duration-300 hover:shadow-lg overflow-hidden"
+                  >
+                    {/* Product Image Container */}
+                    <div class="relative bg-gray-50 aspect-square overflow-hidden">
+                      <img 
+                        src={product.images && product.images.length > 0 ? product.images[0] : '/placeholder-product.jpg'} 
+                        alt={product.name}
+                        class="w-full h-full object-contain p-6 group-hover/card:scale-105 transition-transform duration-500"
+                      />
+                      
+                      {/* Discount Badge - Top Right Corner */}
+                      <div class="absolute top-3 right-3 bg-rose-600 text-white px-2 py-1 rounded text-xs font-black">
+                        -{discount}%
+                      </div>
+                    </div>
 
-                {/* Product Image */}
-                <div class="aspect-square bg-gray-50 overflow-hidden relative">
-                  <img 
-                    src={product.images && product.images.length > 0 ? product.images[0] : '/placeholder-product.jpg'} 
-                    alt={product.name}
-                    class="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
+                    {/* Product Info */}
+                    <div class="p-5">
+                      <p class="text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-2">{product.brand?.name || 'MARCA'}</p>
+                      <h3 class="text-sm font-bold text-black mb-3 line-clamp-2 leading-snug min-h-9">{product.name}</h3>
+                      
+                      {/* Price Section */}
+                      <div class="flex items-baseline gap-2 mb-4">
+                        <span class="text-base font-black text-rose-600">{(discountedPrice / 100).toFixed(2)} €</span>
+                        <span class="text-xs font-semibold text-gray-400 line-through">{(product.price / 100).toFixed(2)} €</span>
+                      </div>
 
-                {/* Product Info */}
-                <div class="p-6 border-t-2 border-black">
-                  <p class="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-2">{product.brand?.name || 'Marca'}</p>
-                  <h3 class="text-base font-bold text-black mb-3 line-clamp-2 leading-tight h-14">{product.name}</h3>
-                  
-                  {/* Price Section */}
-                  <div class="flex items-center gap-3 mb-4">
-                    <span class="text-lg font-black text-rose-600">{(discountedPrice / 100).toFixed(2)} €</span>
-                    <span class="text-sm font-semibold text-gray-500 line-through">{(product.price / 100).toFixed(2)} €</span>
-                  </div>
+                      <button class="w-full bg-rose-600 text-white py-2 text-[10px] font-bold uppercase tracking-wider hover:bg-rose-700 transition-colors duration-300">
+                        Comprar Ahora
+                      </button>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
 
-                  <button class="w-full bg-gradient-to-r from-rose-600 to-pink-600 text-white py-3 text-[10px] font-bold uppercase tracking-wider hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                    Comprar Ahora
-                  </button>
-                </div>
-              </a>
-            );
-          })}
+          {/* Left Arrow */}
+          <button 
+            onclick="document.getElementById('flashSaleCarousel').scrollBy({left: -400, behavior: 'smooth'})"
+            class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-black hover:bg-rose-600 text-white p-3 rounded-full transition-colors duration-300 opacity-0 group-hover:opacity-100 group-hover:-translate-x-6"
+            aria-label="Anterior"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          {/* Right Arrow */}
+          <button 
+            onclick="document.getElementById('flashSaleCarousel').scrollBy({left: 400, behavior: 'smooth'})"
+            class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-black hover:bg-rose-600 text-white p-3 rounded-full transition-colors duration-300 opacity-0 group-hover:opacity-100 group-hover:translate-x-6"
+            aria-label="Siguiente"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
 
         {/* CTA Button */}
-        <div class="text-center mt-12">
+        <div class="text-center mt-10">
           <a 
             href="/ofertas"
-            class="inline-block bg-black text-white px-12 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-rose-600 transition-all duration-300 border border-black"
+            class="inline-block bg-black text-white px-10 py-3 text-xs font-bold uppercase tracking-[0.2em] hover:bg-rose-600 transition-all duration-300"
           >
             Ver Todas las Ofertas
           </a>

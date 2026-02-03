@@ -27,6 +27,22 @@ export default {
                     gold: '#C9A962',     // Dorado lujo (badges premium)
                     nude: '#E8DCD5',     // Nude (fondos elegantes)
                 },
+                // Admin Dashboard Professional Palette
+                admin: {
+                    primary: '#3B82F6',      // Blue-500 - Acciones principales
+                    'primary-dark': '#2563EB', // Blue-600 - Hover
+                    success: '#10B981',      // Green-500 - Estados positivos
+                    'success-dark': '#059669', // Green-600 - Hover
+                    warning: '#F59E0B',      // Amber-500 - Alertas
+                    'warning-dark': '#D97706', // Amber-600 - Hover
+                    danger: '#EF4444',       // Red-500 - Errores/Crítico
+                    'danger-dark': '#DC2626',  // Red-600 - Hover
+                    bg: '#F9FAFB',           // Gray-50 - Fondo
+                    card: '#FFFFFF',         // Blanco - Cards
+                    border: '#E5E7EB',       // Gray-200 - Bordes
+                    text: '#111827',         // Gray-900 - Texto principal
+                    'text-muted': '#6B7280', // Gray-500 - Texto secundario
+                },
             },
             fontFamily: {
                 sans: ['Inter', 'system-ui', 'sans-serif'],

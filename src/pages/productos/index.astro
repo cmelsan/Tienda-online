@@ -152,7 +152,7 @@ const { data: categories } = await supabase
             </div>
          </div>
 
-         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-x-8 gap-y-12">
+         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
             {products.map((product) => (
                 <div class="group flex flex-col h-full relative" 
                      x-show={`matchesFilter('${product.brandSlug}', '${product.category_id}')`}
@@ -161,7 +161,7 @@ const { data: categories } = await supabase
                      x-transition:enter-end="opacity-100 scale-100">
                      
                     <!-- Badges -->
-                    <div class="absolute top-0 left-0 z-10 flex flex-col gap-1">
+                    <div class="absolute top-2 left-2 z-10 flex flex-col gap-1">
                         {product.isPromo && (
                            <span class="bg-red-700 text-white text-[10px] font-bold uppercase px-2 py-1 tracking-wider">Promo</span>
                         )}
@@ -171,7 +171,7 @@ const { data: categories } = await supabase
                     </div>
                     
                     <!-- Wishlist Heart -->
-                    <button class="absolute top-0 right-0 z-10 p-2 hover:opacity-70 transition-opacity">
+                    <button class="absolute top-2 right-2 z-10 p-2 hover:opacity-70 transition-opacity">
                          <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </button>
 
@@ -193,7 +193,7 @@ const { data: categories } = await supabase
                         <h3 class="font-bold text-sm text-black uppercase mb-1 line-clamp-2 min-h-[40px]">
                             <a href={`/productos/${product.slug}`}>{product.name}</a>
                         </h3>
-                        <p class="text-xs text-gray-500 mb-2 truncate">{product.description}</p>
+                        <p class="text-xs text-gray-500 mb-2 line-clamp-1">{product.description}</p>
                         
                          <!-- Ratings -->
                         <div class="flex justify-center items-center gap-1 mb-3">
@@ -206,9 +206,9 @@ const { data: categories } = await supabase
                         </div>
 
                         <!-- Price -->
-                        <div class="mt-auto mb-4">
+                        <div class="mt-auto mb-3">
                             {product.isPromo ? (
-                                <div class="flex flex-col items-center">
+                                <div class="flex flex-col items-center gap-0.5">
                                     <span class="font-bold text-base text-red-700">{formatPrice(product.price)}</span>
                                      <span class="text-xs text-gray-500 line-through">Precio original: {formatPrice(product.originalPrice)}</span>
                                 </div>
@@ -220,7 +220,7 @@ const { data: categories } = await supabase
 
                     <!-- Add to Cart Button Logic -->
                     <button 
-                        class="w-full bg-black text-white font-bold text-sm uppercase py-3 hover:bg-gray-800 transition-colors opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-xl"
+                        class="w-full bg-black text-white font-bold text-sm uppercase py-3 hover:bg-gray-800 transition-colors opacity-0 md:opacity-0 md:group-hover:opacity-100 sm:opacity-100 transition-opacity duration-300 shadow-md"
                         onclick={`window.addToCart({ 
                             id: '${product.id}', 
                             name: '${product.name.replace(/'/g, "\\'")}', 

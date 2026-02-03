@@ -319,6 +319,71 @@ export function getPasswordResetTemplate(resetUrl: string, userName: string): st
   `;
 }
 
+// Template: Email de Bienvenida para Newsletter
+export function getNewsletterWelcomeTemplate(email: string, discountCode: string, discountPercentage: number): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #ec4899 0%, #f97316 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+          .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+          .coupon-box { background: white; padding: 25px; border-radius: 8px; margin: 25px 0; border: 2px solid #ec4899; text-align: center; }
+          .coupon-code { font-size: 32px; font-weight: bold; color: #ec4899; font-family: monospace; letter-spacing: 2px; margin: 15px 0; }
+          .coupon-label { font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px; }
+          .discount-badge { background: #ec4899; color: white; padding: 8px 15px; border-radius: 20px; display: inline-block; margin: 10px 0; font-weight: bold; }
+          .button { display: inline-block; background: #ec4899; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
+          .footer { text-align: center; font-size: 12px; color: #999; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+          .benefits { background: white; padding: 20px; border-radius: 6px; margin: 20px 0; }
+          .benefits li { margin: 10px 0; padding-left: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>¡Bienvenido a ÉCLAT Beauty!</h1>
+            <p style="margin: 10px 0 0 0; font-size: 14px;">Te damos las gracias por suscribirte</p>
+          </div>
+          <div class="content">
+            <p>Hola,</p>
+            <p>Gracias por suscribirte a la newsletter de ÉCLAT Beauty. ¡Acabas de obtener un regalo especial!</p>
+            
+            <div class="coupon-box">
+              <p class="coupon-label">Tu código de descuento exclusivo para suscriptores</p>
+              <div class="coupon-code">${discountCode}</div>
+              <div class="discount-badge">${discountPercentage}% de descuento</div>
+              <p style="font-size: 12px; color: #666; margin-top: 15px;">Válido en tu próxima compra</p>
+            </div>
+
+            <div class="benefits">
+              <p style="font-weight: bold; margin-bottom: 10px;">Como suscriptor de nuestra newsletter recibirás:</p>
+              <ul style="list-style: none; padding: 0;">
+                <li>✓ Ofertas exclusivas antes que nadie</li>
+                <li>✓ Lanzamientos de nuevas colecciones</li>
+                <li>✓ Códigos de descuento especiales</li>
+                <li>✓ Tips de belleza y cuidado</li>
+                <li>✓ Acceso a ventas privadas</li>
+              </ul>
+            </div>
+
+            <p>Copia el código y úsalo en tu próxima compra para obtener tu descuento.</p>
+            <center>
+              <a href="https://eclatbeauty.com/productos" class="button">Explorar Nuestros Productos</a>
+            </center>
+
+            <p style="font-size: 12px; color: #999; margin-top: 20px;">Puedes desuscribirte en cualquier momento desde el pie de página de nuestros emails. Esperamos verte pronto.</p>
+          </div>
+          <div class="footer">
+            <p>&copy; 2026 ÉCLAT Beauty. Todos los derechos reservados.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
 // Template: Email de Bienvenida con Código de Descuento
 export function getWelcomeTemplate(userName: string, discountCode: string, discountPercentage: number): string {
   return `

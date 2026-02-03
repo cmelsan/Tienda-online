@@ -2,43 +2,65 @@
 
 ## 📋 Resumen
 
-Cuando un usuario se registra en el sitio, automáticamente recibe un email con:
+Cuando un usuario se registra o se suscribe a la newsletter, automáticamente recibe un email con:
 - ✅ Mensaje de bienvenida personalizado
 - ✅ Código de descuento: **BIENVENIDO20** (20% de descuento)
-- ✅ Beneficios de tener cuenta
+- ✅ Beneficios específicos según el tipo de registro
 - ✅ Link a explorar productos
 
 ## 🔧 Cómo Funciona
 
-### 1. **Usuario se registra**
+### 1️⃣ **Usuario se registra como miembro** (`/registro`)
 - Va a `/registro`
 - Completa nombre, email y contraseña
 - Hace clic en "Crear Cuenta"
+- **Recibe:** Email de bienvenida completo con cupón BIENVENIDO20 (20%)
 
-### 2. **Sistema automáticamente:**
-- Crea la cuenta en Supabase Auth
-- Migra el carrito (si es guest)
-- **Envía email de bienvenida** ← NUEVO
+### 2️⃣ **Usuario se suscribe a newsletter** (footer)
+- Va al footer del sitio
+- Ingresa su email
+- Hace clic en "Suscribirse"
+- **Recibe:** Email de bienvenida para suscriptores con cupón BIENVENIDO20 (20%)
 
-### 3. **Email de Bienvenida**
-- Template profesional en `/src/lib/brevo.ts` → `getWelcomeTemplate()`
-- Endpoint en `/src/pages/api/emails/welcome.ts`
-- Contiene el código BIENVENIDO20 destacado
+### 3️⃣ **Sistema automáticamente:**
+- Guarda el email en la BD
+- Envía email de bienvenida personalizado
+- Incluye el código BIENVENIDO20
+
+## 📊 Diferencias entre tipos de email
+
+| Aspecto | Registro de Usuario | Newsletter |
+|--------|-------------------|-----------|
+| **Plantilla** | `getWelcomeTemplate()` | `getNewsletterWelcomeTemplate()` |
+| **Cupón** | BIENVENIDO20 | BIENVENIDO20 |
+| **Descuento** | 20% | 20% |
+| **Beneficios** | Cuenta completa | Suscripción newsletter |
+| **Válido para** | Primera compra | Próxima compra |
 
 ## 📝 Customizaciones
 
 ### Cambiar el código de descuento
-En `/src/pages/registro.astro`, línea ~120:
+
+**Para Registro** (`/src/pages/registro.astro`):
 ```typescript
 discountCode: 'BIENVENIDO20',  // ← Cambia aquí
 discountPercentage: 20         // ← y aquí
 ```
 
-### Cambiar el porcentaje de descuento
-Mismo lugar que arriba
+**Para Newsletter** (`/src/pages/api/newsletter.ts`):
+```typescript
+const htmlContent = getNewsletterWelcomeTemplate(email, 'BIENVENIDO20', 20);
+                                                        ^^^^^^^^^^^^^^  ^^
+                                                        código    descuento %
+```
 
 ### Cambiar el texto del email
+
+**Registro:**
 En `/src/lib/brevo.ts`, función `getWelcomeTemplate()` líneas ~327-380
+
+**Newsletter:**
+En `/src/lib/brevo.ts`, función `getNewsletterWelcomeTemplate()` líneas ~323-380
 
 ## ✅ Admin: Crear el Cupón
 
@@ -48,23 +70,16 @@ En `/src/lib/brevo.ts`, función `getWelcomeTemplate()` líneas ~327-380
    - **Código**: BIENVENIDO20
    - **Tipo**: Porcentaje (%)
    - **Valor**: 20
-   - **Válido para**: Primera compra (opcional)
+   - **Válido para**: Todos o Primera compra (opcional)
    - **Válido desde**: HOY
    - **Válido hasta**: [fecha que definas]
 
-## 📊 Newsletter + Email de Bienvenida
-
-El usuario automáticamente:
-1. ✅ Recibe email de bienvenida (registro)
-2. ✅ Puede suscribirse a newsletter (footer)
-
-Son dos sistemas independientes pero complementarios.
-
 ## 🧪 Testear
 
-### En Desarrollo
+### En Consola del Navegador
+
+**Email de Bienvenida (Registro):**
 ```javascript
-// En consola del navegador
 fetch('/api/emails/welcome', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
@@ -77,22 +92,37 @@ fetch('/api/emails/welcome', {
 }).then(r => r.json()).then(console.log)
 ```
 
+**Email de Newsletter:**
+```javascript
+fetch('/api/newsletter', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    email: 'test@email.com'
+  })
+}).then(r => r.json()).then(console.log)
+```
+
 ## 📧 Email Template Features
 
-- ✨ Diseño responsive
+- ✨ Diseño responsive idéntico
 - 🎨 Gradient header (pink y orange)
 - 🎟️ Código de descuento destacado
-- 📋 Lista de beneficios
+- 📋 Lista de beneficios (personalizado para cada tipo)
 - 🛍️ Button CTA a productos
 - 📱 Mobile-friendly
 
 ## 🔐 Variables Seguras
 
-El endpoint espera:
+**Endpoint Welcome (Registro):**
 - `email` - email del usuario
 - `userName` - nombre para personalizar
 - `discountCode` - código (default: BIENVENIDO20)
 - `discountPercentage` - % de descuento (default: 20)
+
+**Endpoint Newsletter:**
+- `email` - email del suscriptor
+- Automáticamente usa BIENVENIDO20 (20%)
 
 ## 📞 Soporte
 
@@ -100,4 +130,5 @@ Si los emails no se envían:
 1. Verificar que BREVO_API_KEY está configurada en `.env`
 2. Revisar logs en app.brevo.com
 3. Chequear la consola del navegador
-4. Verificar que el usuario confirmó su email en Supabase
+4. Verificar que el usuario confirmó su email en Supabase (si aplica)
+

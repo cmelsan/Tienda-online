@@ -369,9 +369,6 @@ export function getNewsletterWelcomeTemplate(email: string, discountCode: string
             </div>
 
             <p>Copia el código y úsalo en tu próxima compra para obtener tu descuento.</p>
-            <center>
-              <a href="https://eclatbeauty.com/productos" class="button">Explorar Nuestros Productos</a>
-            </center>
 
             <p style="font-size: 12px; color: #999; margin-top: 20px;">Puedes desuscribirte en cualquier momento desde el pie de página de nuestros emails. Esperamos verte pronto.</p>
           </div>
@@ -434,9 +431,6 @@ export function getWelcomeTemplate(userName: string, discountCode: string, disco
             </div>
 
             <p>Para utilizar tu código de descuento, simplemente cópialo y úsalo al finalizar tu compra.</p>
-            <center>
-              <a href="https://eclatbeauty.com/productos" class="button">Explorar Nuestros Productos</a>
-            </center>
 
             <p style="font-size: 12px; color: #999; margin-top: 20px;">Si tienes preguntas, no dudes en contactarnos. Estamos aquí para ayudarte.</p>
           </div>

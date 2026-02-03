@@ -108,7 +108,64 @@ const { data: featuredPerfumesHombre } = await supabase
     </div>
   </section>
 
-  {/* 2. REBAJAS SECTION - Product Grid */}
+  {/* 2. EXCLUSIVE OFFER SECTION - Register CTA */}
+  <section class="relative py-20 lg:py-32 bg-gradient-to-r from-black via-black to-black overflow-hidden">
+    {/* Decorative Background Elements */}
+    <div class="absolute top-0 right-0 w-96 h-96 bg-rose-600/20 rounded-full blur-3xl -mr-48 -mt-48"></div>
+    <div class="absolute bottom-0 left-0 w-96 h-96 bg-pink-600/20 rounded-full blur-3xl -ml-48 -mb-48"></div>
+    
+    <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center">
+        {/* Subtitle */}
+        <span class="inline-block text-rose-400 text-[10px] uppercase tracking-[0.35em] mb-4 font-bold">Oferta Especial</span>
+        
+        {/* Main Heading */}
+        <h2 class="text-5xl md:text-6xl lg:text-7xl font-sans font-black text-white mb-6 tracking-tight leading-[0.95]">
+          Únete a ÉCLAT<br/>y ahorra
+        </h2>
+        
+        {/* Big Discount Badge */}
+        <div class="inline-block mb-8">
+          <span class="text-6xl md:text-8xl font-black bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">20%</span>
+        </div>
+        
+        {/* Description */}
+        <p class="text-white/80 text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed font-light">
+          Crea tu cuenta hoy y recibe un descuento exclusivo de <span class="font-bold text-white">20% de descuento</span> en tu primera compra. Más beneficios esperan por ti.
+        </p>
+        
+        {/* Benefits List */}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12 max-w-3xl mx-auto">
+
+        </div>
+        
+        {/* CTA Buttons */}
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a 
+            href="/registro"
+            class="group relative inline-flex items-center justify-center bg-gradient-to-r from-rose-600 to-pink-600 text-white px-10 py-5 font-bold text-sm uppercase tracking-[0.15em] overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-1"
+          >
+            <span class="relative z-10">Crear Cuenta Ahora</span>
+            <div class="absolute inset-0 bg-gradient-to-r from-pink-600 to-rose-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+          </a>
+          
+          <a 
+            href="/login"
+            class="group relative inline-flex items-center justify-center border-2 border-white text-white px-10 py-4 font-bold text-sm uppercase tracking-[0.15em] hover:bg-white hover:text-black transition-all duration-300"
+          >
+            Ya tengo cuenta
+          </a>
+        </div>
+        
+        {/* Small Text */}
+        <p class="text-white/50 text-xs mt-10">
+          Código automático incluido al registrarte. No requiere cupón.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {/* 3. REBAJAS SECTION - Product Grid */}
   {offersEnabled && (
   <section class="py-16 lg:py-24 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -142,7 +199,7 @@ const { data: featuredPerfumesHombre } = await supabase
   </section>
   )}
 
-  {/* 3. NOVEDADES SECTION - Enhanced Product Banners */}
+  {/* 4. NOVEDADES SECTION - Enhanced Product Banners */}
   <section class="py-12 lg:py-16 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
@@ -489,7 +546,7 @@ const { data: featuredPerfumesHombre } = await supabase
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-16">
         <span class="inline-block text-gray-medium text-[10px] uppercase tracking-[0.3em] mb-4">Experiencia</span>
-        <h2 class="text-3xl md:text-4xl font-serif font-light text-black">Servicios Éclat</h2>
+        <h2 class="text-3xl md:text-4xl font-sans font-light text-black">Servicios Éclat</h2>
       </div>
       
       <div class="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">

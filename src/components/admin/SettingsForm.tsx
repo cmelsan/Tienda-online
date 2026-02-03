@@ -8,6 +8,7 @@ interface SettingsFormProps {
 
 export default function SettingsForm({ token: initialToken, offersEnabled: initialOffersEnabled }: SettingsFormProps) {
   const [offersEnabled, setOffersEnabled] = useState(initialOffersEnabled);
+  const [flashSaleEnabled, setFlashSaleEnabled] = useState(false);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState(initialToken);
@@ -17,6 +18,7 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
     if (!token) {
       fetchToken();
     }
+    fetchFlashSaleStatus();
   }, []);
 
   const fetchToken = async () => {
@@ -45,16 +47,29 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
     }
   };
 
-  const handleToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newState = e.target.checked;
-    setOffersEnabled(newState);
+  const fetchFlashSaleStatus = async () => {
+    try {
+      const { data } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'flash_sale_enabled')
+        .single();
+      
+      if (data) {
+        setFlashSaleEnabled(data.value === true);
+      }
+    } catch (error) {
+      console.error('Error fetching flash sale status:', error);
+    }
+  };
+
+  const handleToggleSetting = async (key: string, newState: boolean) => {
     setLoading(true);
     setMessage('');
 
     try {
       if (!token) {
         setMessage('Token no disponible. Por favor, recarga la página.');
-        setOffersEnabled(!newState);
         setLoading(false);
         return;
       }
@@ -67,7 +82,7 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
         },
         credentials: 'include',
         body: JSON.stringify({
-          key: 'offers_enabled',
+          key: key,
           value: newState,
         }),
       });
@@ -78,15 +93,28 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
         throw new Error(data.error || 'Error al guardar configuración');
       }
 
+      if (key === 'offers_enabled') {
+        setOffersEnabled(newState);
+      } else if (key === 'flash_sale_enabled') {
+        setFlashSaleEnabled(newState);
+      }
+
       setMessage('Configuración actualizada correctamente.');
       setTimeout(() => setMessage(''), 3000);
     } catch (error: any) {
       setMessage('Error al guardar configuración.');
-      setOffersEnabled(!newState);
       console.error(error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleToggleOffers = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleToggleSetting('offers_enabled', e.target.checked);
+  };
+
+  const handleToggleFlashSale = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleToggleSetting('flash_sale_enabled', e.target.checked);
   };
 
   return (
@@ -102,8 +130,9 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
         </div>
       )}
 
-      <div class="bg-white border border-gray-200 p-8 shadow-sm">
-        <div class="flex items-center justify-between pb-6 border-b border-gray-100">
+      <div class="bg-white border border-gray-200 shadow-sm">
+        {/* Ofertas Setting */}
+        <div class="flex items-center justify-between p-8 border-b border-gray-100">
           <div>
             <h3 class="text-sm font-bold text-black uppercase">Sección de Ofertas</h3>
             <p class="text-xs text-gray-500 mt-1 max-w-sm">Si se desactiva, la página de ofertas mostrará un error 404 y el enlace desaparecerá del menú principal.</p>
@@ -113,7 +142,26 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
             <input
               type="checkbox"
               checked={offersEnabled}
-              onChange={handleToggle}
+              onChange={handleToggleOffers}
+              disabled={loading}
+              class="sr-only peer"
+            />
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+          </label>
+        </div>
+
+        {/* Flash Sale Setting */}
+        <div class="flex items-center justify-between p-8">
+          <div>
+            <h3 class="text-sm font-bold text-black uppercase">⚡ Flash Sales en Inicio</h3>
+            <p class="text-xs text-gray-500 mt-1 max-w-sm">Muestra la sección de Flash Sales en la página de inicio. Los productos se configuran en el Gestor de Flash Sales.</p>
+          </div>
+
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={flashSaleEnabled}
+              onChange={handleToggleFlashSale}
               disabled={loading}
               class="sr-only peer"
             />

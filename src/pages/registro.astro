@@ -116,7 +116,7 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
       if (error) throw error;
 
       if (data.user) {
-        // Migrate Guest Cart if exists
+        // 1. Migrate Guest Cart if exists
         const sessionId = getOrCreateSessionId();
         const { error: migrationError } = await supabase.rpc('migrate_guest_cart_to_user', {
             p_session_id: sessionId,
@@ -129,6 +129,26 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
         } else {
           // Clear local session ID only if migration (or attempt) happened
           clearSessionId();
+        }
+
+        // 2. Send Welcome Email with Discount Code
+        try {
+          const emailRes = await fetch('/api/emails/welcome', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: data.user.email,
+              userName: name,
+              discountCode: 'BIENVENIDO20',
+              discountPercentage: 20
+            })
+          });
+          
+          if (!emailRes.ok) {
+            console.warn('Welcome email failed, but registration successful:', await emailRes.json());
+          }
+        } catch (emailError) {
+          console.warn('Welcome email error (non-blocking):', emailError);
         }
       }
 

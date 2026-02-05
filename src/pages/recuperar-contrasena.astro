@@ -1,0 +1,91 @@
+---
+import PublicLayout from '@/layouts/PublicLayout.astro';
+---
+
+<PublicLayout title="Recuperar Contraseña - ÉCLAT">
+  <div class="min-h-[80vh] flex items-center justify-center bg-white px-4">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-10">
+        <h1 class="text-3xl font-sans font-bold text-black uppercase tracking-wider mb-4">
+          Recuperar Contraseña
+        </h1>
+        <p class="text-sm text-gray-500">
+          Ingresa tu email y te enviaremos un enlace para resetear tu contraseña.
+        </p>
+      </div>
+
+      <form class="space-y-6" id="forgot-password-form">
+        <div>
+          <label for="email" class="sr-only">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            placeholder="EMAIL"
+            class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 uppercase rounded-none"
+          />
+        </div>
+
+        <div id="error-message" class="hidden text-rose-600 text-sm text-center"></div>
+        <div id="success-message" class="hidden text-green-600 text-sm text-center"></div>
+
+        <button
+          type="submit"
+          class="w-full bg-black text-white py-3 text-sm font-bold uppercase tracking-wider hover:bg-gray-900 transition-colors"
+        >
+          Enviar Enlace de Recuperación
+        </button>
+      </form>
+
+      <div class="text-center mt-8">
+        <p class="text-xs text-gray-500">
+          ¿Recordaste tu contraseña?
+          <a href="/login" class="text-black font-bold underline hover:text-gray-700">
+            Inicia sesión
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('forgot-password-form') as HTMLFormElement;
+    const errorDiv = document.getElementById('error-message') as HTMLElement;
+    const successDiv = document.getElementById('success-message') as HTMLElement;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = (document.getElementById('email') as HTMLInputElement).value.trim();
+      
+      errorDiv.classList.add('hidden');
+      successDiv.classList.add('hidden');
+
+      try {
+        const response = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          errorDiv.textContent = data.error || 'Error al procesar la solicitud';
+          errorDiv.classList.remove('hidden');
+          return;
+        }
+
+        successDiv.textContent = 'Email de recuperación enviado. Revisa tu bandeja de entrada.';
+        successDiv.classList.remove('hidden');
+        form.reset();
+      } catch (error) {
+        errorDiv.textContent = 'Error al enviar la solicitud. Intenta nuevamente.';
+        errorDiv.classList.remove('hidden');
+      }
+    });
+  </script>
+</PublicLayout>

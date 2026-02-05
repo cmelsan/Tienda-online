@@ -1,0 +1,137 @@
+---
+import PublicLayout from '@/layouts/PublicLayout.astro';
+import { supabase } from '@/lib/supabase';
+
+const { token } = Astro.params;
+
+// Validate token exists and is not expired
+if (!token) {
+  return Astro.redirect('/recuperar-contrasena');
+}
+
+const { data: resetToken } = await supabase
+  .from('password_reset_tokens')
+  .select('*')
+  .eq('token', token)
+  .eq('used', false)
+  .single();
+
+if (!resetToken || new Date(resetToken.expires_at) < new Date()) {
+  return Astro.redirect('/recuperar-contrasena?error=token-expirado');
+}
+---
+
+<PublicLayout title="Resetear Contraseña - ÉCLAT">
+  <div class="min-h-[80vh] flex items-center justify-center bg-white px-4">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-10">
+        <h1 class="text-3xl font-sans font-bold text-black uppercase tracking-wider mb-4">
+          Nueva Contraseña
+        </h1>
+        <p class="text-sm text-gray-500">
+          Ingresa tu nueva contraseña para acceder a tu cuenta.
+        </p>
+      </div>
+
+      <form class="space-y-6" id="reset-password-form">
+        <input type="hidden" id="token" value={token} />
+
+        <div>
+          <label for="password" class="sr-only">Contraseña</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            required
+            placeholder="CONTRASEÑA"
+            minlength="8"
+            class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 uppercase rounded-none"
+          />
+          <p class="text-xs text-gray-400 mt-1">Mínimo 8 caracteres</p>
+        </div>
+
+        <div>
+          <label for="confirm-password" class="sr-only">Confirmar Contraseña</label>
+          <input
+            type="password"
+            id="confirm-password"
+            name="confirm-password"
+            required
+            placeholder="CONFIRMAR CONTRASEÑA"
+            minlength="8"
+            class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 uppercase rounded-none"
+          />
+        </div>
+
+        <div id="error-message" class="hidden text-rose-600 text-sm text-center"></div>
+
+        <button
+          type="submit"
+          class="w-full bg-black text-white py-3 text-sm font-bold uppercase tracking-wider hover:bg-gray-900 transition-colors"
+        >
+          Cambiar Contraseña
+        </button>
+      </form>
+
+      <div class="text-center mt-8">
+        <p class="text-xs text-gray-500">
+          <a href="/login" class="text-black font-bold underline hover:text-gray-700">
+            Volver al login
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('reset-password-form') as HTMLFormElement;
+    const errorDiv = document.getElementById('error-message') as HTMLElement;
+    const token = (document.getElementById('token') as HTMLInputElement).value;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const password = (document.getElementById('password') as HTMLInputElement).value;
+      const confirmPassword = (document.getElementById('confirm-password') as HTMLInputElement).value;
+
+      errorDiv.classList.add('hidden');
+
+      // Validations
+      if (password.length < 8) {
+        errorDiv.textContent = 'La contraseña debe tener al menos 8 caracteres';
+        errorDiv.classList.remove('hidden');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        errorDiv.textContent = 'Las contraseñas no coinciden';
+        errorDiv.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token, password }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          errorDiv.textContent = data.error || 'Error al cambiar la contraseña';
+          errorDiv.classList.remove('hidden');
+          return;
+        }
+
+        // Redirect to login with success message
+        window.location.href = '/login?success=password-reset';
+      } catch (error) {
+        errorDiv.textContent = 'Error al procesar la solicitud. Intenta nuevamente.';
+        errorDiv.classList.remove('hidden');
+      }
+    });
+  </script>
+</PublicLayout>

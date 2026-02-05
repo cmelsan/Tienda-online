@@ -6,23 +6,36 @@ const RESET_TOKEN_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
 
 export async function POST({ request }: any) {
   try {
-    const { email } = await request.json();
+    const body = await request.json();
+    const rawEmail = body.email;
 
-    if (!email || typeof email !== 'string') {
+    if (!rawEmail || typeof rawEmail !== 'string') {
       return new Response(JSON.stringify({ error: 'Email requerido' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
+    // Clean and normalize email
+    const email = rawEmail.trim().toLowerCase();
+    
+    console.log('[ForgotPassword] Searching for user with email:', email);
+
     // Search for user in profiles table
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, email')
-      .eq('email', email.toLowerCase())
+      .ilike('email', email) // case-insensitive search
       .single();
 
+    console.log('[ForgotPassword] Profile search result:', {
+      profileError: profileError?.message,
+      profileFound: !!profile,
+      profileEmail: profile?.email
+    });
+
     if (profileError || !profile) {
+      console.log('[ForgotPassword] User not found, returning safe response');
       // For security, don't reveal if email exists
       return new Response(JSON.stringify({ 
         success: true,
@@ -37,6 +50,8 @@ export async function POST({ request }: any) {
     const resetToken = randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + RESET_TOKEN_EXPIRY).toISOString();
 
+    console.log('[ForgotPassword] Generated token, inserting into DB');
+
     // Save token to database
     const { error: insertError } = await supabase
       .from('password_reset_tokens')
@@ -48,7 +63,7 @@ export async function POST({ request }: any) {
       });
 
     if (insertError) {
-      console.error('Database error:', insertError);
+      console.error('[ForgotPassword] Database error:', insertError);
       return new Response(JSON.stringify({ error: 'Error al procesar la solicitud' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
@@ -69,18 +84,22 @@ export async function POST({ request }: any) {
       <p>Saludos,<br>Equipo ÉCLAT</p>
     `;
 
+    console.log('[ForgotPassword] Sending email to:', profile.email);
+
     try {
       const sendResult = await sendEmail({
-        to: profile.email || '',
+        to: profile.email,
         subject: 'Recupera tu contraseña en ÉCLAT',
         htmlContent: emailContent,
       });
 
+      console.log('[ForgotPassword] Email send result:', sendResult);
+
       if (!sendResult.success) {
-        console.error('Email send failed:', sendResult.error);
+        console.error('[ForgotPassword] Email send failed:', sendResult.error);
       }
     } catch (emailError) {
-      console.error('Email sending exception:', emailError);
+      console.error('[ForgotPassword] Email sending exception:', emailError);
     }
 
     return new Response(JSON.stringify({ 
@@ -91,7 +110,7 @@ export async function POST({ request }: any) {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Forgot password error:', error);
+    console.error('[ForgotPassword] General error:', error);
     return new Response(JSON.stringify({ error: 'Error interno del servidor' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

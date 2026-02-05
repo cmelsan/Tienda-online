@@ -1,15 +1,15 @@
 import type { APIRoute } from 'astro';
-import { supabase, getAdminSupabaseClient, createServerSupabaseClient } from '@/lib/supabase';
+import { getAdminSupabaseClient, createServerSupabaseClient } from '@/lib/supabase';
 
 export const POST: APIRoute = async (context) => {
   try {
     console.log('[Settings API] POST request received');
     
     // Use createServerSupabaseClient which handles cookies automatically
-    const dbClient = await createServerSupabaseClient(context, true);
+    const userClient = await createServerSupabaseClient(context, true);
     
     // Check if user is authenticated via cookies
-    const { data: { session }, error: sessionError } = await dbClient.auth.getSession();
+    const { data: { session }, error: sessionError } = await userClient.auth.getSession();
     
     if (sessionError || !session) {
       console.error('[Settings API] No session found:', sessionError);
@@ -32,12 +32,21 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Use admin client to bypass RLS
+    // Use admin client to bypass RLS (CRITICAL FOR app_settings)
     const adminClient = getAdminSupabaseClient();
-    const client = adminClient || dbClient;
+    
+    if (!adminClient) {
+      console.error('[Settings API] Admin client not available - RLS will be enforced');
+      return new Response(JSON.stringify({ error: 'Server not properly configured' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
-    // Upsert setting
-    const { data: setting, error } = await client
+    console.log('[Settings API] Using admin client to bypass RLS');
+
+    // Upsert setting with admin client
+    const { data: setting, error } = await adminClient
       .from('app_settings')
       .upsert(
         {

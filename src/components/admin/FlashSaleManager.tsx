@@ -49,6 +49,8 @@ export default function FlashSaleManager() {
   const fetchProducts = async (authToken: string) => {
     try {
       setLoading(true);
+      console.log('[FlashSaleManager] Fetching products with token:', authToken.substring(0, 20) + '...');
+      
       const response = await fetch('/api/admin/flash-sales', {
         method: 'GET',
         headers: {
@@ -58,15 +60,19 @@ export default function FlashSaleManager() {
         credentials: 'include',
       });
 
+      console.log('[FlashSaleManager] Response status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(`Error: ${response.status} - ${errorData.error || 'Unknown error'}`);
       }
 
       const data = await response.json();
+      console.log('[FlashSaleManager] Products loaded:', data.data?.length || 0);
       setProducts(data.data || []);
     } catch (error) {
-      console.error('Error fetching products:', error);
-      alert('Error al cargar productos');
+      console.error('[FlashSaleManager] Error fetching products:', error);
+      alert(`Error al cargar productos: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }

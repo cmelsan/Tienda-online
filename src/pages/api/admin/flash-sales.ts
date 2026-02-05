@@ -1,64 +1,28 @@
 import type { APIRoute } from 'astro';
-import { supabase, getAdminSupabaseClient } from '@/lib/supabase';
+import { getAdminSupabaseClient } from '@/lib/supabase';
+
+// Use admin client to bypass RLS
+const adminClient = getAdminSupabaseClient();
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    // Get auth token from headers
-    const authHeader = request.headers.get('Authorization');
-    const token = authHeader?.replace('Bearer ', '');
-    
-    if (!token) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Verify token and get user
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Check if user is admin
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile?.is_admin) {
-      return new Response(JSON.stringify({ error: 'Forbidden - Admin only' }), {
-        status: 403,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    if (!adminClient) {
+      return new Response(
+        JSON.stringify({ error: 'Server not properly configured' }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
     const body = await request.json();
-    const { action, productId, data: updateData } = body;
+    const { productId, data: updateData } = body;
 
-    // Get admin client (bypasses RLS)
-    const adminClient = getAdminSupabaseClient();
-    if (!adminClient) {
-      // Fallback to regular client if admin client not available
-      const { error } = await supabase
-        .from('products')
-        .update(updateData)
-        .eq('id', productId);
-
-      if (error) throw error;
-
-      return new Response(JSON.stringify({ success: true }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    if (!productId || !updateData) {
+      return new Response(
+        JSON.stringify({ error: 'Missing productId or data' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Use admin client to bypass RLS
     const { error } = await adminClient
       .from('products')
       .update(updateData)
@@ -72,44 +36,32 @@ export const POST: APIRoute = async ({ request }) => {
     });
   } catch (error: any) {
     console.error('Flash sales API error:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Server error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ error: error.message || 'Server error' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 };
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    // Get auth token
-    const authHeader = request.headers.get('Authorization');
-    const token = authHeader?.replace('Bearer ', '');
+    console.log('[Flash Sales GET] Starting...');
     
-    if (!token) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    if (!adminClient) {
+      console.error('[Flash Sales GET] Admin client not available');
+      return new Response(
+        JSON.stringify({ error: 'Server not properly configured' }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Verify token
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Get admin client or fallback
-    const adminClient = getAdminSupabaseClient();
-    const dbClient = adminClient || supabase;
-
-    const { data, error } = await dbClient
+    const { data, error } = await adminClient
       .from('products')
       .select('id, name, slug, price, is_flash_sale, flash_sale_discount, flash_sale_end_time')
       .order('name');
+
+    console.log('[Flash Sales GET] Error:', error);
+    console.log('[Flash Sales GET] Products count:', data?.length || 0);
 
     if (error) throw error;
 
@@ -118,10 +70,10 @@ export const GET: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
-    console.error('Flash sales GET error:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Server error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('[Flash Sales GET] Error:', error);
+    return new Response(
+      JSON.stringify({ error: error.message || 'Server error' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 };

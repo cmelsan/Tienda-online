@@ -1,0 +1,15 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import OffersManager from '@/components/admin/OffersManager';
+---
+
+<AdminLayout title="Gestión de Rebajas" description="Selecciona qué productos mostrar en la sección de Rebajas">
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-black mb-2">Gestión de Rebajas</h1>
+      <p class="text-gray-600">Selecciona hasta 5 productos para mostrar en la sección "Rebajas" de la página de inicio. Estos aparecerán solo si la sección de Ofertas está habilitada en Configuración.</p>
+    </div>
+
+    <OffersManager client:load />
+  </div>
+</AdminLayout>

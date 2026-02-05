@@ -25,6 +25,29 @@ const { data: offersSettings } = await supabase
 
 const offersEnabled = offersSettings?.value === true;
 
+// Fetch Featured Offers (products for rebaja section)
+const { data: featuredOffersData } = await supabase
+  .from('app_settings')
+  .select('value')
+  .eq('key', 'featured_offers')
+  .single();
+
+const featuredOfferIds = featuredOffersData?.value || [];
+
+// Fetch the featured products
+let featuredProducts = [];
+if (featuredOfferIds.length > 0) {
+  const { data: products } = await supabase
+    .from('products')
+    .select('*, brand:brands(name)')
+    .in('id', featuredOfferIds);
+  
+  // Order by the order in featuredOfferIds
+  featuredProducts = featuredOfferIds
+    .map((id: string) => products?.find((p: any) => p.id === id))
+    .filter(Boolean);
+}
+
 // Fetch Flash Sales Settings
 const { data: flashSaleSettings } = await supabase
   .from('app_settings')
@@ -157,7 +180,7 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
   </section>
 
   {/* 3. REBAJAS SECTION - Product Grid */}
-  {offersEnabled && (
+  {offersEnabled && featuredProducts.length > 0 && (
   <section class="py-16 lg:py-24 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-end justify-between mb-12">
@@ -172,7 +195,7 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
 
       {/* Products Grid */}
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-        {newProducts?.slice(0, 5).map(product => (
+        {featuredProducts?.map((product: any) => (
           <ProductCard product={{
             ...product,
             brand: product.brand?.name || 'Marca'

@@ -89,11 +89,19 @@ export async function POST({ request }: any) {
       <p>Saludos,<br>Equipo ÉCLAT</p>
     `;
 
-    await sendEmail({
-      to: resetToken.email,
-      subject: 'Tu contraseña en ÉCLAT ha sido cambiada',
-      html: emailContent,
-    });
+    try {
+      const sendResult = await sendEmail({
+        to: resetToken.email,
+        subject: 'Tu contraseña en ÉCLAT ha sido cambiada',
+        htmlContent: emailContent,
+      });
+
+      if (!sendResult.success) {
+        console.error('Confirmation email send failed:', sendResult.error);
+      }
+    } catch (emailError) {
+      console.error('Confirmation email exception:', emailError);
+    }
 
     return new Response(JSON.stringify({ 
       success: true,

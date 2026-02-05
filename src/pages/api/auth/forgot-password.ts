@@ -69,11 +69,19 @@ export async function POST({ request }: any) {
       <p>Saludos,<br>Equipo ÉCLAT</p>
     `;
 
-    await sendEmail({
-      to: profile.email || '',
-      subject: 'Recupera tu contraseña en ÉCLAT',
-      html: emailContent,
-    });
+    try {
+      const sendResult = await sendEmail({
+        to: profile.email || '',
+        subject: 'Recupera tu contraseña en ÉCLAT',
+        htmlContent: emailContent,
+      });
+
+      if (!sendResult.success) {
+        console.error('Email send failed:', sendResult.error);
+      }
+    } catch (emailError) {
+      console.error('Email sending exception:', emailError);
+    }
 
     return new Response(JSON.stringify({ 
       success: true,

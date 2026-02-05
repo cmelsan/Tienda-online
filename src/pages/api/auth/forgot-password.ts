@@ -26,22 +26,48 @@ export async function POST({ request }: any) {
 
     // Strategy 1: Try to find user in profiles table (main registered users table)
     console.log('[ForgotPassword] Step 1: Searching in profiles table...');
-    const { data: profiles } = await supabase
+    
+    // First, let's try to get ALL profiles to debug
+    const { data: allProfiles, error: allError } = await supabase
       .from('profiles')
-      .select('id, email')
-      .ilike('email', email)
-      .limit(1);
+      .select('id, email');
+    
+    console.log('[ForgotPassword] Total profiles in DB:', allProfiles?.length || 0);
+    if (allProfiles && allProfiles.length > 0) {
+      console.log('[ForgotPassword] First few profiles:');
+      allProfiles.slice(0, 3).forEach((p: any) => {
+        console.log(`  - ID: ${p.id}, Email: "${p.email}"`);
+      });
+    }
 
+    // Now search for the specific email
+    const { data: profiles, error: searchError } = await supabase
+      .from('profiles')
+      .select('id, email');
+    
+    if (searchError) {
+      console.error('[ForgotPassword] Error querying profiles:', searchError);
+    }
+
+    // Manual filter with case-insensitive match
+    let foundProfile = null;
     if (profiles && profiles.length > 0) {
-      userId = profiles[0].id;
-      userEmail = profiles[0].email;
-      console.log('[ForgotPassword] Found user in profiles:', userId);
+      foundProfile = profiles.find((p: any) => 
+        p.email && p.email.toLowerCase() === email.toLowerCase()
+      );
+    }
+
+    if (foundProfile) {
+      userId = foundProfile.id;
+      userEmail = foundProfile.email;
+      console.log('[ForgotPassword] Found user in profiles:', userId, 'Email:', userEmail);
     }
 
     console.log('[ForgotPassword] User lookup result:', {
       found: !!userId,
       userId,
       userEmail,
+      searchedFor: email,
     });
 
     if (!userId || !userEmail) {

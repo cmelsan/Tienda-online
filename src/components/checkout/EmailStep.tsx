@@ -36,6 +36,17 @@ export default function EmailStep({ initialEmail, onContinue, onLogin }: EmailSt
         e.preventDefault();
         setError('');
 
+        // Validar que el email esté presente y sea válido
+        if (!email || !email.trim()) {
+            setError('El email es requerido para continuar con tu compra');
+            return;
+        }
+
+        if (!email.includes('@') || !email.includes('.')) {
+            setError('Por favor ingresa un email válido');
+            return;
+        }
+
         if (emailExists) {
             setError('Ya existe una cuenta con este email. Por favor inicia sesión.');
             return;
@@ -117,7 +128,7 @@ export default function EmailStep({ initialEmail, onContinue, onLogin }: EmailSt
             <button
                 type="submit"
                 className="w-full bg-black text-white py-3 rounded font-bold hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={emailExists || checkingEmail || !email}
+                disabled={emailExists || checkingEmail || !email || !email.includes('@')}
             >
                 {createAccount ? 'Crear Cuenta y Continuar' : 'Continuar como Invitado'}
             </button>

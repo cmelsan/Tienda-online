@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { sendEmail } from '@/lib/brevo';
 
 export async function POST({ request }: any) {
   try {
@@ -74,6 +75,25 @@ export async function POST({ request }: any) {
       .update({ used: true })
       .eq('user_id', resetToken.user_id)
       .neq('id', resetToken.id);
+
+    // Send confirmation email
+    const emailContent = `
+      <p>Hola,</p>
+      <p>Tu contraseña en ÉCLAT ha sido cambiada exitosamente.</p>
+      <p>Si no realizaste este cambio, por favor contacta a nuestro equipo de soporte inmediatamente.</p>
+      <p><strong>Información de seguridad:</strong></p>
+      <ul>
+        <li>Cambio realizado el: ${new Date().toLocaleString('es-ES')}</li>
+        <li>Si no fuiste tú, resetea tu contraseña nuevamente desde: <a href="${process.env.PUBLIC_SITE_URL}/recuperar-contrasena">Recuperar Contraseña</a></li>
+      </ul>
+      <p>Saludos,<br>Equipo ÉCLAT</p>
+    `;
+
+    await sendEmail({
+      to: resetToken.email,
+      subject: 'Tu contraseña en ÉCLAT ha sido cambiada',
+      html: emailContent,
+    });
 
     return new Response(JSON.stringify({ 
       success: true,

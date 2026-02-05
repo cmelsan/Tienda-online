@@ -11,41 +11,10 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
   const [flashSaleEnabled, setFlashSaleEnabled] = useState(false);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [token, setToken] = useState(initialToken);
 
-  // If token is empty, try to get it from localStorage or fetch from server
   useEffect(() => {
-    if (!token) {
-      fetchToken();
-    }
     fetchFlashSaleStatus();
   }, []);
-
-  const fetchToken = async () => {
-    // First try localStorage
-    const storedToken = localStorage.getItem('admin-token');
-    if (storedToken) {
-      setToken(storedToken);
-      console.log('[SettingsForm] Token loaded from localStorage');
-      return;
-    }
-
-    // If not in localStorage, try to fetch from server
-    try {
-      const response = await fetch('/api/admin/me', {
-        credentials: 'include',
-      });
-      const data = await response.json();
-      if (response.ok && data.token) {
-        setToken(data.token);
-        // Save to localStorage for future use
-        localStorage.setItem('admin-token', data.token);
-        console.log('[SettingsForm] Token fetched from server and saved to localStorage');
-      }
-    } catch (error) {
-      console.error('[SettingsForm] Error fetching token:', error);
-    }
-  };
 
   const fetchFlashSaleStatus = async () => {
     try {
@@ -59,7 +28,7 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
         setFlashSaleEnabled(data.value === true);
       }
     } catch (error) {
-      console.error('Error fetching flash sale status:', error);
+      console.error('[SettingsForm] Error fetching flash sale status:', error);
     }
   };
 
@@ -68,22 +37,15 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
     setMessage('');
 
     try {
-      if (!token) {
-        console.error('[SettingsForm] No token available');
-        setMessage('Token no disponible. Por favor, recarga la página.');
-        setLoading(false);
-        return;
-      }
-
       console.log('[SettingsForm] Toggling', key, 'to', newState);
 
+      // No token needed - using cookies for auth
       const response = await fetch('/api/admin/settings', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
-        credentials: 'include',
+        credentials: 'include', // Important: send cookies
         body: JSON.stringify({
           key: key,
           value: newState,
@@ -105,11 +67,11 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
         setFlashSaleEnabled(newState);
       }
 
-      setMessage('Configuración actualizada correctamente.');
+      setMessage('✅ Configuración actualizada correctamente.');
       setTimeout(() => setMessage(''), 3000);
     } catch (error: any) {
       console.error('[SettingsForm] Error:', error);
-      setMessage(`Error al guardar configuración: ${error.message}`);
+      setMessage(`❌ ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -131,7 +93,7 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
       </div>
 
       {message && (
-        <div className={`mb-6 p-4 border text-xs font-bold uppercase tracking-wide ${message.includes('Error') ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-green-50 border-green-200 text-green-600'}`}>
+        <div className={`mb-6 p-4 border text-xs font-bold uppercase tracking-wide ${message.includes('❌') ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-green-50 border-green-200 text-green-600'}`}>
           {message}
         </div>
       )}

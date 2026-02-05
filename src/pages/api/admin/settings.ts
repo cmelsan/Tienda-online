@@ -1,45 +1,27 @@
 import type { APIRoute } from 'astro';
-import { supabase, getAdminSupabaseClient } from '@/lib/supabase';
+import { supabase, getAdminSupabaseClient, createServerSupabaseClient } from '@/lib/supabase';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async (context) => {
   try {
     console.log('[Settings API] POST request received');
     
-    // Get auth token from headers
-    const authHeader = request.headers.get('Authorization');
-    const token = authHeader?.replace('Bearer ', '');
+    // Use createServerSupabaseClient which handles cookies automatically
+    const dbClient = await createServerSupabaseClient(context, true);
     
-    if (!token) {
-      console.error('[Settings API] No token provided');
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+    // Check if user is authenticated via cookies
+    const { data: { session }, error: sessionError } = await dbClient.auth.getSession();
+    
+    if (sessionError || !session) {
+      console.error('[Settings API] No session found:', sessionError);
+      return new Response(JSON.stringify({ error: 'Unauthorized - no session' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    console.log('[Settings API] Token received:', token.substring(0, 20) + '...');
+    console.log('[Settings API] User authenticated via cookies:', session.user.id);
 
-    // Verify token
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      console.error('[Settings API] Auth error:', authError);
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log('[Settings API] User authenticated:', user.id);
-
-    // If user is authenticated with a valid token, they've already been verified as admin during login
-    // No need to check is_admin again - the login endpoint already verified this
-
-    // Get admin client (bypasses RLS) - may be null if SUPABASE_SERVICE_ROLE_KEY not set
-    const adminClient = getAdminSupabaseClient();
-    const dbClient = adminClient || supabase; // Fallback to regular supabase if admin client not available
-
-    const { key, value } = await request.json();
+    const { key, value } = await context.request.json();
 
     console.log('[Settings API] Updating setting:', key, '=', value);
 
@@ -50,8 +32,12 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // Use admin client to bypass RLS
+    const adminClient = getAdminSupabaseClient();
+    const client = adminClient || dbClient;
+
     // Upsert setting
-    const { data: setting, error } = await dbClient
+    const { data: setting, error } = await client
       .from('app_settings')
       .upsert(
         {

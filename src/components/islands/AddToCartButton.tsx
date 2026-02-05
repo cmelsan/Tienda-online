@@ -93,10 +93,10 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
                 onClick={handleAddToCart}
                 disabled={isOutOfStock || isAdding}
                 className={`w-full px-8 py-4 rounded-lg font-medium text-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isOutOfStock
-                        ? 'bg-noir-300 text-noir-600 cursor-not-allowed'
+                        ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                         : showSuccess
                             ? 'bg-green-600 text-white'
-                            : 'bg-noir-900 text-cream-50 hover:bg-noir-800 focus:ring-noir-900'
+                            : 'bg-black text-white hover:bg-gray-900 focus:ring-black'
                     }`}
             >
                 {isAdding ? (

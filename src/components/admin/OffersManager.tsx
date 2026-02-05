@@ -16,6 +16,14 @@ interface FeaturedOffer {
   discount: number;
 }
 
+const formatPrice = (cents: number) => {
+  if (!cents || isNaN(cents)) return '0,00 €';
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(cents / 100);
+};
+
 export default function OffersManager() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedOffers, setSelectedOffers] = useState<FeaturedOffer[]>([]);
@@ -153,7 +161,7 @@ export default function OffersManager() {
                   <div className="flex-1">
                     <h4 className="font-bold text-black mb-1">{product.name}</h4>
                     <p className="text-sm text-gray-600">
-                      Precio: {(product.price / 100).toFixed(2)}€ → {(discountedPrice / 100).toFixed(2)}€
+                      Precio: {formatPrice(product.price)} → {formatPrice(discountedPrice)}
                     </p>
                   </div>
                   <div className="flex items-center gap-4 ml-4">
@@ -222,7 +230,7 @@ export default function OffersManager() {
                     {product.name}
                   </h4>
                   <p className={`text-xs font-bold ${isSelected ? 'text-blue-600' : 'text-gray-600'}`}>
-                    {(product.price / 100).toFixed(2)} €
+                    {formatPrice(product.price)}
                   </p>
                 </div>
               </div>

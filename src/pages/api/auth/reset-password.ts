@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { sendEmail } from '@/lib/brevo';
+import bcrypt from 'bcryptjs';
 
 export async function POST({ request }: any) {
   try {
@@ -46,11 +47,14 @@ export async function POST({ request }: any) {
     // This function handles finding the user by email and resetting the password
     console.log('[ResetPassword] Calling RPC function to reset password');
     
+    // Generate bcrypt hash
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
     const { data: rpcResult, error: rpcError } = await supabase.rpc(
-      'reset_password_with_token',
+      'reset_password_with_token_hashed',
       {
         p_token: token,
-        p_new_password: password
+        p_hashed_password: hashedPassword
       }
     );
 

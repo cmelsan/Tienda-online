@@ -69,10 +69,13 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
 
     try {
       if (!token) {
+        console.error('[SettingsForm] No token available');
         setMessage('Token no disponible. Por favor, recarga la página.');
         setLoading(false);
         return;
       }
+
+      console.log('[SettingsForm] Toggling', key, 'to', newState);
 
       const response = await fetch('/api/admin/settings', {
         method: 'POST',
@@ -87,7 +90,10 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
         }),
       });
 
+      console.log('[SettingsForm] Response status:', response.status);
+
       const data = await response.json();
+      console.log('[SettingsForm] Response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Error al guardar configuración');
@@ -102,8 +108,8 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
       setMessage('Configuración actualizada correctamente.');
       setTimeout(() => setMessage(''), 3000);
     } catch (error: any) {
-      setMessage('Error al guardar configuración.');
-      console.error(error);
+      console.error('[SettingsForm] Error:', error);
+      setMessage(`Error al guardar configuración: ${error.message}`);
     } finally {
       setLoading(false);
     }

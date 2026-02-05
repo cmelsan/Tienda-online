@@ -21,11 +21,11 @@ export async function POST({ request }: any) {
     
     console.log('[ForgotPassword] Searching for user with email:', email);
 
-    // Search for user in profiles table
+    // First try to find in auth.users via profiles
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, email')
-      .ilike('email', email) // case-insensitive search
+      .ilike('email', email)
       .single();
 
     console.log('[ForgotPassword] Profile search result:', {
@@ -34,8 +34,35 @@ export async function POST({ request }: any) {
       profileEmail: profile?.email
     });
 
-    if (profileError || !profile) {
-      console.log('[ForgotPassword] User not found, returning safe response');
+    // If not found in profiles, try with direct user ID from auth
+    let userId = profile?.id;
+    let userEmail = profile?.email;
+
+    if (!profile && profileError) {
+      console.log('[ForgotPassword] Not found in profiles, trying alternative method...');
+      
+      // Try to find user by checking all profiles
+      const { data: allProfiles } = await supabase
+        .from('profiles')
+        .select('id, email');
+
+      console.log('[ForgotPassword] All profiles count:', allProfiles?.length);
+      
+      if (allProfiles) {
+        const foundProfile = allProfiles.find(p => 
+          p.email && p.email.toLowerCase() === email
+        );
+        
+        if (foundProfile) {
+          userId = foundProfile.id;
+          userEmail = foundProfile.email;
+          console.log('[ForgotPassword] Found user by scanning:', { userId, userEmail });
+        }
+      }
+    }
+
+    if (!userId || !userEmail) {
+      console.log('[ForgotPassword] User not found after all methods');
       // For security, don't reveal if email exists
       return new Response(JSON.stringify({ 
         success: true,
@@ -56,8 +83,8 @@ export async function POST({ request }: any) {
     const { error: insertError } = await supabase
       .from('password_reset_tokens')
       .insert({
-        user_id: profile.id,
-        email: profile.email,
+        user_id: userId,
+        email: userEmail,
         token: resetToken,
         expires_at: expiresAt,
       });
@@ -84,11 +111,11 @@ export async function POST({ request }: any) {
       <p>Saludos,<br>Equipo ÉCLAT</p>
     `;
 
-    console.log('[ForgotPassword] Sending email to:', profile.email);
+    console.log('[ForgotPassword] Sending email to:', userEmail);
 
     try {
       const sendResult = await sendEmail({
-        to: profile.email,
+        to: userEmail,
         subject: 'Recupera tu contraseña en ÉCLAT',
         htmlContent: emailContent,
       });

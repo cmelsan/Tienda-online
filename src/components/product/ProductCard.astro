@@ -85,6 +85,13 @@ if (!imageUrl || imageUrl.includes('placeholder')) {
       </svg>
     </button>
 
+    <!-- Discount Badge -->
+    {product.discount > 0 && (
+      <div class="absolute top-3 left-3 z-20 w-12 h-12 flex items-center justify-center rounded-full bg-beauty-red text-white font-bold text-sm shadow-md">
+        -{product.discount}%
+      </div>
+    )}
+
     <a href={`/productos/${product.slug}`} class="block">
       <!-- Product Image - Premium styling -->
       <div class="aspect-square overflow-hidden bg-white-cream">

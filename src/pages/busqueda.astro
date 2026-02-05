@@ -33,6 +33,39 @@ if (queryClean) {
 }
 
 const pageTitle = queryClean ? `Resultados para "${queryClean}"` : 'Búsqueda';
+
+// Fetch Offers Settings
+const { data: offersSettingData } = await supabase
+  .from('app_settings')
+  .select('value')
+  .eq('key', 'offers_enabled')
+  .single();
+
+const offersEnabled = offersSettingData?.value === true;
+
+// Fetch Featured Offers if enabled
+let featuredOffers: any[] = [];
+if (offersEnabled) {
+  const { data: offersData } = await supabase
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'featured_offers')
+    .single();
+  
+  if (offersData?.value) {
+    featuredOffers = offersData.value;
+  }
+}
+
+// Add discount info to products if offers are enabled
+const productsWithDiscounts = products.map(product => {
+  const offer = featuredOffers.find(o => o.id === product.id);
+  return {
+    ...product,
+    discount: offer?.discount || 0,
+    discountedPrice: offer ? Math.round(product.price * (1 - offer.discount / 100)) : 0
+  };
+});
 ---
 
 <PublicLayout title={`${pageTitle} | ÉCLAT`} description="Resultados de búsqueda">
@@ -51,7 +84,7 @@ const pageTitle = queryClean ? `Resultados para "${queryClean}"` : 'Búsqueda';
 
         {products.length > 0 ? (
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
-                {products.map((product) => {
+                {productsWithDiscounts.map((product) => {
                      // Determine fallback image based on category
                     const catSlug = product.category?.slug || 'maquillaje';
                     const fallbackImage = `/assets/products/${

@@ -120,7 +120,18 @@ export default function CartSlideOver() {
                                         </div>
 
                                         <p className="text-base font-bold text-black mb-3">
-                                            {formatPrice(item.product.price)}
+                                            {item.product.discount > 0 ? (
+                                                <div className="flex gap-2 items-center">
+                                                    <span className="line-through text-gray-400 text-sm">
+                                                        {formatPrice(item.product.price)}
+                                                    </span>
+                                                    <span className="text-beauty-red">
+                                                        {formatPrice(item.product.discountedPrice || item.product.price)}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                formatPrice(item.product.price)
+                                            )}
                                         </p>
 
                                         {/* Quantity Controls - Mejorados */}

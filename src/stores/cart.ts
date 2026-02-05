@@ -6,7 +6,10 @@ import { getOrCreateSessionId } from '@/lib/sessionManager';
 
 // Cart Item Interface
 export interface CartItem {
-    product: Product;
+    product: Product & {
+        discount?: number;
+        discountedPrice?: number;
+    };
     quantity: number;
 }
 
@@ -79,10 +82,14 @@ export const cartCount = computed(cartItems, (items) => {
     return Object.values(items).reduce((total, item) => total + item.quantity, 0);
 });
 
-// Computed: Total price in cents (before discount)
+// Computed: Total price in cents (before coupon discount)
 export const cartSubtotal = computed(cartItems, (items) => {
     return Object.values(items).reduce(
-        (total, item) => total + item.product.price * item.quantity,
+        (total, item) => {
+            // Use discounted price if available, otherwise use regular price
+            const price = item.product.discountedPrice || item.product.price;
+            return total + price * item.quantity;
+        },
         0
     );
 });

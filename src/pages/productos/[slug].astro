@@ -29,6 +29,35 @@ if (!product) {
   return Astro.redirect('/404');
 }
 
+// Fetch featured offers
+const { data: offersSettingData } = await supabase
+  .from('app_settings')
+  .select('value')
+  .eq('key', 'offers_enabled')
+  .single();
+
+const offersEnabled = offersSettingData?.value === true;
+
+let productDiscount = 0;
+let productDiscountedPrice = product.price;
+
+if (offersEnabled) {
+  const { data: offersData } = await supabase
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'featured_offers')
+    .single();
+  
+  if (offersData?.value) {
+    const featuredOffers = offersData.value;
+    const offer = featuredOffers.find((o: any) => o.id === product.id);
+    if (offer) {
+      productDiscount = offer.discount || 0;
+      productDiscountedPrice = Math.round(product.price * (1 - productDiscount / 100));
+    }
+  }
+}
+
 // Map category slug to fallback image for related products
 const getFallbackImage = (categorySlug: string) => {
   return `/assets/products/${
@@ -144,7 +173,14 @@ const { data: relatedProducts } = await supabase
             
             <div class="flex items-center justify-between">
                 <p class="text-2xl font-medium text-black">
-                {formatPrice(product.price)}
+                {productDiscount > 0 ? (
+                    <div class="flex gap-2 items-center">
+                        <span class="line-through text-gray-400">{formatPrice(product.price)}</span>
+                        <span class="text-beauty-red">{formatPrice(productDiscountedPrice)}</span>
+                    </div>
+                ) : (
+                    formatPrice(product.price)
+                )}
                 </p>
                 {product.stock > 0 && product.stock <= 5 && (
                     <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 uppercase tracking-wider">
@@ -173,7 +209,14 @@ const { data: relatedProducts } = await supabase
 
           <!-- Add to Cart System -->
           <div class="pt-6">
-             <AddToCartButton product={product} client:visible />
+             <AddToCartButton 
+               product={{
+                 ...product,
+                 discount: productDiscount,
+                 discountedPrice: productDiscountedPrice
+               }} 
+               client:visible 
+             />
              
              {/* Trust Badges */}
              <div class="grid grid-cols-2 gap-4 mt-8 pt-8 border-t border-gray-100">

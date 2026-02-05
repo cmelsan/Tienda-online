@@ -78,19 +78,10 @@ if (Array.isArray(featuredOffers) && featuredOffers.length > 0) {
       {rebajasProducts.length > 0 ? (
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
           {rebajasProducts.map((product: any) => (
-            <div class="relative group">
-              <ProductCard product={{
-                ...product,
-                brand: product.brand?.name || 'Marca'
-              }} />
-              
-              {/* Discount Badge */}
-              {product.discount > 0 && (
-                <div class="absolute top-2 right-2 bg-rose-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-sm shadow-lg">
-                  -{product.discount}%
-                </div>
-              )}
-            </div>
+            <ProductCard product={{
+              ...product,
+              brand: product.brand?.name || 'Marca'
+            }} />
           ))}
         </div>
       ) : (

@@ -172,7 +172,8 @@ export default function CheckoutFlow() {
             const itemsArray = Object.values(items).map((item: any) => ({
                 product_id: item.product.id,
                 quantity: item.quantity,
-                price: item.product.price,
+                // Use discounted price if available, otherwise use regular price
+                price: item.product.discountedPrice || item.product.price,
                 product: item.product,
             }));
 

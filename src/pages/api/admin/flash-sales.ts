@@ -1,19 +1,23 @@
 import type { APIRoute } from 'astro';
-import { getAdminSupabaseClient } from '@/lib/supabase';
+import { getAdminSupabaseClient, createServerSupabaseClient } from '@/lib/supabase';
 
-// Use admin client to bypass RLS
-const adminClient = getAdminSupabaseClient();
-
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async (context) => {
   try {
-    if (!adminClient) {
+    console.log('[Flash Sales POST] Starting...');
+    
+    // Check authentication via cookies
+    const userClient = await createServerSupabaseClient(context, true);
+    const { data: { session }, error: sessionError } = await userClient.auth.getSession();
+    
+    if (sessionError || !session) {
+      console.error('[Flash Sales POST] No session found:', sessionError);
       return new Response(
-        JSON.stringify({ error: 'Server not properly configured' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const body = await request.json();
+    const body = await context.request.json();
     const { productId, data: updateData } = body;
 
     if (!productId || !updateData) {
@@ -23,7 +27,13 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const { error } = await adminClient
+    // Try admin client first, fallback to user client
+    const adminClient = getAdminSupabaseClient();
+    const dbClient = adminClient || userClient;
+
+    console.log('[Flash Sales POST] Using', adminClient ? 'admin' : 'user', 'client');
+
+    const { error } = await dbClient
       .from('products')
       .update(updateData)
       .eq('id', productId);
@@ -35,7 +45,7 @@ export const POST: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
-    console.error('Flash sales API error:', error);
+    console.error('[Flash Sales POST] Error:', error);
     return new Response(
       JSON.stringify({ error: error.message || 'Server error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -43,19 +53,29 @@ export const POST: APIRoute = async ({ request }) => {
   }
 };
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async (context) => {
   try {
     console.log('[Flash Sales GET] Starting...');
     
-    if (!adminClient) {
-      console.error('[Flash Sales GET] Admin client not available');
+    // Check authentication via cookies
+    const userClient = await createServerSupabaseClient(context, true);
+    const { data: { session }, error: sessionError } = await userClient.auth.getSession();
+    
+    if (sessionError || !session) {
+      console.error('[Flash Sales GET] No session found:', sessionError);
       return new Response(
-        JSON.stringify({ error: 'Server not properly configured' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const { data, error } = await adminClient
+    // Try admin client first, fallback to user client
+    const adminClient = getAdminSupabaseClient();
+    const dbClient = adminClient || userClient;
+
+    console.log('[Flash Sales GET] Using', adminClient ? 'admin' : 'user', 'client');
+
+    const { data, error } = await dbClient
       .from('products')
       .select('id, name, slug, price, is_flash_sale, flash_sale_discount, flash_sale_end_time')
       .order('name');

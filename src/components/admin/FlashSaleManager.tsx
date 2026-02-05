@@ -14,50 +14,22 @@ export default function FlashSaleManager() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
-  const [token, setToken] = useState('');
 
   useEffect(() => {
-    fetchToken();
+    fetchProducts();
   }, []);
 
-  const fetchToken = async () => {
-    try {
-      // Try to get token from localStorage first
-      const storedToken = localStorage.getItem('admin-token');
-      if (storedToken) {
-        setToken(storedToken);
-        await fetchProducts(storedToken);
-        return;
-      }
-
-      // Fallback: fetch from server
-      const response = await fetch('/api/admin/me', {
-        credentials: 'include',
-      });
-      const data = await response.json();
-      if (response.ok && data.token) {
-        setToken(data.token);
-        localStorage.setItem('admin-token', data.token);
-        await fetchProducts(data.token);
-      }
-    } catch (error) {
-      console.error('Error fetching token:', error);
-      setLoading(false);
-    }
-  };
-
-  const fetchProducts = async (authToken: string) => {
+  const fetchProducts = async () => {
     try {
       setLoading(true);
-      console.log('[FlashSaleManager] Fetching products with token:', authToken.substring(0, 20) + '...');
+      console.log('[FlashSaleManager] Fetching products...');
       
       const response = await fetch('/api/admin/flash-sales', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
+        credentials: 'include', // Use cookies for auth
       });
 
       console.log('[FlashSaleManager] Response status:', response.status);
@@ -81,19 +53,15 @@ export default function FlashSaleManager() {
   const updateFlashSale = async (productId: string, updateData: any) => {
     try {
       setUpdating(true);
-      
-      if (!token) {
-        alert('Token no disponible. Por favor, recarga la página.');
-        return;
-      }
+
+      console.log('[FlashSaleManager] Updating flash sale:', productId, updateData);
 
       const response = await fetch('/api/admin/flash-sales', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
+        credentials: 'include', // Use cookies for auth
         body: JSON.stringify({
           productId,
           data: updateData,
@@ -105,9 +73,9 @@ export default function FlashSaleManager() {
         throw new Error(error.error || 'Error updating');
       }
 
-      await fetchProducts(token);
+      await fetchProducts();
     } catch (error) {
-      console.error('Error updating flash sale:', error);
+      console.error('[FlashSaleManager] Error updating flash sale:', error);
       alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setUpdating(false);

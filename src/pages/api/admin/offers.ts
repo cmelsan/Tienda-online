@@ -112,12 +112,14 @@ export const POST: APIRoute = async (context) => {
     const dbClient = adminClient || userClient;
 
     // Validate format - must have id and discount
-    const formattedOffers = featuredOffers.map((offer: any) => ({
-      id: offer.id,
-      discount: Math.max(0, Math.min(100, offer.discount || 0)) // Clamp between 0-100
-    }));
+    const formattedOffers = featuredOffers
+      .filter((offer: any) => offer.id && typeof offer.id === 'string' && offer.id.trim()) // Filtrar items sin ID válido
+      .map((offer: any) => ({
+        id: offer.id,
+        discount: Math.max(0, Math.min(100, offer.discount || 0)) // Clamp between 0-100
+      }));
 
-    console.log('[Offers API POST] Saving featured offers:', formattedOffers);
+    console.log('[Offers API POST] Formatted offers (filtered):', formattedOffers);
 
     // Upsert setting
     const { data, error } = await dbClient

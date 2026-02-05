@@ -89,14 +89,18 @@ export default function OffersManager() {
       setSaving(true);
       setMessage('');
 
-      console.log('[OffersManager] Saving featured offers:', selectedOffers);
-      console.log('[OffersManager] Payload being sent:', JSON.stringify({ featuredOffers: selectedOffers }));
+      // Filtrar solo los items que tengan ID válido
+      const validOffers = selectedOffers.filter(offer => offer.id && offer.id.trim());
+
+      console.log('[OffersManager] Selected offers (raw):', selectedOffers);
+      console.log('[OffersManager] Saving featured offers (filtered):', validOffers);
+      console.log('[OffersManager] Payload being sent:', JSON.stringify({ featuredOffers: validOffers }));
 
       const response = await fetch('/api/admin/offers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ featuredOffers: selectedOffers }),
+        body: JSON.stringify({ featuredOffers: validOffers }),
       });
 
       const responseText = await response.text();

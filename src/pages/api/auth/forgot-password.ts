@@ -15,19 +15,14 @@ export async function POST({ request }: any) {
       });
     }
 
-    // Get user from Supabase auth using email
-    const { data: userData, error: getUserError } = await supabase.auth.admin.listUsers();
+    // Search for user in profiles table
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .eq('email', email.toLowerCase())
+      .single();
 
-    if (getUserError) {
-      return new Response(JSON.stringify({ error: 'Error al buscar usuario' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    const user = userData?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
-
-    if (!user) {
+    if (profileError || !profile) {
       // For security, don't reveal if email exists
       return new Response(JSON.stringify({ 
         success: true,
@@ -46,8 +41,8 @@ export async function POST({ request }: any) {
     const { error: insertError } = await supabase
       .from('password_reset_tokens')
       .insert({
-        user_id: user.id,
-        email: user.email,
+        user_id: profile.id,
+        email: profile.email,
         token: resetToken,
         expires_at: expiresAt,
       });
@@ -75,7 +70,7 @@ export async function POST({ request }: any) {
     `;
 
     await sendEmail({
-      to: user.email || '',
+      to: profile.email || '',
       subject: 'Recupera tu contraseña en ÉCLAT',
       html: emailContent,
     });

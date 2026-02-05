@@ -32,7 +32,6 @@ export async function POST({ request }: any) {
     const { error: insertError, data } = await supabase
       .from('password_reset_tokens')
       .insert({
-        user_id: '00000000-0000-0000-0000-000000000000', // Placeholder UUID since user_id is NOT NULL
         email: email,
         token: resetToken,
         expires_at: expiresAt,

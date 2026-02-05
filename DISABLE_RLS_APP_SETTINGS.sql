@@ -1,44 +1,30 @@
 -- FIX RLS PERMISSIONS FOR APP_SETTINGS
--- This allows admin users to update app_settings
+-- Ejecuta este script en tu Supabase SQL Editor
 
--- First, check current RLS policy status
-SELECT tablename, array_agg(policyname) as policies
-FROM pg_policies 
-WHERE tablename = 'app_settings'
-GROUP BY tablename;
-
--- Disable RLS for app_settings (simplest solution)
--- Since app_settings are global configuration, they don't need RLS
+-- OPCIÓN 1: Deshabilitar RLS completamente (recomendado para app_settings)
+-- app_settings es configuración global, no necesita RLS
 ALTER TABLE public.app_settings DISABLE ROW LEVEL SECURITY;
 
--- Alternative: If you want to keep RLS, create a permissive policy for admins
--- First enable RLS if disabled
+-- OPCIÓN 2 (alternativa): Crear políticas RLS permisivas para autenticados
+-- Descomenta las líneas de abajo si prefieres mantener RLS con políticas
+
 -- ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
 
--- Then create policy for admins (if is_admin = true in profiles)
--- CREATE POLICY "Allow admins to update app_settings"
---   ON public.app_settings
---   FOR UPDATE
---   USING (
---     EXISTS (
---       SELECT 1 FROM public.profiles
---       WHERE profiles.id = auth.uid()
---       AND profiles.is_admin = true
---     )
---   );
-
--- CREATE POLICY "Allow admins to insert app_settings"
---   ON public.app_settings
---   FOR INSERT
---   WITH CHECK (
---     EXISTS (
---       SELECT 1 FROM public.profiles
---       WHERE profiles.id = auth.uid()
---       AND profiles.is_admin = true
---     )
---   );
-
--- CREATE POLICY "Allow everyone to read app_settings"
+-- -- Permitir a todos leer (necesario para la home pública)
+-- CREATE POLICY "Allow public read app_settings"
 --   ON public.app_settings
 --   FOR SELECT
 --   USING (true);
+
+-- -- Permitir a usuarios autenticados actualizar (para admin)
+-- CREATE POLICY "Allow authenticated users update app_settings"
+--   ON public.app_settings
+--   FOR UPDATE
+--   USING (auth.role() = 'authenticated')
+--   WITH CHECK (auth.role() = 'authenticated');
+
+-- CREATE POLICY "Allow authenticated users insert app_settings"
+--   ON public.app_settings
+--   FOR INSERT
+--   WITH CHECK (auth.role() = 'authenticated');
+

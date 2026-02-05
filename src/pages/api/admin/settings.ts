@@ -32,21 +32,14 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Use admin client to bypass RLS (CRITICAL FOR app_settings)
+    // Try to use admin client first, fallback to user client
     const adminClient = getAdminSupabaseClient();
-    
-    if (!adminClient) {
-      console.error('[Settings API] Admin client not available - RLS will be enforced');
-      return new Response(JSON.stringify({ error: 'Server not properly configured' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    const client = adminClient || userClient;
 
-    console.log('[Settings API] Using admin client to bypass RLS');
+    console.log('[Settings API] Using', adminClient ? 'admin' : 'user', 'client');
 
-    // Upsert setting with admin client
-    const { data: setting, error } = await adminClient
+    // Upsert setting
+    const { data: setting, error } = await client
       .from('app_settings')
       .upsert(
         {

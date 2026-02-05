@@ -92,13 +92,6 @@ export const POST: APIRoute = async (context) => {
       );
     }
 
-    if (featuredOffers.length > 5) {
-      return new Response(
-        JSON.stringify({ error: 'Maximum 5 products allowed' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
     // Try admin client first, fallback to user client
     const adminClient = getAdminSupabaseClient();
     const dbClient = adminClient || userClient;

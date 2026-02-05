@@ -195,7 +195,7 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
 
       {/* Products Grid */}
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-        {featuredProducts?.map((product: any) => (
+        {featuredProducts?.slice(0, 5).map((product: any) => (
           <ProductCard product={{
             ...product,
             brand: product.brand?.name || 'Marca'

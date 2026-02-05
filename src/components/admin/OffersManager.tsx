@@ -56,12 +56,6 @@ export default function OffersManager() {
       if (isSelected) {
         return prev.filter((id) => id !== productId);
       } else {
-        // Max 5 products
-        if (prev.length >= 5) {
-          setMessage('⚠️ Máximo 5 productos permitidos');
-          setTimeout(() => setMessage(''), 3000);
-          return prev;
-        }
         return [...prev, productId];
       }
     });
@@ -120,7 +114,7 @@ export default function OffersManager() {
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-blue-900">
-            Productos Seleccionados ({selectedProductIds.length}/5)
+            Productos Seleccionados ({selectedProductIds.length})
           </h2>
           <button
             onClick={saveOffers}

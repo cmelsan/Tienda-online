@@ -42,39 +42,29 @@ export async function POST({ request }: any) {
       });
     }
 
-    // Update user password using Supabase auth admin API
-    const { error: updateError } = await supabase.auth.admin.updateUserById(
-      resetToken.user_id,
-      { password }
+    // Use RPC function to reset password
+    // This function handles finding the user by email and resetting the password
+    console.log('[ResetPassword] Calling RPC function to reset password');
+    
+    const { data: rpcResult, error: rpcError } = await supabase.rpc(
+      'reset_password_with_token',
+      {
+        p_token: token,
+        p_new_password: password
+      }
     );
 
-    if (updateError) {
-      console.error('Password update error:', updateError);
-      return new Response(JSON.stringify({ error: 'Error al actualizar la contraseña' }), {
-        status: 500,
+    if (rpcError || !rpcResult?.success) {
+      console.error('[ResetPassword] RPC error:', rpcError?.message || rpcResult?.message);
+      return new Response(JSON.stringify({ 
+        error: rpcResult?.message || 'Error al resetear contraseña' 
+      }), {
+        status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    // Mark token as used
-    const { error: markUsedError } = await supabase
-      .from('password_reset_tokens')
-      .update({ 
-        used: true, 
-        used_at: new Date().toISOString() 
-      })
-      .eq('id', resetToken.id);
-
-    if (markUsedError) {
-      console.error('Mark used error:', markUsedError);
-    }
-
-    // Optionally invalidate all other reset tokens for this user
-    await supabase
-      .from('password_reset_tokens')
-      .update({ used: true })
-      .eq('user_id', resetToken.user_id)
-      .neq('id', resetToken.id);
+    console.log('[ResetPassword] Password reset successful for user:', rpcResult.user_id);
 
     // Send confirmation email
     const emailContent = `
@@ -97,10 +87,10 @@ export async function POST({ request }: any) {
       });
 
       if (!sendResult.success) {
-        console.error('Confirmation email send failed:', sendResult.error);
+        console.error('[ResetPassword] Confirmation email send failed:', sendResult.error);
       }
     } catch (emailError) {
-      console.error('Confirmation email exception:', emailError);
+      console.error('[ResetPassword] Confirmation email exception:', emailError);
     }
 
     return new Response(JSON.stringify({ 

@@ -1,4 +1,4 @@
-import { supabase, getAdminSupabaseClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { sendEmail } from '@/lib/brevo';
 import { randomBytes } from 'crypto';
 
@@ -19,77 +19,29 @@ export async function POST({ request }: any) {
     // Clean and normalize email
     const email = rawEmail.trim().toLowerCase();
     
-    console.log('[ForgotPassword] Searching for user with email:', email);
+    console.log('[ForgotPassword] Received password reset request for:', email);
 
-    let userId: string | null = null;
-    let userEmail: string | null = null;
+    // Generate reset token
+    const resetToken = randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + RESET_TOKEN_EXPIRY).toISOString();
 
-    // Use admin client to bypass RLS restrictions
-    const adminClient = getAdminSupabaseClient();
-    const queryClient = adminClient || supabase;
+    console.log('[ForgotPassword] Generated token, saving to database');
 
-    // Strategy 1: Try to find user in auth.users table directly
-    console.log('[ForgotPassword] Step 1: Searching in auth.users table...');
-    console.log('[ForgotPassword] Using:', adminClient ? 'admin client (bypasses RLS)' : 'public client (subject to RLS)');
-    
-    // Get admin auth API
-    let authUser = null;
-    if (adminClient) {
-      // Use admin auth API to list users and find by email
-      const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers();
-      
-      if (listError) {
-        console.error('[ForgotPassword] Error listing users:', listError.message);
-      } else {
-        console.log('[ForgotPassword] Total users in auth.users:', users?.length || 0);
-        // Find user with matching email
-        authUser = users?.find((u) => u.email?.toLowerCase() === email.toLowerCase());
-        if (authUser) {
-          console.log('[ForgotPassword] Found user in auth.users:', authUser.id, 'Email:', authUser.email);
-        }
-      }
-    }
+    // Save token to database with email only (no user_id required)
+    // The email is the key identifier here
+    const { error: insertError, data } = await supabase
+      .from('password_reset_tokens')
+      .insert({
+        user_id: '00000000-0000-0000-0000-000000000000', // Placeholder UUID since user_id is NOT NULL
+        email: email,
+        token: resetToken,
+        expires_at: expiresAt,
+      })
+      .select();
 
-    // Also check profiles as fallback
-    if (!authUser) {
-      console.log('[ForgotPassword] Step 2: Searching in profiles table as fallback...');
-      const { data: allProfiles, error: allError } = await queryClient
-        .from('profiles')
-        .select('id, email');
-      
-      console.log('[ForgotPassword] Total profiles in DB:', allProfiles?.length || 0);
-      if (allProfiles && allProfiles.length > 0) {
-        console.log('[ForgotPassword] First few profiles:');
-        allProfiles.slice(0, 3).forEach((p: any) => {
-          console.log(`  - ID: ${p.id}, Email: "${p.email}"`);
-        });
-        
-        // Manual filter with case-insensitive match
-        const foundProfile = allProfiles.find((p: any) => 
-          p.email && p.email.toLowerCase() === email.toLowerCase()
-        );
-        
-        if (foundProfile) {
-          authUser = { id: foundProfile.id, email: foundProfile.email };
-        }
-      }
-    }
-
-    if (authUser) {
-      userId = authUser.id;
-      userEmail = authUser.email;
-    }
-
-    console.log('[ForgotPassword] User lookup result:', {
-      found: !!userId,
-      userId,
-      userEmail,
-      searchedFor: email,
-    });
-
-    if (!userId || !userEmail) {
-      console.log('[ForgotPassword] User not found in auth.users or profiles table');
-      // For security, don't reveal if email exists
+    if (insertError) {
+      console.error('[ForgotPassword] Database insert error:', insertError);
+      // Still send success response for security (don't reveal if email exists)
       return new Response(JSON.stringify({ 
         success: true,
         message: 'Si el email existe en nuestro sistema, recibirás un enlace de recuperación' 
@@ -99,29 +51,7 @@ export async function POST({ request }: any) {
       });
     }
 
-    // Generate reset token
-    const resetToken = randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + RESET_TOKEN_EXPIRY).toISOString();
-
-    console.log('[ForgotPassword] Generated token, inserting into DB with userId:', userId);
-
-    // Save token to database (use admin client to ensure it works)
-    const { error: insertError } = await queryClient
-      .from('password_reset_tokens')
-      .insert({
-        user_id: userId,
-        email: userEmail,
-        token: resetToken,
-        expires_at: expiresAt,
-      });
-
-    if (insertError) {
-      console.error('[ForgotPassword] Database error:', insertError);
-      return new Response(JSON.stringify({ error: 'Error al procesar la solicitud' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    console.log('[ForgotPassword] Token saved successfully');
 
     // Send reset email via Brevo
     const resetUrl = `${process.env.PUBLIC_SITE_URL}/resetear-contrasena/${resetToken}`;
@@ -137,11 +67,11 @@ export async function POST({ request }: any) {
       <p>Saludos,<br>Equipo ÉCLAT</p>
     `;
 
-    console.log('[ForgotPassword] Sending email to:', userEmail);
+    console.log('[ForgotPassword] Sending email to:', email);
 
     try {
       const sendResult = await sendEmail({
-        to: userEmail,
+        to: email,
         subject: 'Recupera tu contraseña en ÉCLAT',
         htmlContent: emailContent,
       });
@@ -150,14 +80,16 @@ export async function POST({ request }: any) {
 
       if (!sendResult.success) {
         console.error('[ForgotPassword] Email send failed:', sendResult.error);
+        // Still return success for security
       }
     } catch (emailError) {
       console.error('[ForgotPassword] Email sending exception:', emailError);
+      // Still return success for security
     }
 
     return new Response(JSON.stringify({ 
       success: true,
-      message: 'Email de recuperación enviado' 
+      message: 'Si el email existe en nuestro sistema, recibirás un enlace de recuperación' 
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

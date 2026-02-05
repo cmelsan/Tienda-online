@@ -11,9 +11,14 @@ interface Product {
   };
 }
 
+interface FeaturedOffer {
+  id: string;
+  discount: number;
+}
+
 export default function OffersManager() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [selectedOffers, setSelectedOffers] = useState<FeaturedOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -41,7 +46,7 @@ export default function OffersManager() {
       console.log('[OffersManager] Data loaded:', data);
       
       setProducts(data.products || []);
-      setSelectedProductIds(data.featuredOffers || []);
+      setSelectedOffers(data.featuredOffers || []);
     } catch (error) {
       console.error('[OffersManager] Error fetching data:', error);
       alert(`Error al cargar datos: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -51,14 +56,20 @@ export default function OffersManager() {
   };
 
   const toggleProduct = (productId: string) => {
-    setSelectedProductIds((prev) => {
-      const isSelected = prev.includes(productId);
+    setSelectedOffers((prev) => {
+      const isSelected = prev.find((o) => o.id === productId);
       if (isSelected) {
-        return prev.filter((id) => id !== productId);
+        return prev.filter((o) => o.id !== productId);
       } else {
-        return [...prev, productId];
+        return [...prev, { id: productId, discount: 20 }];
       }
     });
+  };
+
+  const updateDiscount = (productId: string, discount: number) => {
+    setSelectedOffers((prev) =>
+      prev.map((o) => (o.id === productId ? { ...o, discount } : o))
+    );
   };
 
   const saveOffers = async () => {
@@ -66,13 +77,13 @@ export default function OffersManager() {
       setSaving(true);
       setMessage('');
 
-      console.log('[OffersManager] Saving featured offers:', selectedProductIds);
+      console.log('[OffersManager] Saving featured offers:', selectedOffers);
 
       const response = await fetch('/api/admin/offers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ featuredOffers: selectedProductIds }),
+        body: JSON.stringify({ featuredOffers: selectedOffers }),
       });
 
       if (!response.ok) {
@@ -94,7 +105,9 @@ export default function OffersManager() {
     return <div className="text-center py-8">Cargando productos...</div>;
   }
 
-  const selectedProducts = products.filter((p) => selectedProductIds.includes(p.id));
+  const selectedProducts = products.filter((p) =>
+    selectedOffers.find((o) => o.id === p.id)
+  );
 
   return (
     <div className="space-y-8">
@@ -114,7 +127,7 @@ export default function OffersManager() {
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-blue-900">
-            Productos Seleccionados ({selectedProductIds.length})
+            Productos en Rebaja ({selectedOffers.length})
           </h2>
           <button
             onClick={saveOffers}
@@ -126,33 +139,47 @@ export default function OffersManager() {
         </div>
 
         {selectedProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {selectedProducts.map((product) => (
-              <div
-                key={product.id}
-                className="bg-white border-2 border-blue-500 rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition"
-                onClick={() => toggleProduct(product.id)}
-              >
-                <div className="aspect-square bg-gray-100 overflow-hidden">
-                  <img
-                    src={product.images?.[0] || '/placeholder-product.jpg'}
-                    alt={product.name}
-                    className="w-full h-full object-contain p-2"
-                  />
+          <div className="space-y-3">
+            {selectedProducts.map((product) => {
+              const offer = selectedOffers.find((o) => o.id === product.id);
+              const discount = offer?.discount || 0;
+              const discountedPrice = Math.round(product.price * (1 - discount / 100));
+              
+              return (
+                <div
+                  key={product.id}
+                  className="bg-white border border-blue-300 rounded-lg p-4 flex items-center justify-between"
+                >
+                  <div className="flex-1">
+                    <h4 className="font-bold text-black mb-1">{product.name}</h4>
+                    <p className="text-sm text-gray-600">
+                      Precio: {(product.price / 100).toFixed(2)}€ → {(discountedPrice / 100).toFixed(2)}€
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4 ml-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={discount}
+                        onChange={(e) =>
+                          updateDiscount(product.id, parseInt(e.target.value) || 0)
+                        }
+                        className="w-20 px-3 py-2 border border-gray-300 rounded text-center font-bold"
+                      />
+                      <span className="text-sm font-bold text-gray-700">%</span>
+                    </div>
+                    <button
+                      onClick={() => toggleProduct(product.id)}
+                      className="px-3 py-2 bg-rose-600 text-white text-sm font-bold rounded hover:bg-rose-700 transition"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </div>
-                <div className="p-3">
-                  <p className="text-[9px] font-bold uppercase text-gray-500 mb-1">
-                    {product.brand?.name || 'MARCA'}
-                  </p>
-                  <h4 className="text-sm font-bold text-black line-clamp-2 mb-2">
-                    {product.name}
-                  </h4>
-                  <p className="text-xs font-bold text-blue-600">
-                    {(product.price / 100).toFixed(2)} €
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-gray-500 text-sm">Sin productos seleccionados aún</p>
@@ -162,11 +189,11 @@ export default function OffersManager() {
       {/* All Products Grid */}
       <div>
         <h2 className="text-lg font-bold text-gray-900 mb-4">Todos los Productos</h2>
-        <p className="text-sm text-gray-600 mb-4">Haz clic en un producto para añadirlo o eliminarlo de las rebajas</p>
+        <p className="text-sm text-gray-600 mb-4">Haz clic en un producto para añadirlo a rebajas</p>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {products.map((product) => {
-            const isSelected = selectedProductIds.includes(product.id);
+            const isSelected = selectedOffers.find((o) => o.id === product.id);
             return (
               <div
                 key={product.id}

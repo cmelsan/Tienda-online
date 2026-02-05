@@ -4,7 +4,7 @@ import { formatPrice } from '@/lib/utils';
 import type { Product } from '@/lib/supabase';
 
 interface Props {
-  product: Product;
+  product: any;
   fallbackImage?: string;
 }
 
@@ -111,9 +111,22 @@ if (!imageUrl || imageUrl.includes('placeholder')) {
         </h3>
         
         <div class="flex items-end justify-between pt-1">
-          <p class="text-lg font-semibold text-black tracking-tight">
-            {formatPrice(product.price)}
-          </p>
+          <div>
+            {product.discount > 0 ? (
+              <div class="flex flex-col gap-1">
+                <p class="text-xs text-gray-500 line-through">
+                  {formatPrice(product.price)}
+                </p>
+                <p class="text-lg font-semibold text-beauty-red tracking-tight">
+                  {formatPrice(product.discountedPrice)}
+                </p>
+              </div>
+            ) : (
+              <p class="text-lg font-semibold text-black tracking-tight">
+                {formatPrice(product.price)}
+              </p>
+            )}
+          </div>
           
           {product.stock > 0 ? (
             <span class="text-[10px] text-gray-medium font-medium uppercase tracking-wider">En stock</span>

@@ -32,21 +32,37 @@ const { data: featuredOffersData } = await supabase
   .eq('key', 'featured_offers')
   .single();
 
-const featuredOfferIds = featuredOffersData?.value || [];
+const featuredOffers = featuredOffersData?.value || [];
 
 // Fetch the featured products
 let featuredProducts = [];
-if (featuredOfferIds.length > 0) {
+if (featuredOffers.length > 0) {
+  const offersWithDefaults = featuredOffers.map((o: any) => ({
+    id: o.id || o,
+    discount: o.discount || 0
+  }));
+  
+  const offerIds = offersWithDefaults.map((o: any) => o.id);
+  
   const { data: products } = await supabase
     .from('products')
     .select('*, brand:brands(name)')
-    .in('id', featuredOfferIds);
+    .in('id', offerIds);
   
-  // Order by the order in featuredOfferIds
-  featuredProducts = featuredOfferIds
-    .map((id: string) => products?.find((p: any) => p.id === id))
+  // Order by the order in featuredOffers and add discount info
+  featuredProducts = offersWithDefaults
+    .map((offer: any) => {
+      const product = products?.find((p: any) => p.id === offer.id);
+      if (product) {
+        return {
+          ...product,
+          discount: offer.discount || 0,
+          discountedPrice: Math.round(product.price * (1 - (offer.discount || 0) / 100))
+        };
+      }
+      return null;
+    })
     .filter(Boolean);
-}
 
 // Fetch Flash Sales Settings
 const { data: flashSaleSettings } = await supabase

@@ -96,7 +96,13 @@ export const POST: APIRoute = async (context) => {
     const adminClient = getAdminSupabaseClient();
     const dbClient = adminClient || userClient;
 
-    console.log('[Offers API POST] Saving featured offers:', featuredOffers);
+    // Validate format - must have id and discount
+    const formattedOffers = featuredOffers.map((offer: any) => ({
+      id: offer.id,
+      discount: Math.max(0, Math.min(100, offer.discount || 0)) // Clamp between 0-100
+    }));
+
+    console.log('[Offers API POST] Saving featured offers:', formattedOffers);
 
     // Upsert setting
     const { data, error } = await dbClient
@@ -104,7 +110,7 @@ export const POST: APIRoute = async (context) => {
       .upsert(
         {
           key: 'featured_offers',
-          value: featuredOffers,
+          value: formattedOffers,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'key' }

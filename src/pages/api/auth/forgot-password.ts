@@ -21,48 +21,31 @@ export async function POST({ request }: any) {
     
     console.log('[ForgotPassword] Searching for user with email:', email);
 
-    // First try to find in auth.users via profiles
-    const { data: profile, error: profileError } = await supabase
+    let userId: string | null = null;
+    let userEmail: string | null = null;
+
+    // Strategy 1: Try to find user in profiles table (main registered users table)
+    console.log('[ForgotPassword] Step 1: Searching in profiles table...');
+    const { data: profiles } = await supabase
       .from('profiles')
       .select('id, email')
       .ilike('email', email)
-      .single();
+      .limit(1);
 
-    console.log('[ForgotPassword] Profile search result:', {
-      profileError: profileError?.message,
-      profileFound: !!profile,
-      profileEmail: profile?.email
-    });
-
-    // If not found in profiles, try with direct user ID from auth
-    let userId = profile?.id;
-    let userEmail = profile?.email;
-
-    if (!profile && profileError) {
-      console.log('[ForgotPassword] Not found in profiles, trying alternative method...');
-      
-      // Try to find user by checking all profiles
-      const { data: allProfiles } = await supabase
-        .from('profiles')
-        .select('id, email');
-
-      console.log('[ForgotPassword] All profiles count:', allProfiles?.length);
-      
-      if (allProfiles) {
-        const foundProfile = allProfiles.find(p => 
-          p.email && p.email.toLowerCase() === email
-        );
-        
-        if (foundProfile) {
-          userId = foundProfile.id;
-          userEmail = foundProfile.email;
-          console.log('[ForgotPassword] Found user by scanning:', { userId, userEmail });
-        }
-      }
+    if (profiles && profiles.length > 0) {
+      userId = profiles[0].id;
+      userEmail = profiles[0].email;
+      console.log('[ForgotPassword] Found user in profiles:', userId);
     }
 
+    console.log('[ForgotPassword] User lookup result:', {
+      found: !!userId,
+      userId,
+      userEmail,
+    });
+
     if (!userId || !userEmail) {
-      console.log('[ForgotPassword] User not found after all methods');
+      console.log('[ForgotPassword] User not found in profiles table');
       // For security, don't reveal if email exists
       return new Response(JSON.stringify({ 
         success: true,
@@ -77,7 +60,7 @@ export async function POST({ request }: any) {
     const resetToken = randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + RESET_TOKEN_EXPIRY).toISOString();
 
-    console.log('[ForgotPassword] Generated token, inserting into DB');
+    console.log('[ForgotPassword] Generated token, inserting into DB with userId:', userId);
 
     // Save token to database
     const { error: insertError } = await supabase

@@ -23,9 +23,13 @@ const { data: featuredOffersData } = await supabase
 
 const featuredOffers = featuredOffersData?.value || [];
 
+console.log('[ofertas.astro] featuredOffersData:', featuredOffersData);
+console.log('[ofertas.astro] featuredOffers:', featuredOffers);
+console.log('[ofertas.astro] featuredOffers.length:', featuredOffers?.length);
+
 // Fetch the products in rebaja
 let rebajasProducts = [];
-if (featuredOffers.length > 0) {
+if (Array.isArray(featuredOffers) && featuredOffers.length > 0) {
   const offersWithDefaults = featuredOffers.map((o: any) => ({
     id: o.id || o,
     discount: o.discount || 0
@@ -63,7 +67,7 @@ if (featuredOffers.length > 0) {
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center">
           <span class="inline-block text-rose-600 text-[10px] uppercase tracking-[0.3em] mb-3 font-medium">Ofertas Exclusivas</span>
-          <h1 class="text-4xl md:text-5xl font-sans font-bold text-black mb-4">Rebajas</h1>
+          <h1 class="text-4xl md:text-5xl font-sans font-bold text-black mb-4 uppercase">REBAJAS</h1>
           <p class="text-gray-600 text-lg">Tus favoritos al mejor precio. ¡Corre que vuelan!</p>
         </div>
       </div>

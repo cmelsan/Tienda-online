@@ -85,7 +85,12 @@ export const POST: APIRoute = async (context) => {
 
     const { featuredOffers } = await context.request.json();
 
+    console.log('[Offers API POST] Received featuredOffers:', featuredOffers);
+    console.log('[Offers API POST] Is array?', Array.isArray(featuredOffers));
+    console.log('[Offers API POST] Length:', featuredOffers?.length);
+
     if (!Array.isArray(featuredOffers)) {
+      console.error('[Offers API POST] featuredOffers is not an array, type:', typeof featuredOffers);
       return new Response(
         JSON.stringify({ error: 'featuredOffers must be an array' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }

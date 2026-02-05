@@ -86,6 +86,7 @@ export default function OffersManager() {
       setMessage('');
 
       console.log('[OffersManager] Saving featured offers:', selectedOffers);
+      console.log('[OffersManager] Payload being sent:', JSON.stringify({ featuredOffers: selectedOffers }));
 
       const response = await fetch('/api/admin/offers', {
         method: 'POST',
@@ -94,10 +95,17 @@ export default function OffersManager() {
         body: JSON.stringify({ featuredOffers: selectedOffers }),
       });
 
+      const responseText = await response.text();
+      console.log('[OffersManager] Response status:', response.status);
+      console.log('[OffersManager] Response text:', responseText);
+
       if (!response.ok) {
-        const error = await response.json();
+        const error = JSON.parse(responseText);
         throw new Error(error.error || 'Error al guardar');
       }
+
+      const data = JSON.parse(responseText);
+      console.log('[OffersManager] Success response:', data);
 
       setMessage('✅ Rebajas actualizadas correctamente');
       setTimeout(() => setMessage(''), 3000);

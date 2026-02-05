@@ -63,6 +63,7 @@ if (featuredOffers.length > 0) {
       return null;
     })
     .filter(Boolean);
+}
 
 // Fetch Flash Sales Settings
 const { data: flashSaleSettings } = await supabase
@@ -197,36 +198,36 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
 
   {/* 3. REBAJAS SECTION - Product Grid */}
   {offersEnabled && featuredProducts.length > 0 && (
-  <section class="py-16 lg:py-24 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-end justify-between mb-12">
-        <div>
-          <span class="inline-block text-rose-600 text-[10px] uppercase tracking-[0.3em] mb-3 font-medium">Ofertas Exclusivas</span>
-          <h2 class="text-3xl md:text-4xl font-sans font-bold text-black">Rebajas hasta -50%</h2>
+    <section class="py-16 lg:py-24 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-end justify-between mb-12">
+          <div>
+            <span class="inline-block text-rose-600 text-[10px] uppercase tracking-[0.3em] mb-3 font-medium">Ofertas Exclusivas</span>
+            <h2 class="text-3xl md:text-4xl font-sans font-bold text-black">Rebajas hasta -50%</h2>
+          </div>
+          <a href="/ofertas" class="hidden md:inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b border-black pb-1 hover:text-rose-600 hover:border-rose-600 transition-colors">
+            Ver todo
+          </a>
         </div>
-        <a href="/ofertas" class="hidden md:inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b border-black pb-1 hover:text-rose-600 hover:border-rose-600 transition-colors">
-          Ver todo
-        </a>
-      </div>
 
-      {/* Products Grid */}
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-        {featuredProducts?.slice(0, 5).map((product: any) => (
-          <ProductCard product={{
-            ...product,
-            brand: product.brand?.name || 'Marca'
-          }} />
-        ))}
-      </div>
+        {/* Products Grid */}
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+          {featuredProducts?.slice(0, 5).map((product: any) => (
+            <ProductCard product={{
+              ...product,
+              brand: product.brand?.name || 'Marca'
+            }} />
+          ))}
+        </div>
 
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 md:hidden">
-        <a href="/ofertas" class="inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b border-black pb-1">
-          Ver todas las ofertas
-        </a>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 md:hidden">
+          <a href="/ofertas" class="inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b border-black pb-1">
+            Ver todas las ofertas
+          </a>
+        </div>
       </div>
-    </div>
-    <div class="w-full h-px bg-black mt-12"></div>
-  </section>
+      <div class="w-full h-px bg-black mt-12"></div>
+    </section>
   )}
 
   {/* 4. NOVEDADES SECTION - Enhanced Product Banners */}

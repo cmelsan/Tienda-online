@@ -130,6 +130,39 @@ else query = query.order('created_at', { ascending: false });
 const { data: products } = await query;
 const displayProducts = products || [];
 
+// 4.5 Fetch Offers Settings
+const { data: offersSettingData } = await supabase
+  .from('app_settings')
+  .select('value')
+  .eq('key', 'offers_enabled')
+  .single();
+
+const offersEnabled = offersSettingData?.value === true;
+
+// 4.6 Fetch Featured Offers if enabled
+let featuredOffers: any[] = [];
+if (offersEnabled) {
+  const { data: offersData } = await supabase
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'featured_offers')
+    .single();
+  
+  if (offersData?.value) {
+    featuredOffers = offersData.value;
+  }
+}
+
+// 4.7 Add discount info to products if offers are enabled
+const productsWithDiscounts = displayProducts.map(product => {
+  const offer = featuredOffers.find(o => o.id === product.id);
+  return {
+    ...product,
+    discount: offer?.discount || 0,
+    discountedPrice: offer ? Math.round(product.price * (1 - offer.discount / 100)) : 0
+  };
+});
+
 // 5. Fetch Brands for Sidebar
 const { data: allBrands } = await supabase.from('brands').select('id, name').order('name'); 
 
@@ -222,7 +255,7 @@ if (subCategorySlug) breadcrumbs.push({ label: subCategorySlug.replace(/-/g, ' '
                  {/* Toolbar */}
                  <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-10 pb-4 border-b border-gray-100 gap-4">
                     <p class="text-sm text-gray-500 font-medium">
-                        <span class="text-black font-bold">{displayProducts.length}</span> resultados
+                        <span class="text-black font-bold">{productsWithDiscounts.length}</span> resultados
                     </p>
                     
                     <div class="flex items-center gap-4">
@@ -240,7 +273,7 @@ if (subCategorySlug) breadcrumbs.push({ label: subCategorySlug.replace(/-/g, ' '
 
                 {displayProducts.length > 0 ? (
                     <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
-                        {displayProducts.map(product => (
+                        {productsWithDiscounts.map(product => (
                              <ProductCard 
                                 product={{
                                     ...product, 

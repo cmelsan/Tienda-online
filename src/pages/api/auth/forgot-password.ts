@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, getAdminSupabaseClient } from '@/lib/supabase';
 import { sendEmail } from '@/lib/brevo';
 import { randomBytes } from 'crypto';
 
@@ -24,43 +24,60 @@ export async function POST({ request }: any) {
     let userId: string | null = null;
     let userEmail: string | null = null;
 
-    // Strategy 1: Try to find user in profiles table (main registered users table)
-    console.log('[ForgotPassword] Step 1: Searching in profiles table...');
+    // Use admin client to bypass RLS restrictions
+    const adminClient = getAdminSupabaseClient();
+    const queryClient = adminClient || supabase;
+
+    // Strategy 1: Try to find user in auth.users table directly
+    console.log('[ForgotPassword] Step 1: Searching in auth.users table...');
+    console.log('[ForgotPassword] Using:', adminClient ? 'admin client (bypasses RLS)' : 'public client (subject to RLS)');
     
-    // First, let's try to get ALL profiles to debug
-    const { data: allProfiles, error: allError } = await supabase
-      .from('profiles')
-      .select('id, email');
-    
-    console.log('[ForgotPassword] Total profiles in DB:', allProfiles?.length || 0);
-    if (allProfiles && allProfiles.length > 0) {
-      console.log('[ForgotPassword] First few profiles:');
-      allProfiles.slice(0, 3).forEach((p: any) => {
-        console.log(`  - ID: ${p.id}, Email: "${p.email}"`);
-      });
+    // Get admin auth API
+    let authUser = null;
+    if (adminClient) {
+      // Use admin auth API to list users and find by email
+      const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers();
+      
+      if (listError) {
+        console.error('[ForgotPassword] Error listing users:', listError.message);
+      } else {
+        console.log('[ForgotPassword] Total users in auth.users:', users?.length || 0);
+        // Find user with matching email
+        authUser = users?.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+        if (authUser) {
+          console.log('[ForgotPassword] Found user in auth.users:', authUser.id, 'Email:', authUser.email);
+        }
+      }
     }
 
-    // Now search for the specific email
-    const { data: profiles, error: searchError } = await supabase
-      .from('profiles')
-      .select('id, email');
-    
-    if (searchError) {
-      console.error('[ForgotPassword] Error querying profiles:', searchError);
+    // Also check profiles as fallback
+    if (!authUser) {
+      console.log('[ForgotPassword] Step 2: Searching in profiles table as fallback...');
+      const { data: allProfiles, error: allError } = await queryClient
+        .from('profiles')
+        .select('id, email');
+      
+      console.log('[ForgotPassword] Total profiles in DB:', allProfiles?.length || 0);
+      if (allProfiles && allProfiles.length > 0) {
+        console.log('[ForgotPassword] First few profiles:');
+        allProfiles.slice(0, 3).forEach((p: any) => {
+          console.log(`  - ID: ${p.id}, Email: "${p.email}"`);
+        });
+        
+        // Manual filter with case-insensitive match
+        const foundProfile = allProfiles.find((p: any) => 
+          p.email && p.email.toLowerCase() === email.toLowerCase()
+        );
+        
+        if (foundProfile) {
+          authUser = { id: foundProfile.id, email: foundProfile.email };
+        }
+      }
     }
 
-    // Manual filter with case-insensitive match
-    let foundProfile = null;
-    if (profiles && profiles.length > 0) {
-      foundProfile = profiles.find((p: any) => 
-        p.email && p.email.toLowerCase() === email.toLowerCase()
-      );
-    }
-
-    if (foundProfile) {
-      userId = foundProfile.id;
-      userEmail = foundProfile.email;
-      console.log('[ForgotPassword] Found user in profiles:', userId, 'Email:', userEmail);
+    if (authUser) {
+      userId = authUser.id;
+      userEmail = authUser.email;
     }
 
     console.log('[ForgotPassword] User lookup result:', {
@@ -71,7 +88,7 @@ export async function POST({ request }: any) {
     });
 
     if (!userId || !userEmail) {
-      console.log('[ForgotPassword] User not found in profiles table');
+      console.log('[ForgotPassword] User not found in auth.users or profiles table');
       // For security, don't reveal if email exists
       return new Response(JSON.stringify({ 
         success: true,
@@ -88,8 +105,8 @@ export async function POST({ request }: any) {
 
     console.log('[ForgotPassword] Generated token, inserting into DB with userId:', userId);
 
-    // Save token to database
-    const { error: insertError } = await supabase
+    // Save token to database (use admin client to ensure it works)
+    const { error: insertError } = await queryClient
       .from('password_reset_tokens')
       .insert({
         user_id: userId,

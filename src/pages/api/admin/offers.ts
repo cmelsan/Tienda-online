@@ -4,13 +4,18 @@ import { getAdminSupabaseClient, createServerSupabaseClient } from '@/lib/supaba
 export const GET: APIRoute = async (context) => {
   try {
     console.log('[Offers API GET] Starting...');
+    console.log('[Offers API GET] Request headers:', context.request.headers.get('cookie'));
 
     // Check authentication
     const userClient = await createServerSupabaseClient(context, true);
     const { data: { session }, error: sessionError } = await userClient.auth.getSession();
 
+    console.log('[Offers API GET] Session error:', sessionError);
+    console.log('[Offers API GET] Session found:', !!session);
+    console.log('[Offers API GET] Session user:', session?.user?.email);
+
     if (sessionError || !session) {
-      console.error('[Offers API GET] No session found');
+      console.error('[Offers API GET] No session found - returning 401');
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
@@ -70,13 +75,18 @@ export const GET: APIRoute = async (context) => {
 export const POST: APIRoute = async (context) => {
   try {
     console.log('[Offers API POST] Starting...');
+    console.log('[Offers API POST] Request headers:', context.request.headers.get('cookie'));
 
     // Check authentication
     const userClient = await createServerSupabaseClient(context, true);
     const { data: { session }, error: sessionError } = await userClient.auth.getSession();
 
+    console.log('[Offers API POST] Session error:', sessionError);
+    console.log('[Offers API POST] Session found:', !!session);
+    console.log('[Offers API POST] Session user:', session?.user?.email);
+
     if (sessionError || !session) {
-      console.error('[Offers API POST] No session found');
+      console.error('[Offers API POST] No session found - returning 401');
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }

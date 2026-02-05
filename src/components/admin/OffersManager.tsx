@@ -46,8 +46,12 @@ export default function OffersManager() {
         credentials: 'include',
       });
 
+      console.log('[OffersManager] Fetch response status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+        const errorText = await response.text();
+        console.error('[OffersManager] Error response:', errorText);
+        throw new Error(`Error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();

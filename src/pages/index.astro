@@ -142,49 +142,42 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
   </section>
 
   {/* 2. EXCLUSIVE OFFER SECTION - Register CTA */}
-  <section class="relative py-20 lg:py-32 bg-gradient-to-r from-black via-black to-black overflow-hidden">
-    {/* Decorative Background Elements */}
-    <div class="absolute top-0 right-0 w-96 h-96 bg-rose-600/20 rounded-full blur-3xl -mr-48 -mt-48"></div>
-    <div class="absolute bottom-0 left-0 w-96 h-96 bg-pink-600/20 rounded-full blur-3xl -ml-48 -mb-48"></div>
-    
-    <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+  <section class="relative py-20 lg:py-28 bg-gradient-to-b from-gray-950 to-black overflow-hidden">
+    <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center">
         {/* Subtitle */}
-        <span class="inline-block text-rose-400 text-[10px] uppercase tracking-[0.35em] mb-4 font-bold">Oferta Especial</span>
+        <span class="inline-block text-pink-500 text-xs uppercase tracking-[0.25em] mb-6 font-bold">Oferta Especial</span>
         
         {/* Main Heading */}
-        <h2 class="text-5xl md:text-6xl lg:text-7xl font-sans font-black text-white mb-6 tracking-tight leading-[0.95]">
+        <h2 class="text-5xl lg:text-7xl font-black text-white mb-8 tracking-tighter leading-tight">
           Únete a ÉCLAT<br/>y ahorra
         </h2>
         
-        {/* Big Discount Badge */}
-        <div class="inline-block mb-8">
-          <span class="text-6xl md:text-8xl font-black bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">20%</span>
+        {/* Discount */}
+        <div class="mb-10">
+          <span class="text-7xl lg:text-8xl font-black text-pink-500">20%</span>
         </div>
         
         {/* Description */}
-        <p class="text-white/80 text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed font-light">
-          Crea tu cuenta hoy y recibe un descuento exclusivo de <span class="font-bold text-white">20% de descuento</span> en tu primera compra. Más beneficios esperan por ti.
+        <p class="text-white/70 text-base lg:text-lg max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+          Crea tu cuenta y obtén <span class="text-white font-semibold">20% de descuento</span> en tu primera compra.
         </p>
-        
-        {/* Benefits List */}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12 max-w-3xl mx-auto">
-
-        </div>
         
         {/* CTA Buttons */}
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <a 
             href="/registro"
-            class="group relative inline-flex items-center justify-center bg-gradient-to-r from-rose-600 to-pink-600 text-white px-10 py-5 font-bold text-sm uppercase tracking-[0.15em] overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-1"
+            class="inline-flex items-center gap-2 bg-pink-500 text-black px-8 py-4 font-bold text-sm uppercase tracking-wider hover:bg-pink-600 transition-all duration-300"
           >
-            <span class="relative z-10">Crear Cuenta Ahora</span>
-            <div class="absolute inset-0 bg-gradient-to-r from-pink-600 to-rose-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+            Crear Cuenta
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
           </a>
           
           <a 
             href="/login"
-            class="group relative inline-flex items-center justify-center border-2 border-white text-white px-10 py-4 font-bold text-sm uppercase tracking-[0.15em] hover:bg-white hover:text-black transition-all duration-300"
+            class="inline-flex items-center justify-center border border-white text-white px-8 py-4 font-bold text-sm uppercase tracking-wider hover:bg-white hover:text-black transition-all duration-300"
           >
             Ya tengo cuenta
           </a>

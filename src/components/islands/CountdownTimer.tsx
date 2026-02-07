@@ -49,7 +49,7 @@ export default function CountdownTimer({ endTime }: CountdownProps) {
   return (
     <div className="flex gap-2 items-center justify-center text-center">
       <div className="flex flex-col items-center">
-        <span className="text-4xl md:text-5xl font-black text-rose-600">
+        <span className="text-4xl md:text-5xl font-black text-pink-500">
           {String(timeLeft.hours).padStart(2, '0')}
         </span>
         <span className="text-xs md:text-sm uppercase tracking-wider font-medium text-gray-600 mt-2">
@@ -60,7 +60,7 @@ export default function CountdownTimer({ endTime }: CountdownProps) {
       <span className="text-3xl md:text-4xl font-black text-gray-400 px-2">:</span>
       
       <div className="flex flex-col items-center">
-        <span className="text-4xl md:text-5xl font-black text-rose-600">
+        <span className="text-4xl md:text-5xl font-black text-pink-500">
           {String(timeLeft.minutes).padStart(2, '0')}
         </span>
         <span className="text-xs md:text-sm uppercase tracking-wider font-medium text-gray-600 mt-2">
@@ -71,7 +71,7 @@ export default function CountdownTimer({ endTime }: CountdownProps) {
       <span className="text-3xl md:text-4xl font-black text-gray-400 px-2">:</span>
       
       <div className="flex flex-col items-center">
-        <span className="text-4xl md:text-5xl font-black text-rose-600">
+        <span className="text-4xl md:text-5xl font-black text-pink-500">
           {String(timeLeft.seconds).padStart(2, '0')}
         </span>
         <span className="text-xs md:text-sm uppercase tracking-wider font-medium text-gray-600 mt-2">

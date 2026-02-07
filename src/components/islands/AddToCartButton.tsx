@@ -82,7 +82,7 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
                     </button>
                 </div>
                 {product.stock <= 5 && product.stock > 0 && (
-                    <span className="text-sm text-rose-600">
+                    <span className="text-sm text-pink-500">
                         Solo {product.stock} disponibles
                     </span>
                 )}
@@ -123,7 +123,7 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
 
             {/* Error Message */}
             {error && (
-                <p className="text-sm text-rose-600 text-center">{error}</p>
+                <p className="text-sm text-pink-500 text-center">{error}</p>
             )}
         </div>
     );

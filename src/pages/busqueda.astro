@@ -86,7 +86,7 @@ const productsWithDiscounts = products.map(product => {
         
         <header class="mb-12 text-center">
             <h1 class="text-3xl lg:text-5xl font-bold uppercase tracking-tight mb-4">
-                {queryClean || brandFilter ? (queryClean ? 'Resultados de Búsqueda' : 'Productos por Marca') : 'Buscar Productos'}
+                {queryClean ? 'Resultados de Búsqueda' : brandFilter ? brandFilter.toUpperCase() : 'Buscar Productos'}
             </h1>
             {(queryClean || brandFilter) && (
                  <p class="text-gray-500 text-lg">

@@ -24,7 +24,16 @@ if (queryClean || brandFilter) {
     
     // Filter by brand if brand parameter exists
     if (brandFilter) {
-        query = query.eq('brand:brands.name', brandFilter);
+        // First, find the brand by name
+        const { data: brandData } = await supabase
+            .from('brands')
+            .select('id')
+            .eq('name', brandFilter)
+            .single();
+        
+        if (brandData?.id) {
+            query = query.eq('brand_id', brandData.id);
+        }
         searchTitle = `Productos de ${brandFilter}`;
     }
     

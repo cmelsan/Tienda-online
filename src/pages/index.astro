@@ -443,13 +443,13 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { name: 'Rare Beauty', image: 'https://res.cloudinary.com/dmu6ttz2o/image/upload/v1739637600/eclat-beauty/brands/rare-beauty.jpg' },
-          { name: 'Fenty Beauty', image: 'https://res.cloudinary.com/dmu6ttz2o/image/upload/v1739637600/eclat-beauty/brands/fenty-beauty.jpg' },
-          { name: 'Dior', image: 'https://res.cloudinary.com/dmu6ttz2o/image/upload/v1739637600/eclat-beauty/brands/dior.jpg' },
-          { name: 'Charlotte Tilbury', image: 'https://res.cloudinary.com/dmu6ttz2o/image/upload/v1739637600/eclat-beauty/brands/charlotte-tilbury.jpg' }
+          { name: 'Rare Beauty', image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500&h=400&fit=crop' },
+          { name: 'Fenty Beauty', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=400&fit=crop' },
+          { name: 'Dior', image: 'https://images.unsplash.com/photo-1596401643114-96e0edb42fbd?w=500&h=400&fit=crop' },
+          { name: 'Charlotte Tilbury', image: 'https://images.unsplash.com/photo-1606611013016-969c19d4a42f?w=500&h=400&fit=crop' }
         ].map((brand, i) => (
           <a 
-            href={`/marcas/${brand.name.toLowerCase().replace(' ', '-')}`}
+            href={`/busqueda?brand=${encodeURIComponent(brand.name)}`}
             class="group relative overflow-hidden rounded-lg shadow-lg hover:shadow-2xl transition-all duration-500"
           >
             {/* Background Image */}

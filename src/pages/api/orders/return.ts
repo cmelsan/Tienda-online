@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { sendEmail, getReturnRequestTemplate } from '@/lib/brevo';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
@@ -26,6 +27,45 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         if (error) {
             console.error('Return request error:', error);
             return new Response(JSON.stringify({ success: false, message: error.message }), { status: 500 });
+        }
+
+        // Send confirmation email
+        try {
+            // Get order details
+            const { data: orderData } = await supabase
+                .from('orders')
+                .select('customer_name, guest_email, user_id, order_number')
+                .eq('id', orderId)
+                .single();
+
+            if (orderData) {
+                let customerEmail = orderData.guest_email;
+                let customerName = orderData.customer_name;
+
+                // If no guest email, try to get from auth users
+                if (!customerEmail && orderData.user_id) {
+                    try {
+                        const { data: { user } } = await supabase.auth.admin.getUser(orderData.user_id);
+                        customerEmail = user?.email;
+                    } catch (e) {
+                        console.error('Error fetching user email:', e);
+                    }
+                }
+
+                // Send email if we have customer email
+                if (customerEmail) {
+                    const htmlContent = getReturnRequestTemplate(customerName, orderData.order_number);
+                    await sendEmail({
+                        to: customerEmail,
+                        subject: `Solicitud de Devolución Recibida - Pedido #${orderData.order_number}`,
+                        htmlContent
+                    });
+                    console.log(`[Return API] Return confirmation email sent to: ${customerEmail}`);
+                }
+            }
+        } catch (emailError) {
+            // Log email error but don't fail the request
+            console.error('[Return API] Error sending confirmation email:', emailError);
         }
 
         return new Response(JSON.stringify(data), { status: 200 });

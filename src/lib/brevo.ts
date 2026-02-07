@@ -543,3 +543,58 @@ export function getNewsletterTemplate(unsubscribeUrl: string, content: string): 
     </html>
   `;
 }
+
+// Template: Solicitud de Devolución Recibida
+export function getReturnRequestTemplate(customerName: string, orderNumber: string): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #ec4899 0%, #f97316 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+          .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+          .success-box { background: #f0fdf4; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #10b981; }
+          .warning-box { background: #fff7ed; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #f97316; }
+          .footer { text-align: center; font-size: 12px; color: #999; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+          .label { color: #ec4899; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>✓ Solicitud de Devolución Recibida</h1>
+          </div>
+          <div class="content">
+            <p>Hola <strong>${customerName}</strong>,</p>
+            <p>Hemos recibido tu solicitud de devolución y ya estamos procesándola.</p>
+            
+            <div class="success-box">
+              <p><span class="label">✓ Devolución #${orderNumber}</span></p>
+              <p>Hemos enviado un correo con la etiqueta de devolución a tu email asociado.</p>
+            </div>
+
+            <div class="warning-box">
+              <p><strong>⚠ Información Importante:</strong></p>
+              <p>Una vez recibido y validado el paquete, el reembolso se procesará en tu método de pago original en un plazo de <strong>5 a 7 días hábiles</strong>.</p>
+              <p style="margin: 15px 0; padding: 15px; background: white; border-radius: 4px;">
+                <strong>Pasos siguientes:</strong><br>
+                1. Revisa tu email para descargar la etiqueta de devolución<br>
+                2. Empaca el producto en su condición original<br>
+                3. Adjunta la etiqueta al paquete<br>
+                4. Envía desde cualquier oficina de correos
+              </p>
+            </div>
+
+            <p>Si tienes alguna pregunta sobre el proceso de devolución, no dudes en contactarnos.</p>
+            <p style="color: #999; font-size: 12px;">¿Necesitas ayuda? Contáctanos en support@eclatbeauty.com</p>
+          </div>
+          <div class="footer">
+            <p>&copy; 2026 ÉCLAT Beauty. Todos los derechos reservados.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}

@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createServerSupabaseClient, getAdminSupabaseClient } from '@/lib/supabase';
+import { sendEmail, getShippingNotificationTemplate } from '@/lib/brevo';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
@@ -59,6 +60,47 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 JSON.stringify({ success: false, message: result.error, code: result.code }),
                 { status: 400 }
             );
+        }
+
+        // Fetch order details to get customer email
+        const adminClient = getAdminSupabaseClient();
+        const { data: orderData, error: orderError } = await adminClient
+            .from('orders')
+            .select('id, customer_name, guest_email, user_id')
+            .eq('id', orderId)
+            .single();
+
+        if (!orderError && orderData) {
+            // Get customer email (either guest_email or from auth.users)
+            let customerEmail = orderData.guest_email;
+            let customerName = orderData.customer_name || 'Cliente';
+
+            if (!customerEmail && orderData.user_id) {
+                const { data: { users }, error: usersError } = await adminClient.auth.admin.listUsers();
+                const user = users?.find(u => u.id === orderData.user_id);
+                if (user) {
+                    customerEmail = user.email;
+                    customerName = user.user_metadata?.full_name || customerName;
+                }
+            }
+
+            // Send shipping notification email
+            if (customerEmail) {
+                const trackingUrl = `https://claudiaeclat.victoriafp.online/mi-cuenta/pedidos`;
+                const emailTemplate = getShippingNotificationTemplate(
+                    customerName,
+                    undefined, // No tracking number yet
+                    trackingUrl
+                );
+
+                await sendEmail({
+                    to: customerEmail,
+                    subject: `Tu pedido #${orderId.slice(0, 8).toUpperCase()} ha sido enviado`,
+                    htmlContent: emailTemplate
+                });
+
+                console.log('[API] Shipping notification email sent to:', customerEmail);
+            }
         }
 
         return new Response(

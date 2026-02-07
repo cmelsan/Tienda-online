@@ -183,7 +183,25 @@ export function getOrderConfirmationTemplate(orderNumber: string, customerName: 
 }
 
 // Template: Notificación de envío
-export function getShippingNotificationTemplate(customerName: string, trackingNumber: string, trackingUrl: string): string {
+export function getShippingNotificationTemplate(customerName: string, trackingNumber?: string, trackingUrl?: string): string {
+  const showTracking = trackingNumber && trackingNumber !== 'En proceso' && trackingNumber.trim() !== '';
+  
+  const trackingSection = showTracking ? `
+            <div class="tracking">
+              <p><strong>Número de Seguimiento:</strong></p>
+              <p style="font-size: 18px; font-weight: bold; color: #ec4899;">${trackingNumber}</p>
+              <center>
+                <a href="${trackingUrl || '#'}" class="button">Ver Seguimiento</a>
+              </center>
+            </div>
+            <p>Puedes usar el número de seguimiento para monitorear el estado de tu envío en tiempo real.</p>
+  ` : `
+            <p><strong>El seguimiento detallado estará disponible pronto.</strong></p>
+            <center>
+              <a href="${trackingUrl || '#'}" class="button">Ver Mi Pedido</a>
+            </center>
+  `;
+
   return `
     <!DOCTYPE html>
     <html>
@@ -207,15 +225,8 @@ export function getShippingNotificationTemplate(customerName: string, trackingNu
             <p>Hola <strong>${customerName}</strong>,</p>
             <p>¡Excelente noticia! Tu pedido ha salido de nuestro almacén y está en camino hacia ti.</p>
             
-            <div class="tracking">
-              <p><strong>Número de Seguimiento:</strong></p>
-              <p style="font-size: 18px; font-weight: bold; color: #ec4899;">${trackingNumber}</p>
-              <center>
-                <a href="${trackingUrl}" class="button">Ver Seguimiento</a>
-              </center>
-            </div>
+            ${trackingSection}
 
-            <p>Puedes usar el número de seguimiento para monitorear el estado de tu envío en tiempo real.</p>
             <p>El envío generalmente tarda de 2-5 días hábiles según tu ubicación.</p>
             <p style="color: #999; font-size: 12px;">¿Preguntas? Contáctanos en support@eclatbeauty.com</p>
           </div>

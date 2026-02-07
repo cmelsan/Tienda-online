@@ -1,0 +1,61 @@
+---
+import PublicLayout from '@/layouts/PublicLayout.astro';
+---
+
+<PublicLayout title="Envíos y Entregas - ÉCLAT">
+  <div class="min-h-[80vh] bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <div class="mb-12">
+        <span class="inline-block text-pink-500 text-[10px] uppercase tracking-[0.3em] mb-4 font-medium">Información</span>
+        <h1 class="text-4xl md:text-5xl font-sans font-bold text-black mb-4">Envíos y Entregas</h1>
+        <p class="text-gray-600 text-lg">Conoce cómo realizamos tus envíos y los tiempos estimados de entrega.</p>
+      </div>
+
+      <div class="space-y-12">
+        <section>
+          <h2 class="text-2xl font-bold text-black mb-4">Tiempos de entrega</h2>
+          <div class="bg-gray-50 p-6 rounded-lg space-y-4">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="font-bold text-black">Envío estándar (4-6 días)</h3>
+                <p class="text-gray-600 text-sm mt-1">Envío a toda la Península</p>
+              </div>
+              <span class="text-pink-500 font-bold">Gratis desde 30€</span>
+            </div>
+            <div class="border-t border-gray-200 pt-4 flex justify-between items-start">
+              <div>
+                <h3 class="font-bold text-black">Envío express (1-2 días)</h3>
+                <p class="text-gray-600 text-sm mt-1">Envío rápido a toda la Península</p>
+              </div>
+              <span class="text-gray-600 font-bold">9,95€</span>
+            </div>
+            <div class="border-t border-gray-200 pt-4 flex justify-between items-start">
+              <div>
+                <h3 class="font-bold text-black">Click & Collect (2 horas)</h3>
+                <p class="text-gray-600 text-sm mt-1">Recoge en tienda en Madrid</p>
+              </div>
+              <span class="text-pink-500 font-bold">Gratis</span>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2 class="text-2xl font-bold text-black mb-4">Rastreo de pedidos</h2>
+          <p class="text-gray-600 mb-4 leading-relaxed">
+            Una vez tu pedido esté en camino, recibirás un email con el número de seguimiento. Podrás rastrear tu pedido en tiempo real desde tu cuenta de ÉCLAT o directamente en la web del transportista.
+          </p>
+          <a href="/mi-cuenta/pedidos" class="inline-block bg-pink-500 text-white px-8 py-3 rounded hover:bg-pink-600 transition-colors font-bold text-sm uppercase tracking-wider">
+            Ver mis pedidos
+          </a>
+        </section>
+
+        <section>
+          <h2 class="text-2xl font-bold text-black mb-4">Costos de envío</h2>
+          <p class="text-gray-600 mb-6 leading-relaxed">
+            Los gastos de envío se calculan automáticamente en el carrito antes de confirmar tu compra. Disfrutas de envío gratis en compras superiores a 30€.
+          </p>
+        </section>
+      </div>
+    </div>
+  </div>
+</PublicLayout>

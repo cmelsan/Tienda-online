@@ -43,38 +43,43 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         try {
             console.log('[Return API] Attempting to send email...');
             
-            // Get order details
-            const { data: orderData } = await supabase
-                .from('orders')
-                .select('customer_name, guest_email, user_id, order_number')
-                .eq('id', orderId)
-                .single();
+            // Get customer email from session and order data
+            const customerEmail = session.user.email;
+            const customerName = session.user.user_metadata?.full_name || 'Cliente';
 
-            console.log('[Return API] Order data:', orderData);
+            console.log('[Return API] Customer email:', customerEmail);
+            console.log('[Return API] Customer name:', customerName);
 
-            if (orderData) {
-                // Use guest email if available, otherwise use session email
-                let customerEmail = orderData.guest_email || session.user.email;
-                let customerName = orderData.customer_name || session.user.user_metadata?.full_name || 'Cliente';
-
-                console.log('[Return API] Customer email:', customerEmail);
-                console.log('[Return API] Customer name:', customerName);
-
-                // Send email if we have customer email
-                if (customerEmail) {
-                    const htmlContent = getReturnRequestTemplate(customerName, orderData.order_number);
-                    console.log('[Return API] Sending email...');
-                    
-                    const emailResponse = await sendEmail({
-                        to: customerEmail,
-                        subject: `Solicitud de Devolución Recibida - Pedido #${orderData.order_number}`,
-                        htmlContent
-                    });
-                    
-                    console.log(`[Return API] Email sent successfully to: ${customerEmail}`, emailResponse);
-                } else {
-                    console.warn('[Return API] No customer email found');
+            // Get order number for email subject
+            let orderNumber = 'XXX';
+            try {
+                const { data: orderData } = await supabase
+                    .from('orders')
+                    .select('order_number')
+                    .eq('id', orderId)
+                    .single();
+                
+                if (orderData?.order_number) {
+                    orderNumber = orderData.order_number;
                 }
+            } catch (e) {
+                console.log('[Return API] Could not fetch order number');
+            }
+
+            // Send email if we have customer email
+            if (customerEmail) {
+                const htmlContent = getReturnRequestTemplate(customerName, orderNumber);
+                console.log('[Return API] Sending email with template...');
+                
+                await sendEmail({
+                    to: customerEmail,
+                    subject: `Solicitud de Devolución Recibida - Pedido #${orderNumber}`,
+                    htmlContent
+                });
+                
+                console.log(`[Return API] Email sent successfully to: ${customerEmail}`);
+            } else {
+                console.warn('[Return API] No customer email found in session');
             }
         } catch (emailError) {
             // Log email error but don't fail the request

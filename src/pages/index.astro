@@ -196,15 +196,15 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
 
   {/* 3. REBAJAS SECTION - Product Grid */}
   {offersEnabled && featuredProducts.length > 0 && (
-    <section class="py-16 lg:py-24 bg-gray-100 relative">
+    <section class="py-8 lg:py-12 bg-gray-100 relative">
       {/* Top accent line */}
       <div class="absolute top-0 left-0 w-20 h-1 bg-pink-500"></div>
       
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
           <div>
-            <span class="inline-block text-pink-500 text-[10px] uppercase tracking-[0.3em] mb-3 font-medium">Ofertas Exclusivas</span>
-            <h2 class="text-4xl md:text-5xl font-sans font-black text-black mb-4">Rebajas hasta -50%</h2>
+            <span class="inline-block text-pink-500 text-[10px] uppercase tracking-[0.3em] mb-2 font-medium">Ofertas Exclusivas</span>
+            <h2 class="text-3xl md:text-4xl font-sans font-black text-black mb-3">Rebajas hasta -50%</h2>
             <div class="w-12 h-1 bg-pink-500"></div>
           </div>
           <a href="/ofertas" class="hidden md:inline-block text-[11px] font-medium uppercase tracking-[0.15em] text-black border-b-2 border-pink-500 pb-2 hover:text-pink-500 transition-colors">
@@ -213,9 +213,9 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
         </div>
 
         {/* Products Grid */}
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-8">
           {featuredProducts?.slice(0, 5).map((product: any) => (
-            <div class="group bg-white p-4 border border-gray-200 hover:border-pink-500 hover:shadow-lg transition-all duration-300">
+            <div class="group bg-white p-3 border border-gray-200 hover:border-pink-500 hover:shadow-lg transition-all duration-300">
               <ProductCard product={{
                 ...product,
                 brand: product.brand?.name || 'Marca'
@@ -224,8 +224,8 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
           ))}
         </div>
 
-        <div class="flex items-center justify-center mt-12">
-          <a href="/ofertas" class="inline-flex items-center gap-2 bg-pink-500 text-white px-8 py-3 font-bold text-xs uppercase tracking-wider hover:bg-pink-600 transition-all duration-300">
+        <div class="flex items-center justify-center">
+          <a href="/ofertas" class="inline-flex items-center gap-2 bg-pink-500 text-white px-8 py-2 font-bold text-xs uppercase tracking-wider hover:bg-pink-600 transition-all duration-300">
             Ver todas las ofertas
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />

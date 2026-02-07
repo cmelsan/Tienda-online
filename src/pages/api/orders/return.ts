@@ -29,6 +29,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             return new Response(JSON.stringify({ success: false, message: error.message }), { status: 500 });
         }
 
+        // Check if RPC returned success
+        if (data && !data.success) {
+            return new Response(JSON.stringify(data), { status: 400 });
+        }
+
         // Send confirmation email
         try {
             // Get order details
@@ -68,7 +73,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             console.error('[Return API] Error sending confirmation email:', emailError);
         }
 
-        return new Response(JSON.stringify(data), { status: 200 });
+        return new Response(JSON.stringify({ 
+            success: true, 
+            message: 'Solicitud de devolución procesada correctamente',
+            data 
+        }), { status: 200 });
 
     } catch (err: any) {
         console.error('Return API error:', err);

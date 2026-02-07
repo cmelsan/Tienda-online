@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
 
 interface ReturnModalProps {
     isOpen: boolean;
@@ -39,7 +38,7 @@ export default function ReturnModal({ isOpen, onClose, orderId, onReturnRequeste
                 ? `${reasonText}: ${additionalDetails}`
                 : reasonText;
 
-            // 1. Request return via RPC
+            // Request return and send email confirmation
             const response = await fetch('/api/orders/return', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -56,74 +55,14 @@ export default function ReturnModal({ isOpen, onClose, orderId, onReturnRequeste
                 return;
             }
 
-            // 2. Get user email for email notification
-            const { data: { user } } = await supabase.auth.getUser();
-            const customerEmail = user?.email || '';
-            const customerName = user?.user_metadata?.full_name || 'Cliente';
-
-            // 3. Send return confirmation email
-            if (customerEmail) {
-                const emailResponse = await fetch('/api/emails/return-initiated', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        orderId,
-                        customerEmail,
-                        customerName,
-                        returnReason: fullReason
-                    })
-                });
-
-                const emailData = await emailResponse.json();
-                if (!emailData.success) {
-                    console.error('Email sending failed:', emailData.error);
-                    // Don't fail the return if email fails
-                }
-            }
-
+            // Success - show confirmation and inform user to check email
             setReturnRequested(true);
+            onReturnRequested();
         } catch (err: any) {
             console.error('Error requesting return:', err);
             alert('Error de conexión al solicitar la devolución');
         } finally {
             setIsSubmitting(false);
-        }
-    };
-
-    const downloadLabel = async () => {
-        try {
-            const response = await fetch('/api/orders/generate-return-label', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderId })
-            });
-
-            const data = await response.json();
-
-            if (data.success && data.label) {
-                // Decode base64 and create blob
-                const binaryString = atob(data.label);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-                const blob = new Blob([bytes], { type: 'text/html' });
-
-                // Create download link
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = data.filename;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            } else {
-                alert('Error al descargar la etiqueta');
-            }
-        } catch (err: any) {
-            console.error('Error downloading label:', err);
-            alert('Error al descargar la etiqueta');
         }
     };
 
@@ -149,16 +88,15 @@ export default function ReturnModal({ isOpen, onClose, orderId, onReturnRequeste
                         <div className="bg-green-50 border-2 border-green-200 p-6 rounded">
                             <h3 className="text-lg font-bold text-green-700 mb-3">¡Solicitud Aceptada!</h3>
                             <p className="text-green-700 text-sm mb-4">
-                                Tu solicitud de devolución ha sido procesada correctamente. 
-                                <strong> Hemos enviado un correo a tu email </strong> con toda la información necesaria.
+                                ✓ <strong>Hemos enviado un correo con la etiqueta de devolución a tu email asociado</strong> con toda la información necesaria.
                             </p>
                         </div>
 
                         <div className="bg-blue-50 border-l-4 border-blue-600 p-6">
                             <h4 className="font-bold uppercase text-xs mb-3 text-blue-900">📧 Próximos Pasos</h4>
                             <ol className="space-y-3 text-sm text-blue-900">
-                                <li><strong>1. Recibe el email:</strong> En tu bandeja encontrarás las instrucciones completas</li>
-                                <li><strong>2. Descarga la etiqueta:</strong> Obtén la etiqueta de devolución desde el botón abajo</li>
+                                <li><strong>1. Revisa tu email:</strong> Encontrarás la etiqueta de devolución con las instrucciones completas</li>
+                                <li><strong>2. Descarga la etiqueta:</strong> Obtén el PDF desde el archivo adjunto al email</li>
                                 <li><strong>3. Empaqueta:</strong> Coloca los productos en su embalaje original</li>
                                 <li><strong>4. Envía:</strong> Utiliza cualquier servicio de correos con la dirección de la etiqueta</li>
                                 <li><strong>5. Reembolso:</strong> Recibirás el dinero en 5-7 días hábiles tras validar el paquete</li>
@@ -174,16 +112,10 @@ export default function ReturnModal({ isOpen, onClose, orderId, onReturnRequeste
 
                         <div className="flex gap-3">
                             <button
-                                onClick={downloadLabel}
+                                onClick={onClose}
                                 className="flex-1 bg-black text-white py-4 px-6 text-sm font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors"
                             >
-                                📥 Descargar Etiqueta de Devolución
-                            </button>
-                            <button
-                                onClick={onClose}
-                                className="flex-1 bg-gray-200 text-black py-4 px-6 text-sm font-bold uppercase tracking-widest hover:bg-gray-300 transition-colors"
-                            >
-                                Cerrar
+                                Entendido
                             </button>
                         </div>
 

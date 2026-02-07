@@ -84,16 +84,32 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                     .eq('id', orderId)
                     .single();
 
+                console.log('[Process Return API] Order data:', { orderData, orderError });
+
                 if (!orderError && orderData) {
                     let customerEmail = orderData.guest_email;
                     let customerName = orderData.customer_name || 'Cliente';
 
-                    // If no guest email, use session email
-                    if (!customerEmail && session.user.email) {
-                        customerEmail = session.user.email;
+                    console.log('[Process Return API] Initial email:', customerEmail);
+                    console.log('[Process Return API] User ID:', orderData.user_id);
+
+                    // If no guest email, try to get from the order's user
+                    if (!customerEmail && orderData.user_id) {
+                        try {
+                            const { data: { user }, error: userError } = await userClient.auth.admin.getUser(orderData.user_id);
+                            if (user && !userError) {
+                                customerEmail = user.email;
+                                customerName = user.user_metadata?.full_name || customerName;
+                                console.log('[Process Return API] Got email from auth.users:', customerEmail);
+                            } else {
+                                console.log('[Process Return API] Could not fetch user from auth');
+                            }
+                        } catch (e) {
+                            console.error('[Process Return API] Error fetching auth user:', e);
+                        }
                     }
 
-                    console.log('[Process Return API] Customer email:', customerEmail);
+                    console.log('[Process Return API] Final email to send:', customerEmail);
 
                     // Send refund email
                     if (customerEmail) {
@@ -103,14 +119,21 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                             orderData.total_amount
                         );
 
-                        await sendEmail({
+                        console.log('[Process Return API] Sending email to:', customerEmail);
+                        
+                        const emailResult = await sendEmail({
                             to: customerEmail,
                             subject: `Reembolso Procesado - Pedido #${orderData.order_number}`,
                             htmlContent
                         });
 
-                        console.log('[Process Return API] Refund email sent to:', customerEmail);
+                        console.log('[Process Return API] Email response:', emailResult);
+                        console.log('[Process Return API] Refund email sent successfully to:', customerEmail);
+                    } else {
+                        console.warn('[Process Return API] No customer email found');
                     }
+                } else {
+                    console.error('[Process Return API] Error fetching order data:', orderError);
                 }
             } catch (emailError) {
                 // Log error but don't fail the request

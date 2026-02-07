@@ -22,7 +22,7 @@ export default {
                     border: '#E5E5E5',   // Gris bordes
                 },
                 beauty: {
-                    red: '#D63447',      // Rojo premium (CTAs - más cálido)
+                    red: '#ec4899',      // Rosa chicle (CTAs - en lugar de rojo)
                     pink: '#E8899E',     // Rosa suave (accents, hover)
                     gold: '#C9A962',     // Dorado lujo (badges premium)
                     nude: '#E8DCD5',     // Nude (fondos elegantes)

@@ -39,7 +39,7 @@ export default function CountdownTimer({ endTime }: CountdownProps) {
   if (timeLeft.isExpired) {
     return (
       <div className="text-center">
-        <span className="inline-block bg-red-600 text-white px-6 py-2 text-sm font-bold uppercase tracking-wider">
+        <span className="inline-block bg-pink-500 text-white px-6 py-2 text-sm font-bold uppercase tracking-wider">
           Oferta Finalizada
         </span>
       </div>

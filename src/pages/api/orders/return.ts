@@ -41,6 +41,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
         // Send confirmation email
         try {
+            console.log('[Return API] Attempting to send email...');
+            
             // Get order details
             const { data: orderData } = await supabase
                 .from('orders')
@@ -48,29 +50,30 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 .eq('id', orderId)
                 .single();
 
-            if (orderData) {
-                let customerEmail = orderData.guest_email;
-                let customerName = orderData.customer_name;
+            console.log('[Return API] Order data:', orderData);
 
-                // If no guest email, try to get from auth users
-                if (!customerEmail && orderData.user_id) {
-                    try {
-                        const { data: { user } } = await supabase.auth.admin.getUser(orderData.user_id);
-                        customerEmail = user?.email;
-                    } catch (e) {
-                        console.error('Error fetching user email:', e);
-                    }
-                }
+            if (orderData) {
+                // Use guest email if available, otherwise use session email
+                let customerEmail = orderData.guest_email || session.user.email;
+                let customerName = orderData.customer_name || session.user.user_metadata?.full_name || 'Cliente';
+
+                console.log('[Return API] Customer email:', customerEmail);
+                console.log('[Return API] Customer name:', customerName);
 
                 // Send email if we have customer email
                 if (customerEmail) {
                     const htmlContent = getReturnRequestTemplate(customerName, orderData.order_number);
-                    await sendEmail({
+                    console.log('[Return API] Sending email...');
+                    
+                    const emailResponse = await sendEmail({
                         to: customerEmail,
                         subject: `Solicitud de Devolución Recibida - Pedido #${orderData.order_number}`,
                         htmlContent
                     });
-                    console.log(`[Return API] Return confirmation email sent to: ${customerEmail}`);
+                    
+                    console.log(`[Return API] Email sent successfully to: ${customerEmail}`, emailResponse);
+                } else {
+                    console.warn('[Return API] No customer email found');
                 }
             }
         } catch (emailError) {

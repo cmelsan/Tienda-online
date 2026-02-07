@@ -638,15 +638,12 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-0">
         {[
-          { title: 'Envío Gratis', desc: 'En pedidos +30€', icon: '→' },
-          { title: 'Muestras Gratis', desc: '3 muestras en cada pedido', icon: '✓' },
-          { title: 'Devoluciones', desc: 'Gratuitas y sencillas', icon: '↩' },
-          { title: 'Click & Collect', desc: 'Recogida en tienda 2h', icon: '⚡' },
+          { title: 'Envío Gratis', desc: 'En pedidos +30€' },
+          { title: 'Muestras Gratis', desc: '3 muestras en cada pedido' },
+          { title: 'Devoluciones', desc: 'Gratuitas y sencillas' },
+          { title: 'Click & Collect', desc: 'Recogida en tienda 2h' },
         ].map((item, i) => (
           <div class={`text-center py-6 lg:py-8 px-4 group hover:bg-pink-500 transition-colors duration-300 ${i < 3 ? 'lg:border-r lg:border-white/10' : ''}`}>
-            <div class="text-2xl mb-3 opacity-50 group-hover:opacity-100 transition-opacity duration-300">
-              {item.icon}
-            </div>
             <p class="font-medium text-[11px] uppercase tracking-[0.15em] mb-2">{item.title}</p>
             <p class="text-[10px] text-white/70 group-hover:text-white/90 transition-colors duration-300">{item.desc}</p>
           </div>

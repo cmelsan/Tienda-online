@@ -355,32 +355,58 @@ const offersEnabled = offersSettings?.value === true;
 
   <!-- Footer - Premium Elegant Design -->
   <footer class="bg-black text-white mt-24">
-    <!-- Newsletter Section - Refined -->
+    <!-- Newsletter Section - Premium Design -->
     <div class="border-b border-white/10">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
-        <div class="flex flex-col lg:flex-row items-center justify-between gap-10">
-          <div class="text-center lg:text-left max-w-md">
-            <h3 class="text-2xl lg:text-3xl font-sans font-light tracking-wide mb-3">Mantente al día</h3>
-            <p class="text-white/60 text-sm leading-relaxed">Suscríbete para recibir noticias, lanzamientos exclusivos y ofertas especiales.</p>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          
+          {/* Left Content */}
+          <div>
+            <span class="inline-block text-pink-500 text-[10px] uppercase tracking-[0.3em] mb-4 font-medium">Mantente conectada</span>
+            <h2 class="text-4xl md:text-5xl font-sans font-bold text-white mb-4 leading-tight">Newsletter Éclat</h2>
+            <p class="text-white/70 text-base leading-relaxed mb-6">Suscríbete para recibir noticias, lanzamientos exclusivos, ofertas especiales y tips de belleza directo en tu inbox.</p>
+            
+            {/* Benefits List */}
+            <div class="space-y-3">
+              <div class="flex items-start gap-3">
+                <span class="text-pink-500 text-lg font-bold mt-0.5">✓</span>
+                <p class="text-sm text-white/80">Ofertas exclusivas y descuentos especiales</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-pink-500 text-lg font-bold mt-0.5">✓</span>
+                <p class="text-sm text-white/80">Primero en enterarte de nuevos lanzamientos</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-pink-500 text-lg font-bold mt-0.5">✓</span>
+                <p class="text-sm text-white/80">Consejos de belleza y tutoriales exclusivos</p>
+              </div>
+            </div>
           </div>
-          <form id="newsletter-form" class="w-full lg:w-auto flex flex-col sm:flex-row gap-4 items-stretch">
-            <div class="relative">
+
+          {/* Right Form */}
+          <div>
+            <form id="newsletter-form" class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8">
+              <label for="newsletter-email" class="block text-xs uppercase tracking-[0.15em] text-white/70 mb-4 font-medium">Tu dirección de email</label>
               <input 
+                id="newsletter-email"
                 name="email"
                 type="email" 
-                placeholder="Tu dirección de email" 
-                class="w-full sm:w-80 bg-transparent border border-white/30 text-white placeholder-white/40 px-5 py-3.5 focus:outline-none focus:border-white transition-colors text-sm"
+                placeholder="nombre@ejemplo.com" 
+                class="w-full bg-white/10 border border-white/20 text-white placeholder-white/40 px-5 py-4 focus:outline-none focus:border-pink-500 focus:bg-white/15 transition-all text-sm rounded mb-4"
                 required
               />
-            </div>
-            <button 
-              type="submit" 
-              class="bg-white text-black px-8 py-3.5 font-medium text-xs tracking-[0.15em] uppercase hover:bg-beauty-red hover:text-white transition-all duration-300"
-            >
-              Suscribirse
-            </button>
-          </form>
-           <p id="newsletter-message" class="text-xs mt-2 hidden"></p>
+              <button 
+                type="submit" 
+                class="w-full bg-pink-500 text-white px-8 py-4 font-bold text-xs tracking-[0.15em] uppercase hover:bg-pink-600 transition-all duration-300 rounded"
+              >
+                Suscribirse Ahora
+              </button>
+              <p id="newsletter-message" class="text-xs mt-4 hidden text-center"></p>
+            </form>
+            
+            {/* Privacy Note */}
+            <p class="text-[10px] text-white/40 mt-6 text-center">Respetamos tu privacidad. Nos comprometeremos a no enviar spam.</p>
+          </div>
         </div>
       </div>
     </div>

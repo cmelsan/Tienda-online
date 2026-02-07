@@ -75,69 +75,60 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         // Send refund email if status is 'refunded'
         if (newStatus === 'refunded') {
             try {
-                console.log('[Process Return API] Sending refund email for order:', orderId);
+                console.log('[Process Return API] Attempting to send refund email for:', orderId);
 
                 // Fetch order details to get customer email and amount
                 const { data: orderData, error: orderError } = await userClient
                     .from('orders')
-                    .select('customer_name, guest_email, user_id, total_amount, order_number')
+                    .select('id, customer_name, guest_email, user_id, total_amount, order_number')
                     .eq('id', orderId)
                     .single();
 
-                console.log('[Process Return API] Order data:', { orderData, orderError });
+                console.log('[Process Return API] Order fetch:', { orderError, hasData: !!orderData });
 
                 if (!orderError && orderData) {
+                    // Get customer email (either guest_email or from auth.users)
                     let customerEmail = orderData.guest_email;
                     let customerName = orderData.customer_name || 'Cliente';
 
-                    console.log('[Process Return API] Initial email:', customerEmail);
-                    console.log('[Process Return API] User ID:', orderData.user_id);
+                    console.log('[Process Return API] Guest email:', customerEmail);
 
-                    // If no guest email, try to get from the order's user
                     if (!customerEmail && orderData.user_id) {
                         try {
+                            // Try to get the user info from auth
                             const { data: { user }, error: userError } = await userClient.auth.admin.getUser(orderData.user_id);
                             if (user && !userError) {
                                 customerEmail = user.email;
                                 customerName = user.user_metadata?.full_name || customerName;
-                                console.log('[Process Return API] Got email from auth.users:', customerEmail);
-                            } else {
-                                console.log('[Process Return API] Could not fetch user from auth');
+                                console.log('[Process Return API] Got email from auth:', customerEmail);
                             }
                         } catch (e) {
-                            console.error('[Process Return API] Error fetching auth user:', e);
+                            console.log('[Process Return API] Could not fetch auth user');
                         }
                     }
 
-                    console.log('[Process Return API] Final email to send:', customerEmail);
-
                     // Send refund email
                     if (customerEmail) {
-                        const htmlContent = getRefundProcessedTemplate(
+                        const emailTemplate = getRefundProcessedTemplate(
                             customerName,
                             orderData.order_number,
                             orderData.total_amount
                         );
 
-                        console.log('[Process Return API] Sending email to:', customerEmail);
-                        
-                        const emailResult = await sendEmail({
+                        await sendEmail({
                             to: customerEmail,
-                            subject: `Reembolso Procesado - Pedido #${orderData.order_number}`,
-                            htmlContent
+                            subject: `Tu reembolso #${orderData.order_number} ha sido procesado`,
+                            htmlContent: emailTemplate
                         });
 
-                        console.log('[Process Return API] Email response:', emailResult);
-                        console.log('[Process Return API] Refund email sent successfully to:', customerEmail);
+                        console.log('[Process Return API] Refund email sent to:', customerEmail);
                     } else {
-                        console.warn('[Process Return API] No customer email found');
+                        console.log('[Process Return API] No customer email found');
                     }
-                } else {
-                    console.error('[Process Return API] Error fetching order data:', orderError);
                 }
             } catch (emailError) {
                 // Log error but don't fail the request
-                console.error('[Process Return API] Error sending refund email:', emailError);
+                console.error('[Process Return API] Error sending email:', emailError);
             }
         }
 

@@ -63,8 +63,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         }
 
         // Fetch order details to get customer email
-        const adminClient = getAdminSupabaseClient();
-        const { data: orderData, error: orderError } = await adminClient
+        const { data: orderData, error: orderError } = await userClient
             .from('orders')
             .select('id, customer_name, guest_email, user_id')
             .eq('id', orderId)
@@ -76,11 +75,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             let customerName = orderData.customer_name || 'Cliente';
 
             if (!customerEmail && orderData.user_id) {
-                const { data: { users }, error: usersError } = await adminClient.auth.admin.listUsers();
-                const user = users?.find(u => u.id === orderData.user_id);
-                if (user) {
-                    customerEmail = user.email;
-                    customerName = user.user_metadata?.full_name || customerName;
+                try {
+                    // Try to get the user info from auth
+                    const { data: { user }, error: userError } = await userClient.auth.admin.getUser(orderData.user_id);
+                    if (user && !userError) {
+                        customerEmail = user.email;
+                        customerName = user.user_metadata?.full_name || customerName;
+                    }
+                } catch (e) {
+                    console.log('[API] Could not fetch auth user, using defaults');
                 }
             }
 

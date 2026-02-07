@@ -1,5 +1,6 @@
 ---
 import Card from '@/components/ui/Card.astro';
+import WishlistButton from '@/components/islands/WishlistButton';
 import { formatPrice } from '@/lib/utils';
 import type { Product } from '@/lib/supabase';
 
@@ -18,72 +19,12 @@ if (!imageUrl || imageUrl.includes('placeholder')) {
 ---
 
 <Card variant="flat">
-  <div class="relative group" x-data="{ 
-      isWishlisted: false,
-      loading: false,
-      init() {
-         // Check if already in global list
-         if (window.userWishlist && window.userWishlist.includes('${product.id}')) {
-             this.isWishlisted = true;
-         }
-         // Listen for global ready event (if component loads before fetch finishes)
-         window.addEventListener('wishlist-ready', () => {
-             if (window.userWishlist && window.userWishlist.includes('${product.id}')) {
-                 this.isWishlisted = true;
-             }
-         });
-      },
-      async toggle() {
-          if (this.loading) return;
-          this.loading = true;
-          
-          // Optimistic UI
-          this.isWishlisted = !this.isWishlisted;
-
-          try {
-             const res = await fetch('/api/wishlist', {
-                 method: 'POST',
-                 headers: {'Content-Type': 'application/json'},
-                 body: JSON.stringify({ productId: '${product.id}' })
-             });
-             
-             if (!res.ok) {
-                 // Revert if failed (e.g. not logged in)
-                 this.isWishlisted = !this.isWishlisted;
-                 if (res.status === 401) window.location.href = '/login';
-             } else {
-                 // Update global list just in case
-                 if (this.isWishlisted) {
-                     window.userWishlist = [...(window.userWishlist || []), '${product.id}'];
-                 } else {
-                     window.userWishlist = (window.userWishlist || []).filter(id => id !== '${product.id}');
-                 }
-             }
-          } catch (e) {
-             this.isWishlisted = !this.isWishlisted;
-          } finally {
-             this.loading = false;
-          }
-      }
-  }">
+  <div class="relative group">
     
-    <!-- Wishlist Button - Refined -->
-    <button 
-      @click.prevent="toggle()"
-      class="absolute top-3 right-3 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-gray-medium hover:text-beauty-red transition-all duration-300 shadow-soft opacity-0 group-hover:opacity-100 focus:opacity-100 hover:scale-110"
-      :class="{ '!text-beauty-red !opacity-100': isWishlisted }"
-      aria-label="Añadir a lista de deseos"
-    >
-      <svg 
-        class="w-[18px] h-[18px] transition-transform duration-300" 
-        :class="{ 'scale-110': isWishlisted }"
-        :fill="isWishlisted ? 'currentColor' : 'none'" 
-        stroke="currentColor" 
-        viewBox="0 0 24 24"
-      >
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-      </svg>
-    </button>
+    <!-- Wishlist Button - Island Component -->
+    <div class="absolute top-3 right-3 z-20">
+      <WishlistButton client:load productId={product.id} productName={product.name} />
+    </div>
 
     <!-- Discount Badge -->
     {product.discount > 0 && (

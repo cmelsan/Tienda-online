@@ -2,6 +2,7 @@
 import PublicLayout from '@/layouts/PublicLayout.astro';
 import ProductGallery from '@/components/product/ProductGallery.astro';
 import ProductCard from '@/components/product/ProductCard.astro';
+import WishlistButton from '@/components/islands/WishlistButton';
 import AddToCartButton from '@/components/islands/AddToCartButton';
 import { supabase } from '@/lib/supabase';
 import { formatPrice, getStockLabel } from '@/lib/utils';
@@ -124,6 +125,11 @@ const { data: relatedProducts } = await supabase
         <h1 class="text-3xl lg:text-4xl font-bold text-black leading-tight">
           {product.name}
         </h1>
+
+        <!-- Wishlist Button -->
+        <div class="flex items-center gap-4">
+          <WishlistButton client:load productId={product.id} productName={product.name} />
+        </div>
 
         <!-- Price -->
         <div class="flex items-center gap-3 flex-wrap">

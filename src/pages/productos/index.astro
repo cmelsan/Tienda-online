@@ -2,6 +2,7 @@
 import PublicLayout from '@/layouts/PublicLayout.astro';
 import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/utils';
+import WishlistButton from '@/components/islands/WishlistButton';
 
 // Fetch all products
 const { data: dbProducts } = await supabase
@@ -170,10 +171,10 @@ const { data: categories } = await supabase
                         )}
                     </div>
                     
-                    <!-- Wishlist Heart -->
-                    <button class="absolute top-2 right-2 z-10 p-2 hover:opacity-70 transition-opacity wishlist-btn" data-product-id={product.id} data-product-name={product.name}>
-                         <svg class="w-6 h-6 wishlist-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                    </button>
+                    <!-- Wishlist Button Island -->
+                    <div class="absolute top-2 right-2 z-10">
+                      <WishlistButton client:load productId={product.id} productName={product.name} />
+                    </div>
 
                      <!-- Image -->
                     <a href={`/productos/${product.slug}`} class="block relative aspect-square mb-4 bg-gray-50 overflow-hidden">
@@ -260,126 +261,6 @@ const { data: categories } = await supabase
     // Open cart drawer
     isCartOpen.set(true);
   };
-
-  // Wishlist functionality
-  const wishlistBtns = document.querySelectorAll('.wishlist-btn');
-  let wishlistItems = new Set();
-
-  // Load initial wishlist state
-  async function loadWishlist() {
-    try {
-      const response = await fetch('/api/wishlist', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (response.status === 401) {
-        // User not authenticated - hide interaction
-        wishlistBtns.forEach((btn) => {
-          btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = '/login';
-          });
-        });
-        return;
-      }
-
-      if (response.ok) {
-        const items = await response.json();
-        wishlistItems = new Set(items);
-        updateWishlistIcons();
-      }
-    } catch (error) {
-      console.error('Error loading wishlist:', error);
-    }
-  }
-
-  // Update icon appearance based on wishlist state
-  function updateWishlistIcons() {
-    wishlistBtns.forEach((btn) => {
-      const productId = btn.getAttribute('data-product-id');
-      const icon = btn.querySelector('.wishlist-icon');
-      
-      if (wishlistItems.has(productId)) {
-        icon.setAttribute('fill', 'currentColor');
-        icon.setAttribute('class', 'w-6 h-6 wishlist-icon text-black fill-black');
-      } else {
-        icon.setAttribute('fill', 'none');
-        icon.setAttribute('class', 'w-6 h-6 wishlist-icon text-black');
-      }
-    });
-  }
-
-  // Handle wishlist button clicks
-  wishlistBtns.forEach((btn) => {
-    btn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const productId = btn.getAttribute('data-product-id');
-      const productName = btn.getAttribute('data-product-name');
-
-      try {
-        const response = await fetch('/api/wishlist', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId }),
-        });
-
-        if (response.status === 401) {
-          window.location.href = '/login';
-          return;
-        }
-
-        if (response.ok) {
-          const result = await response.json();
-          
-          if (result.action === 'added') {
-            wishlistItems.add(productId);
-            showNotification(`${productName} añadido a tu lista de deseos ❤️`, 'success');
-          } else if (result.action === 'removed') {
-            wishlistItems.delete(productId);
-            showNotification(`${productName} eliminado de tu lista de deseos`, 'info');
-          }
-          
-          updateWishlistIcons();
-        } else {
-          showNotification('Error al actualizar tu lista de deseos', 'error');
-        }
-      } catch (error) {
-        console.error('Error toggling wishlist:', error);
-        showNotification('Error al actualizar tu lista de deseos', 'error');
-      }
-    });
-  });
-
-  // Simple notification system
-  function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.textContent = message;
-    notification.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-      color: white;
-      padding: 16px 24px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      z-index: 9999;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      animation: slideIn 0.3s ease-out;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-      notification.style.animation = 'slideOut 0.3s ease-out';
-      setTimeout(() => notification.remove(), 300);
-    }, 3000);
-  }
-
-  // Load wishlist on page load
-  loadWishlist();
 </script>
 
 <style>

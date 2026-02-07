@@ -97,42 +97,44 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
 
 <PublicLayout title="ÉCLAT - Perfumes, Maquillaje, Tratamiento" description="Descubre lo último en belleza: maquillaje, tratamiento, perfumes y cabello.">
   
-  {/* 1. HERO - Premium Full-Screen Style with Image */}
-  <section class="relative w-full h-[85vh] min-h-[600px] max-h-[900px] bg-gradient-to-r from-pink-400 via-pink-600 to-rose-600 overflow-hidden border-8 border-black">
-    <div class="absolute inset-0 bg-gradient-to-r from-black/10 via-transparent to-transparent"></div>
-    <div class="absolute inset-0 flex items-center">
-      <div class="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 w-full flex flex-col lg:flex-row items-center justify-between gap-0">
-        <div class="max-w-xl animate-fadeIn flex-1 relative z-10 pr-0">
-          <span class="inline-block text-gray-700 text-[10px] uppercase tracking-[0.35em] mb-5 font-semibold opacity-80">Nueva Colección</span>
-          <h1 class="text-6xl md:text-8xl text-black font-sans font-black tracking-tighter mb-7 leading-[0.95]">
-            The Next<br/>Big Thing
+  {/* 1. HERO - Minimalist Black White Pink Design */}
+  <section class="relative w-full h-[85vh] min-h-[600px] max-h-[900px] bg-black overflow-hidden">
+    {/* Background Image with Overlay */}
+    <div class="absolute inset-0">
+      <img 
+        src="https://res.cloudinary.com/dmu6ttz2o/image/upload/v1770483149/eclat-beauty/hero-makeup-girl.jpg" 
+        alt="Maquillaje Premium" 
+        class="w-full h-full object-cover opacity-40"
+      />
+      <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
+    </div>
+
+    {/* Content */}
+    <div class="relative z-10 h-full flex items-center">
+      <div class="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 w-full">
+        <div class="max-w-2xl">
+          <div class="h-1 w-12 bg-pink-500 mb-8"></div>
+          <h1 class="text-7xl lg:text-8xl text-white font-black tracking-tighter mb-6 leading-tight">
+            NUEVA<br/>COLECCIÓN
           </h1>
-          <p class="text-gray-800 text-base md:text-lg font-normal mb-12 leading-relaxed max-w-md">
-            Descubre la nueva revolución en cuidado de la piel. Solo en Éclat.
+          <p class="text-white/70 text-lg mb-10 font-light leading-relaxed max-w-md">
+            Descubre la revolucion en cuidado de la piel. Productos premium seleccionados para ti.
           </p>
           <a 
             href="/productos" 
-            class="group inline-block bg-black text-white px-12 py-5 font-bold text-xs uppercase tracking-[0.25em] hover:bg-gray-900 hover:shadow-xl transition-all duration-300 border border-black relative overflow-hidden"
+            class="inline-flex items-center gap-3 bg-pink-500 text-black px-8 py-4 font-bold text-sm uppercase tracking-wider hover:bg-pink-600 transition-all duration-300"
           >
-            <span class="relative z-10">Descubrir Ahora</span>
-            <div class="absolute inset-0 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
-            <span class="absolute inset-0 flex items-center justify-center text-black opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-bold z-20">Descubrir Ahora</span>
+            Ver Colección
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
           </a>
-        </div>
-
-        {/* Product Image - Full Height */}
-        <div class="hidden lg:flex items-center justify-center flex-1 h-full absolute right-0 top-0 bottom-0 w-1/2">
-          <img 
-            src="https://res.cloudinary.com/dmu6ttz2o/image/upload/v1770483149/eclat-beauty/hero-makeup-girl.jpg" 
-            alt="Maquillaje Premium" 
-            class="h-full w-full object-cover"
-          />
         </div>
       </div>
     </div>
     
     {/* Scroll indicator */}
-    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 text-black/50 animate-bounce z-20">
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-pink-500 animate-bounce z-20">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
       </svg>

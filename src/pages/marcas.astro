@@ -61,7 +61,7 @@ const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ#".split("");
       
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
         {topBrands.map((brand) => (
-          <a href="#" class={`aspect-[4/3] flex items-center justify-center p-6 transition-transform hover:-translate-y-1 duration-300 group ${brand.color}`}>
+          <a href={`/busqueda?brand=${encodeURIComponent(brand.name)}`} class={`aspect-[4/3] flex items-center justify-center p-6 transition-transform hover:-translate-y-1 duration-300 group ${brand.color}`}>
              <!-- Placeholder for logo if image fails or doesn't exist -->
              <div class="text-center">
                 <span class="text-xl font-bold uppercase tracking-widest">{brand.name}</span>
@@ -96,7 +96,7 @@ const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ#".split("");
               <h3 class="text-4xl font-bold mb-8 border-b-2 border-black inline-block">{letter}</h3>
               <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-4 gap-x-8">
                 {(brandsList as string[]).map((brand) => (
-                  <a href="#" class="text-sm text-gray-600 hover:text-black hover:underline transition-colors block py-1">
+                  <a href={`/busqueda?brand=${encodeURIComponent(brand)}`} class="text-sm text-gray-600 hover:text-black hover:underline transition-colors block py-1">
                     {brand}
                   </a>
                 ))}

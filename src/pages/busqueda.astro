@@ -4,25 +4,31 @@ import ProductCard from '@/components/product/ProductCard.astro';
 import { supabase } from '@/lib/supabase';
 
 const q = Astro.url.searchParams.get('q') || '';
+const brandFilter = Astro.url.searchParams.get('brand') || '';
 const queryClean = q.trim();
 
 let products = [];
 let error = null;
+let searchTitle = 'Buscar Productos';
 
-if (queryClean) {
-    // Basic search: Name or Description matches
-    // Note: To search relations (Brand Name, Category Name), it's more complex with standard PostgREST.
-    // For now, we search Product Name and Description.
-    // We also fetch Brand and Category to display card properly.
-    
-    // Attempt to find if query matches a Brand or Category specifically?
-    // Let's stick to product search for MVP.
-    
-    const { data, error: err } = await supabase
+if (queryClean || brandFilter) {
+    let query = supabase
         .from('products')
-        .select('*, brand:brands(name), category:categories(slug)')
-        .or(`name.ilike.%${queryClean}%,description.ilike.%${queryClean}%`)
-        .order('created_at', { ascending: false });
+        .select('*, brand:brands(name), category:categories(slug)');
+    
+    // Filter by text search if query exists
+    if (queryClean) {
+        query = query.or(`name.ilike.%${queryClean}%,description.ilike.%${queryClean}%`);
+        searchTitle = `Resultados para "${queryClean}"`;
+    }
+    
+    // Filter by brand if brand parameter exists
+    if (brandFilter) {
+        query = query.eq('brand:brands.name', brandFilter);
+        searchTitle = `Productos de ${brandFilter}`;
+    }
+    
+    const { data, error: err } = await query.order('created_at', { ascending: false });
         
     if (err) {
         console.error('Search error:', err);
@@ -31,8 +37,6 @@ if (queryClean) {
         products = data || [];
     }
 }
-
-const pageTitle = queryClean ? `Resultados para "${queryClean}"` : 'Búsqueda';
 
 // Fetch Offers Settings
 const { data: offersSettingData } = await supabase
@@ -68,16 +72,16 @@ const productsWithDiscounts = products.map(product => {
 });
 ---
 
-<PublicLayout title={`${pageTitle} | ÉCLAT`} description="Resultados de búsqueda">
+<PublicLayout title={`${searchTitle} | ÉCLAT`} description="Resultados de búsqueda">
     <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
         
         <header class="mb-12 text-center">
             <h1 class="text-3xl lg:text-5xl font-bold uppercase tracking-tight mb-4">
-                {queryClean ? 'Resultados de Búsqueda' : 'Buscar Productos'}
+                {queryClean || brandFilter ? (queryClean ? 'Resultados de Búsqueda' : 'Productos por Marca') : 'Buscar Productos'}
             </h1>
-            {queryClean && (
+            {(queryClean || brandFilter) && (
                  <p class="text-gray-500 text-lg">
-                    Se han encontrado <span class="font-bold text-black">{products.length}</span> resultados para "<span class="italic text-black">{queryClean}</span>"
+                    Se han encontrado <span class="font-bold text-black">{products.length}</span> resultados{queryClean ? ` para "${queryClean}"` : ` de ${brandFilter}`}
                 </p>
             )}
         </header>

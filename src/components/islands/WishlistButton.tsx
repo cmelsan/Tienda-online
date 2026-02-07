@@ -60,7 +60,7 @@ export default function WishlistButton({ productId, productName }: WishlistButto
 
         if (result.action === 'added') {
           setIsWishlisted(true);
-          showNotification(`${productName} añadido a tu lista de deseos ❤️`, 'success');
+          showNotification(`${productName} añadido a tu lista de deseos`, 'success');
         } else if (result.action === 'removed') {
           setIsWishlisted(false);
           showNotification(`${productName} eliminado de tu lista de deseos`, 'info');
@@ -101,31 +101,69 @@ export default function WishlistButton({ productId, productName }: WishlistButto
 }
 
 function showNotification(message: string, type: 'success' | 'info' | 'error' = 'info') {
+  // Inyectar estilos si no existen
+  if (!document.getElementById('wishlist-notification-styles')) {
+    const style = document.createElement('style');
+    style.id = 'wishlist-notification-styles';
+    style.textContent = `
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   const notification = document.createElement('div');
   notification.textContent = message;
 
-  const bgColor =
-    type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6';
+  // Color scheme: rosa chicle (#ec4899) and black for elegance
+  let bgColor = '#ec4899';
+  let textColor = '#ffffff';
+  
+  if (type === 'error') {
+    bgColor = '#000000';
+    textColor = '#ec4899';
+  }
 
   notification.style.cssText = `
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 24px;
+    right: 24px;
     background: ${bgColor};
-    color: white;
-    padding: 16px 24px;
-    border-radius: 8px;
-    font-size: 14px;
+    color: ${textColor};
+    padding: 14px 20px;
+    border-radius: 0;
+    font-size: 13px;
     font-weight: 500;
+    letter-spacing: 0.03em;
     z-index: 9999;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    animation: slideIn 0.3s ease-out;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    animation: slideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-family: system-ui, -apple-system, sans-serif;
+    text-transform: capitalize;
   `;
 
   document.body.appendChild(notification);
 
   setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease-out';
+    notification.style.animation = 'slideOut 0.3s ease-in';
     setTimeout(() => notification.remove(), 300);
-  }, 3000);
+  }, 2500);
 }

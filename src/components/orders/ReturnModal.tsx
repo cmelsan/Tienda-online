@@ -38,6 +38,8 @@ export default function ReturnModal({ isOpen, onClose, orderId, onReturnRequeste
                 ? `${reasonText}: ${additionalDetails}`
                 : reasonText;
 
+            console.log('[ReturnModal] Submitting return request:', { orderId, reason: fullReason });
+
             // Request return and send email confirmation
             const response = await fetch('/api/orders/return', {
                 method: 'POST',
@@ -49,9 +51,11 @@ export default function ReturnModal({ isOpen, onClose, orderId, onReturnRequeste
             });
 
             const data = await response.json();
+            console.log('[ReturnModal] API Response:', { status: response.status, data });
 
-            if (!data || !data.success) {
-                alert('Error: ' + (data?.message || 'No se pudo procesar la solicitud'));
+            if (!response.ok || !data?.success) {
+                console.error('[ReturnModal] Error response:', data);
+                alert(`Error: ${data?.message || 'No se pudo procesar la solicitud'}`);
                 return;
             }
 
@@ -59,7 +63,7 @@ export default function ReturnModal({ isOpen, onClose, orderId, onReturnRequeste
             setReturnRequested(true);
             onReturnRequested();
         } catch (err: any) {
-            console.error('Error requesting return:', err);
+            console.error('[ReturnModal] Exception:', err);
             alert('Error de conexión al solicitar la devolución');
         } finally {
             setIsSubmitting(false);

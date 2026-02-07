@@ -24,13 +24,18 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             p_reason: reason
         });
 
+        console.log('[Return API] RPC called with:', { orderId, reason });
+        console.log('[Return API] RPC error:', error);
+        console.log('[Return API] RPC data:', data);
+
         if (error) {
-            console.error('Return request error:', error);
-            return new Response(JSON.stringify({ success: false, message: error.message }), { status: 500 });
+            console.error('[Return API] Return request error:', error);
+            return new Response(JSON.stringify({ success: false, message: `RPC Error: ${error.message}` }), { status: 500 });
         }
 
         // Check if RPC returned success
         if (data && !data.success) {
+            console.warn('[Return API] RPC returned success=false:', data);
             return new Response(JSON.stringify(data), { status: 400 });
         }
 

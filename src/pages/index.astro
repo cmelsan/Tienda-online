@@ -592,43 +592,63 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
   </section>
 
   {/* 6. SERVICES - Minimal Icons */}
-  <section class="bg-white-off py-20 lg:py-24 border-t border-gray-border">
+  {/* SEPARATOR */}
+  <div class="h-16 lg:h-20 bg-black"></div>
+
+  {/* SERVICES - Premium Design */}
+  <section class="bg-white py-12 lg:py-16">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-16">
-        <span class="inline-block text-gray-medium text-[10px] uppercase tracking-[0.3em] mb-4">Experiencia</span>
-        <h2 class="text-3xl md:text-4xl font-sans font-light text-black">Servicios Éclat</h2>
+      <div class="text-center mb-12">
+        <span class="inline-block text-pink-500 text-[10px] uppercase tracking-[0.3em] mb-4 font-medium">Experiencia</span>
+        <h2 class="text-4xl md:text-5xl font-sans font-bold text-black">Servicios Éclat</h2>
       </div>
       
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { title: 'Tarjeta Regalo', icon: '🎁', desc: 'El regalo perfecto' },
-          { title: 'App Éclat', icon: '📱', desc: 'Descarga nuestra App' },
-          { title: 'Brow Bar', icon: '✨', desc: 'Servicio de cejas' },
-          { title: 'Maquillaje', icon: '💄', desc: 'Servicios en tienda' },
-        ].map(service => (
-          <a href="#" class="text-center group p-6 rounded-lg hover:bg-white hover:shadow-soft transition-all duration-300">
-            <div class="text-4xl mb-5 group-hover:scale-110 transition-transform duration-300">{service.icon}</div>
-            <h3 class="font-medium text-sm uppercase tracking-[0.1em] mb-2 text-black">{service.title}</h3>
-            <p class="text-xs text-gray-medium">{service.desc}</p>
+          { title: 'Tarjeta Regalo', desc: 'El regalo perfecto para cualquier ocasión' },
+          { title: 'App Éclat', desc: 'Descarga nuestra aplicación exclusiva' },
+          { title: 'Brow Bar', desc: 'Servicio profesional de diseño de cejas' },
+          { title: 'Maquillaje', desc: 'Asesoría y servicios de maquillaje en tienda' },
+        ].map((service, i) => (
+          <a href="#" class="group">
+            <div class="bg-white border border-gray-200 p-8 hover:border-pink-500 transition-all duration-300 relative overflow-hidden">
+              {/* Icon circle */}
+              <div class="absolute -right-4 -top-4 w-20 h-20 bg-pink-50 group-hover:bg-pink-100 rounded-full transition-colors duration-300 -z-10"></div>
+              
+              {/* Number */}
+              <div class="inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-300 group-hover:border-pink-500 text-gray-600 group-hover:text-pink-500 font-bold text-sm transition-all duration-300 mb-4">
+                {(i + 1).toString().padStart(2, '0')}
+              </div>
+              
+              <h3 class="text-lg font-bold text-black mb-2 group-hover:text-pink-500 transition-colors duration-300">{service.title}</h3>
+              <p class="text-sm text-gray-600">{service.desc}</p>
+              
+              <div class="flex items-center text-pink-500 font-medium text-xs uppercase tracking-[0.1em] mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                Conocer más
+              </div>
+            </div>
           </a>
         ))}
       </div>
     </div>
   </section>
 
-  {/* 7. TRUST SIGNALS - Premium Style */}
-  <section class="bg-black text-white py-12">
+  {/* TRUST SIGNALS - Enhanced Premium Style */}
+  <section class="bg-black text-white py-10 lg:py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-0">
         {[
-          { title: 'Envío Gratis', desc: 'En pedidos +30€' },
-          { title: 'Muestras Gratis', desc: '3 muestras en cada pedido' },
-          { title: 'Devoluciones', desc: 'Gratuitas y sencillas' },
-          { title: 'Click & Collect', desc: 'Recogida en tienda 2h' },
+          { title: 'Envío Gratis', desc: 'En pedidos +30€', icon: '→' },
+          { title: 'Muestras Gratis', desc: '3 muestras en cada pedido', icon: '✓' },
+          { title: 'Devoluciones', desc: 'Gratuitas y sencillas', icon: '↩' },
+          { title: 'Click & Collect', desc: 'Recogida en tienda 2h', icon: '⚡' },
         ].map((item, i) => (
-          <div class={`text-center py-4 ${i < 3 ? 'md:border-r md:border-white/10' : ''}`}>
-            <p class="font-medium text-[11px] uppercase tracking-[0.15em] mb-1.5">{item.title}</p>
-            <p class="text-[10px] text-white/50">{item.desc}</p>
+          <div class={`text-center py-6 lg:py-8 px-4 group hover:bg-pink-500 transition-colors duration-300 ${i < 3 ? 'lg:border-r lg:border-white/10' : ''}`}>
+            <div class="text-2xl mb-3 opacity-50 group-hover:opacity-100 transition-opacity duration-300">
+              {item.icon}
+            </div>
+            <p class="font-medium text-[11px] uppercase tracking-[0.15em] mb-2">{item.title}</p>
+            <p class="text-[10px] text-white/70 group-hover:text-white/90 transition-colors duration-300">{item.desc}</p>
           </div>
         ))}
       </div>

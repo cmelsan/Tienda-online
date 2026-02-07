@@ -8,15 +8,8 @@ const { data: allBrands } = await supabase
   .select('*')
   .order('name');
 
-// Fetch top brands (brands with most products)
-const { data: topBrandsData } = await supabase
-  .from('brands')
-  .select('brands(id, name, logo_url, description)', { count: 'exact' })
-  .join('products', 'brands.id', 'products.brand_id')
-  .order('count', { ascending: false })
-  .limit(5);
-
-const topBrands = allBrands?.slice(0, 5).map(brand => ({
+// Top brands are just the first 5
+const topBrands = (allBrands || []).slice(0, 5).map(brand => ({
   name: brand.name,
   image: brand.logo_url || '/assets/brands/default.png',
   color: 'bg-black text-white'

@@ -54,16 +54,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         return new Response(JSON.stringify({ message: 'Product ID required' }), { status: 400 });
     }
 
-    // Check if exists
+    // Check if exists (filter by both user_id AND product_id)
     const { data: existing } = await supabase
         .from('wishlist')
         .select('id')
         .eq('product_id', productId)
-        .single();
+        .eq('user_id', session.user.id)
+        .maybeSingle();
 
     if (existing) {
         // Remove
-        await supabase.from('wishlist').delete().eq('product_id', productId);
+        await supabase.from('wishlist').delete().eq('product_id', productId).eq('user_id', session.user.id);
         return new Response(JSON.stringify({ action: 'removed' }), { status: 200 });
     } else {
         // Add

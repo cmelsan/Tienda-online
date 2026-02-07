@@ -239,6 +239,58 @@ export function getShippingNotificationTemplate(customerName: string, trackingNu
   `;
 }
 
+// Template: Notificación de entrega completada
+export function getDeliveryConfirmedTemplate(customerName: string): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #ec4899 0%, #f97316 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+          .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+          .success-box { background: white; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #10b981; text-align: center; }
+          .checkmark { font-size: 48px; color: #10b981; margin: 10px 0; }
+          .button { display: inline-block; background: #ec4899; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
+          .footer { text-align: center; font-size: 12px; color: #999; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>¡Tu pedido ha sido entregado!</h1>
+          </div>
+          <div class="content">
+            <p>Hola <strong>${customerName}</strong>,</p>
+            
+            <div class="success-box">
+              <div class="checkmark">✓</div>
+              <p><strong>Tu pedido ha llegado correctamente</strong></p>
+            </div>
+
+            <p>Esperamos que disfrutes de tu compra en ÉCLAT Beauty. Si tienes alguna pregunta o necesitas asistencia, no dudes en contactarnos.</p>
+            
+            <p style="margin-top: 30px;">
+              <strong>¿Cómo te fue tu experiencia?</strong>
+            </p>
+            <p style="color: #999; font-size: 14px;">Tu opinión es muy importante para nosotros. Si estás satisfecho con tu compra, sería maravilloso que dejaras una reseña.</p>
+            
+            <center>
+              <a href="https://claudiaeclat.victoriafp.online/mi-cuenta/pedidos" class="button">Ver Mi Pedido</a>
+            </center>
+
+            <p style="color: #999; font-size: 12px; margin-top: 30px;">¿Preguntas? Contáctanos en support@eclatbeauty.com</p>
+          </div>
+          <div class="footer">
+            <p>&copy; 2026 ÉCLAT Beauty. Todos los derechos reservados.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
 // Template: Notificación de devolución aprobada
 export function getReturnApprovedTemplate(customerName: string, returnNumber: string, shippingLabel?: string): string {
   return `

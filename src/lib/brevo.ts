@@ -598,3 +598,61 @@ export function getReturnRequestTemplate(customerName: string, orderNumber: stri
     </html>
   `;
 }
+
+// Template: Reembolso Procesado
+export function getRefundProcessedTemplate(customerName: string, orderNumber: string, refundAmount: number): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+          .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+          .success-box { background: #f0fdf4; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #10b981; }
+          .amount-box { background: white; padding: 20px; border-radius: 6px; margin: 20px 0; text-align: center; border-top: 3px solid #ec4899; border-bottom: 3px solid #ec4899; }
+          .amount-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+          .amount { font-size: 36px; font-weight: bold; color: #10b981; }
+          .info-box { background: #f3f4f6; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #ec4899; }
+          .footer { text-align: center; font-size: 12px; color: #999; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>✓ Reembolso Procesado</h1>
+          </div>
+          <div class="content">
+            <p>Hola <strong>${customerName}</strong>,</p>
+            <p>¡Buenas noticias! Tu reembolso ha sido procesado correctamente.</p>
+            
+            <div class="success-box">
+              <p><strong>✓ Pedido #${orderNumber}</strong></p>
+              <p>Tu solicitud de devolución ha sido validada y aprobada.</p>
+            </div>
+
+            <div class="amount-box">
+              <div class="amount-label">Cantidad Reembolsada</div>
+              <div class="amount">€ ${(refundAmount / 100).toFixed(2)}</div>
+            </div>
+
+            <div class="info-box">
+              <p><strong>📅 Información Importante:</strong></p>
+              <p>El reembolso se procesará en tu método de pago original en un plazo de <strong>5 a 7 días hábiles</strong>.</p>
+              <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">
+                Dependiendo de tu banco, el dinero puede tardar unos días más en aparecer en tu cuenta.
+              </p>
+            </div>
+
+            <p>Gracias por tu compra y esperamos vuelvas pronto.</p>
+            <p style="color: #999; font-size: 12px;">¿Preguntas? Contáctanos en support@eclatbeauty.com</p>
+          </div>
+          <div class="footer">
+            <p>&copy; 2026 ÉCLAT Beauty. Todos los derechos reservados.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}

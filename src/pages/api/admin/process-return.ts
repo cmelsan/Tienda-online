@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createServerSupabaseClient, getAdminSupabaseClient } from '@/lib/supabase';
+import { sendEmail, getRefundProcessedTemplate } from '@/lib/brevo';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
@@ -69,6 +70,52 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 JSON.stringify({ success: false, message: result.error, code: result.code }),
                 { status: 400 }
             );
+        }
+
+        // Send refund email if status is 'refunded'
+        if (newStatus === 'refunded') {
+            try {
+                console.log('[Process Return API] Sending refund email for order:', orderId);
+
+                // Fetch order details to get customer email and amount
+                const { data: orderData, error: orderError } = await userClient
+                    .from('orders')
+                    .select('customer_name, guest_email, user_id, total_amount, order_number')
+                    .eq('id', orderId)
+                    .single();
+
+                if (!orderError && orderData) {
+                    let customerEmail = orderData.guest_email;
+                    let customerName = orderData.customer_name || 'Cliente';
+
+                    // If no guest email, use session email
+                    if (!customerEmail && session.user.email) {
+                        customerEmail = session.user.email;
+                    }
+
+                    console.log('[Process Return API] Customer email:', customerEmail);
+
+                    // Send refund email
+                    if (customerEmail) {
+                        const htmlContent = getRefundProcessedTemplate(
+                            customerName,
+                            orderData.order_number,
+                            orderData.total_amount
+                        );
+
+                        await sendEmail({
+                            to: customerEmail,
+                            subject: `Reembolso Procesado - Pedido #${orderData.order_number}`,
+                            htmlContent
+                        });
+
+                        console.log('[Process Return API] Refund email sent to:', customerEmail);
+                    }
+                }
+            } catch (emailError) {
+                // Log error but don't fail the request
+                console.error('[Process Return API] Error sending refund email:', emailError);
+            }
         }
 
         return new Response(

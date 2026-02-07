@@ -171,7 +171,7 @@ const { data: categories } = await supabase
                     </div>
                     
                     <!-- Wishlist Heart -->
-                    <button class="absolute top-2 right-2 z-10 p-2 hover:opacity-70 transition-opacity wishlist-btn" data-product-id="${product.id}" data-product-name="${product.name.replace(/"/g, '&quot;')}">
+                    <button class="absolute top-2 right-2 z-10 p-2 hover:opacity-70 transition-opacity wishlist-btn" data-product-id={product.id} data-product-name={product.name}>
                          <svg class="w-6 h-6 wishlist-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </button>
 

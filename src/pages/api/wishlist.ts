@@ -22,7 +22,8 @@ export const GET: APIRoute = async ({ cookies }) => {
 
     const { data } = await supabase
         .from('wishlist')
-        .select('product_id');
+        .select('product_id')
+        .eq('user_id', session.user.id);
 
     return new Response(JSON.stringify(data?.map(i => i.product_id) || []), {
         headers: { 'Content-Type': 'application/json' }

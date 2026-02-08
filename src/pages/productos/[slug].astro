@@ -4,6 +4,8 @@ import ProductGallery from '@/components/product/ProductGallery.astro';
 import ProductCard from '@/components/product/ProductCard.astro';
 import WishlistButton from '@/components/islands/WishlistButton';
 import AddToCartButton from '@/components/islands/AddToCartButton';
+import ReviewsList from '@/components/reviews/ReviewsList';
+import ReviewForm from '@/components/reviews/ReviewForm';
 import { supabase } from '@/lib/supabase';
 import { formatPrice, getStockLabel } from '@/lib/utils';
 
@@ -231,6 +233,25 @@ const { data: relatedProducts } = await supabase
       ))}
     </div>
   </div>
+
+  <!-- Reviews Section -->
+  <section class="border-t border-gray-200 mt-16 pt-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        {/* Reviews List - 2 columns on large screens */}
+        <div class="lg:col-span-2">
+          <ReviewsList client:load productId={product.id} />
+        </div>
+
+        {/* Review Form - 1 column sidebar on large screens */}
+        <div>
+          <div class="sticky top-20">
+            <ReviewForm client:load productId={product.id} />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- Related Products Section -->
   {relatedProducts && relatedProducts.length > 0 && (

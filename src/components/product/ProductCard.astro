@@ -1,6 +1,7 @@
 ---
 import Card from '@/components/ui/Card.astro';
 import WishlistButton from '@/components/islands/WishlistButton';
+import ProductRating from '@/components/reviews/ProductRating';
 import { formatPrice } from '@/lib/utils';
 import type { Product } from '@/lib/supabase';
 
@@ -57,6 +58,11 @@ if (!imageUrl || imageUrl.includes('placeholder')) {
         <h3 class="font-medium text-sm text-black group-hover:text-beauty-red transition-colors duration-300 line-clamp-2 leading-snug min-h-[40px]">
           {product.name}
         </h3>
+        
+        {/* Product Rating */}
+        <div class="py-2 border-b border-gray-100">
+          <ProductRating client:load productId={product.id} />
+        </div>
         
         <div class="flex items-end justify-between pt-1">
           <div>

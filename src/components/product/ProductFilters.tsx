@@ -88,33 +88,31 @@ export default function ProductFilters({
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             {/* Categories Filter (Only if categories are passed) */}
             {categories.length > 0 && (
-                <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow duration-300">
-                    <button
-                        className="w-full flex items-center justify-between group"
+                <div className="border-b border-gray-200 pb-6">
+                    <h3
+                        className="font-bold text-sm uppercase tracking-widest mb-4 flex justify-between cursor-pointer group"
                         onClick={() => setIsExpanded(prev => ({ ...prev, categories: !prev.categories }))}
                     >
-                        <h3 className="font-bold text-sm uppercase tracking-widest text-black">
-                            Categoría
-                        </h3>
-                        <svg className={`w-5 h-5 text-gray-400 transform transition-transform duration-300 group-hover:text-black ${isExpanded.categories ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        Categoría
+                        <svg className={`w-4 h-4 transform transition-transform ${isExpanded.categories ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                         </svg>
-                    </button>
+                    </h3>
 
                     {isExpanded.categories && (
-                        <div className="mt-4 space-y-3 border-t border-gray-100 pt-4 max-h-64 overflow-y-auto custom-scrollbar">
+                        <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
                             {categories.map(cat => (
-                                <label key={cat.id} className="flex items-center space-x-3 text-sm text-gray-600 hover:text-black cursor-pointer group transition-colors">
+                                <label key={cat.id} className="flex items-center space-x-2 text-sm text-gray-600 hover:text-black cursor-pointer group">
                                     <input
                                         type="checkbox"
                                         checked={checkedCategories.includes(cat.id)}
                                         onChange={() => handleCategoryChange(cat.id)}
-                                        className="w-4 h-4 rounded border-gray-300 text-beauty-red focus:ring-beauty-red focus:ring-2 cursor-pointer"
+                                        className="rounded border-gray-300 text-black focus:ring-black group-hover:border-black"
                                     />
-                                    <span className="group-hover:font-medium transition-all">{cat.name}</span>
+                                    <span>{cat.name}</span>
                                 </label>
                             ))}
                         </div>
@@ -124,30 +122,28 @@ export default function ProductFilters({
 
             {/* Brands Filter */}
             {brands.length > 0 && (
-                <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow duration-300">
-                    <button
-                        className="w-full flex items-center justify-between group"
+                <div className="border-b border-gray-200 pb-6">
+                    <h3
+                        className="font-bold text-sm uppercase tracking-widest mb-4 flex justify-between cursor-pointer group"
                         onClick={() => setIsExpanded(prev => ({ ...prev, brands: !prev.brands }))}
                     >
-                        <h3 className="font-bold text-sm uppercase tracking-widest text-black">
-                            Marca
-                        </h3>
-                        <svg className={`w-5 h-5 text-gray-400 transform transition-transform duration-300 group-hover:text-black ${isExpanded.brands ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        Marca
+                        <svg className={`w-4 h-4 transform transition-transform ${isExpanded.brands ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                         </svg>
-                    </button>
+                    </h3>
 
                     {isExpanded.brands && (
-                        <div className="mt-4 space-y-3 border-t border-gray-100 pt-4 max-h-64 overflow-y-auto custom-scrollbar">
+                        <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
                             {brands.map(brand => (
-                                <label key={brand.id} className="flex items-center space-x-3 text-sm text-gray-600 hover:text-black cursor-pointer group transition-colors">
+                                <label key={brand.id} className="flex items-center space-x-2 text-sm text-gray-600 hover:text-black cursor-pointer group">
                                     <input
                                         type="checkbox"
                                         checked={checkedBrands.includes(brand.id)}
                                         onChange={() => handleBrandChange(brand.id)}
-                                        className="w-4 h-4 rounded border-gray-300 text-beauty-red focus:ring-beauty-red focus:ring-2 cursor-pointer"
+                                        className="rounded border-gray-300 text-black focus:ring-black group-hover:border-black"
                                     />
-                                    <span className="group-hover:font-medium transition-all">{brand.name}</span>
+                                    <span>{brand.name}</span>
                                 </label>
                             ))}
                         </div>
@@ -156,45 +152,34 @@ export default function ProductFilters({
             )}
 
             {/* Price Filter */}
-            <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow duration-300">
-                <button
-                    className="w-full flex items-center justify-between group"
+            <div className="border-b border-gray-200 pb-6">
+                <h3
+                    className="font-bold text-sm uppercase tracking-widest mb-4 flex justify-between cursor-pointer group"
                     onClick={() => setIsExpanded(prev => ({ ...prev, price: !prev.price }))}
                 >
-                    <h3 className="font-bold text-sm uppercase tracking-widest text-black">
-                        Precio
-                    </h3>
-                    <svg className={`w-5 h-5 text-gray-400 transform transition-transform duration-300 group-hover:text-black ${isExpanded.price ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    Precio
+                    <svg className={`w-4 h-4 transform transition-transform ${isExpanded.price ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                     </svg>
-                </button>
+                </h3>
 
                 {isExpanded.price && (
-                    <div className="mt-4 space-y-4 border-t border-gray-100 pt-4">
-                        {/* Price Display */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <div className="flex items-baseline justify-between">
-                                <span className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Rango de precio</span>
-                                <span className="text-2xl font-bold text-beauty-red">{priceRange[1]}€</span>
-                            </div>
-                        </div>
-
-                        {/* Range Slider */}
-                        <div>
+                    <div className="px-2">
+                        {/* Simple Range Input for Max Price */}
+                        <div className="mb-4">
+                            <span className="text-xs text-gray-500 uppercase tracking-wide">Máximo: {priceRange[1]}€</span>
                             <input
                                 type="range"
                                 min={minPriceObj}
                                 max={maxPriceObj}
                                 value={priceRange[1]}
                                 onChange={handlePriceChange}
-                                onMouseUp={handlePriceCommit}
+                                onMouseUp={handlePriceCommit} // Trigger on release
                                 onKeyUp={(e) => e.key === 'ArrowLeft' || e.key === 'ArrowRight' ? handlePriceCommit() : null}
-                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-beauty-red"
+                                className="w-full accent-black mt-2"
                             />
                         </div>
-
-                        {/* Price Range Labels */}
-                        <div className="flex justify-between text-xs text-gray-500 font-semibold">
+                        <div className="flex justify-between text-xs text-gray-500">
                             <span>{minPriceObj}€</span>
                             <span>{maxPriceObj}€+</span>
                         </div>
@@ -202,18 +187,16 @@ export default function ProductFilters({
                 )}
             </div>
 
-            {/* Clear Filters Button */}
             {(checkedBrands.length > 0 || checkedCategories.length > 0 || priceRange[1] < maxPriceObj) && (
                 <button
                     onClick={() => {
-                        window.location.href = window.location.pathname;
+                        window.location.href = window.location.pathname; // Clear query params
                     }}
-                    className="w-full bg-gray-100 hover:bg-beauty-red hover:text-white text-black font-bold text-xs uppercase tracking-widest py-3 rounded-lg transition-all duration-300 border border-gray-200 hover:border-beauty-red"
+                    className="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-beauty-red underline"
                 >
-                    ✕ Limpiar todos los filtros
+                    Limpiar Filtros
                 </button>
             )}
         </div>
-    );
     );
 }

@@ -19,77 +19,105 @@ if (!imageUrl || imageUrl.includes('placeholder')) {
 ---
 
 <Card variant="flat">
-  <div class="relative group">
+  <div class="relative group h-full flex flex-col overflow-hidden rounded-lg border border-gray-100 bg-white transition-all duration-500 hover:shadow-2xl hover:border-gray-200">
     
-    <!-- Wishlist Button - Island Component -->
-    <div class="absolute top-3 right-3 z-20">
-      <WishlistButton client:load productId={product.id} productName={product.name} />
-    </div>
+    <!-- Image Container with Overlay -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-white-cream to-white aspect-square">
+      <!-- Discount Badge - Enhanced -->
+      {product.discount > 0 && (
+        <div class="absolute top-4 left-4 z-20 flex items-center justify-center rounded-lg bg-gradient-to-r from-beauty-red to-rose-600 text-white font-bold text-sm shadow-lg transform transition-transform group-hover:scale-110">
+          <div class="px-3 py-1.5">
+            <span class="text-xs">DESCUENTO</span>
+            <br />
+            <span class="text-lg font-bold">-{product.discount}%</span>
+          </div>
+        </div>
+      )}
 
-    <!-- Discount Badge -->
-    {product.discount > 0 && (
-      <div class="absolute top-3 left-3 z-20 w-12 h-12 flex items-center justify-center rounded-full bg-beauty-red text-white font-bold text-sm shadow-md">
-        -{product.discount}%
+      <!-- Wishlist Button - Enhanced -->
+      <div class="absolute top-4 right-4 z-20 transform transition-all duration-300 opacity-0 group-hover:opacity-100">
+        <WishlistButton client:load productId={product.id} productName={product.name} />
       </div>
-    )}
 
-    <a href={`/productos/${product.slug}`} class="block">
-      <!-- Product Image - Premium styling -->
-      <div class="aspect-square overflow-hidden bg-white-cream">
+      <a href={`/productos/${product.slug}`} class="block">
+        <!-- Product Image -->
         <img
           src={imageUrl}
           alt={product.name}
-          class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           loading="lazy"
           onerror={`this.onerror=null; this.src='${fallbackImage || '/placeholder-product.jpg'}'`}
         />
-      </div>
+      </a>
 
-      <!-- Product Info - Refined spacing and typography -->
-      <div class="p-5 space-y-2.5 bg-white">
-        <!-- Brand if available -->
-        {product.brand && (
-          <p class="text-[10px] font-medium text-gray-medium uppercase tracking-widest">
+      <!-- Overlay Gradient on Hover -->
+      <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
+    </div>
+
+    <!-- Product Info Container -->
+    <div class="flex-1 flex flex-col p-5 space-y-3">
+      <!-- Brand Badge -->
+      {product.brand && (
+        <div class="inline-block w-fit">
+          <p class="text-[10px] font-semibold text-white bg-black/80 px-3 py-1 rounded uppercase tracking-widest">
             {product.brand}
           </p>
-        )}
-        
-        <h3 class="font-medium text-sm text-black group-hover:text-beauty-red transition-colors duration-300 line-clamp-2 leading-snug min-h-[40px]">
+        </div>
+      )}
+      
+      <!-- Product Name -->
+      <a href={`/productos/${product.slug}`} class="block">
+        <h3 class="font-semibold text-sm text-black group-hover:text-beauty-red transition-colors duration-300 line-clamp-2 leading-snug min-h-[40px] text-balance">
           {product.name}
         </h3>
-        
-        <div class="flex items-end justify-between pt-1">
-          <div>
-            {product.discount > 0 ? (
-              <div class="flex flex-col gap-1">
-                <p class="text-xs text-gray-500 line-through">
-                  {formatPrice(product.price)}
-                </p>
-                <p class="text-lg font-semibold text-beauty-red tracking-tight">
-                  {formatPrice(product.discountedPrice)}
-                </p>
-              </div>
-            ) : (
-              <p class="text-lg font-semibold text-black tracking-tight">
-                {formatPrice(product.price)}
-              </p>
-            )}
+      </a>
+
+      <!-- Spacer -->
+      <div class="flex-1" />
+
+      <!-- Price Section - Enhanced -->
+      <div class="space-y-2 border-t border-gray-100 pt-3">
+        {product.discount > 0 ? (
+          <div class="space-y-1">
+            <p class="text-xs text-gray-400 line-through font-medium">
+              {formatPrice(product.price)}
+            </p>
+            <p class="text-xl font-bold text-beauty-red tracking-tight">
+              {formatPrice(product.discountedPrice)}
+            </p>
+            <p class="text-[10px] text-green-600 font-semibold uppercase tracking-wider">
+              Ahorras {formatPrice(product.price - product.discountedPrice)}
+            </p>
           </div>
-          
-          {product.stock > 0 ? (
-            <span class="text-[10px] text-gray-medium font-medium uppercase tracking-wider">En stock</span>
-          ) : (
-            <span class="text-[10px] text-beauty-red font-semibold uppercase tracking-wider">Agotado</span>
-          )}
-        </div>
-        
-        <!-- CTA - Elegant underline style -->
-        <div class="pt-2 opacity-60 group-hover:opacity-100 transition-opacity duration-300">
-          <span class="text-[11px] font-medium text-black uppercase tracking-widest relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-px after:bg-black">
-            Ver detalles
-          </span>
-        </div>
+        ) : (
+          <p class="text-xl font-bold text-black tracking-tight">
+            {formatPrice(product.price)}
+          </p>
+        )}
       </div>
-    </a>
+
+      <!-- Stock Status -->
+      <div class="flex items-center justify-between pt-2">
+        {product.stock > 0 ? (
+          <span class="text-[10px] text-green-600 font-bold uppercase tracking-wider bg-green-50 px-2 py-1 rounded">
+            ✓ En stock ({product.stock} disponibles)
+          </span>
+        ) : (
+          <span class="text-[10px] text-beauty-red font-bold uppercase tracking-wider bg-red-50 px-2 py-1 rounded">
+            ✗ Agotado
+          </span>
+        )}
+      </div>
+
+      <!-- CTA Button -->
+      <a href={`/productos/${product.slug}`} class="mt-3 pt-3 border-t border-gray-100 block">
+        <div class="flex items-center justify-center gap-2 py-2 text-[11px] font-bold text-white bg-black rounded-lg uppercase tracking-widest transition-all duration-300 hover:bg-black/90 hover:gap-3">
+          Ver Detalles
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </a>
+    </div>
   </div>
 </Card>

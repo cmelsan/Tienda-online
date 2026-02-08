@@ -81,7 +81,7 @@ const ReviewsList: React.FC<ReviewsListProps> = ({ productId }) => {
         {[1, 2, 3, 4, 5].map((star) => (
           <svg
             key={star}
-            className={`${size} ${star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+            className={`${size} ${star <= rating ? 'text-beauty-red fill-beauty-red' : 'text-gray-300'}`}
             viewBox="0 0 20 20"
           >
             <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
@@ -103,7 +103,7 @@ const ReviewsList: React.FC<ReviewsListProps> = ({ productId }) => {
   return (
     <div className="space-y-8">
       {/* Rating Summary */}
-      <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-8 border border-gray-200">
+      <div className="bg-white rounded-xl p-8 border border-gray-100">
         <h3 className="text-2xl font-black uppercase tracking-widest mb-6 text-black">
           Opiniones de Clientes
         </h3>

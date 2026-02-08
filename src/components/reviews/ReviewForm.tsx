@@ -162,7 +162,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted })
 
   if (!user) {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
         <p className="text-gray-700 mb-4">
           <a href="/login" className="text-beauty-red font-bold hover:underline">
             Inicia sesión
@@ -175,17 +175,17 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted })
 
   if (existingReview && !isEditing) {
     return (
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h4 className="font-bold uppercase tracking-widest text-green-900 mb-2">
+            <h4 className="font-bold uppercase tracking-widest text-black mb-2">
               Tu Opinión
             </h4>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <svg
                   key={star}
-                  className={`w-5 h-5 ${star <= existingReview.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+                  className={`w-5 h-5 ${star <= existingReview.rating ? 'text-beauty-red fill-beauty-red' : 'text-gray-300'}`}
                   viewBox="0 0 20 20"
                 >
                   <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
@@ -200,13 +200,13 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted })
         <div className="flex gap-3">
           <button
             onClick={() => setIsEditing(true)}
-            className="px-4 py-2 bg-blue-500 text-white text-xs font-bold rounded-lg hover:bg-blue-600 transition-colors"
+            className="px-4 py-2 bg-black text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition-colors"
           >
             Editar
           </button>
           <button
             onClick={handleDelete}
-            className="px-4 py-2 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-colors"
+            className="px-4 py-2 bg-gray-200 text-black text-xs font-bold rounded-lg hover:bg-gray-300 transition-colors"
           >
             Eliminar
           </button>
@@ -222,19 +222,19 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted })
       </h4>
 
       {!canReview && !existingReview && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-sm text-yellow-900">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 text-sm text-gray-700">
           Debes comprar este producto para dejar una opinión.
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-sm text-red-900">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-sm text-red-800">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 text-sm text-green-900">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 text-sm text-green-800">
           ¡Opinión guardada exitosamente!
         </div>
       )}
@@ -253,7 +253,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted })
             >
               <svg
                 className={`w-8 h-8 cursor-pointer ${
-                  star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                  star <= rating ? 'text-beauty-red fill-beauty-red' : 'text-gray-300'
                 }`}
                 viewBox="0 0 20 20"
               >

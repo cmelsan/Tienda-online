@@ -130,23 +130,25 @@ const ReviewsList: React.FC<ReviewsListProps> = ({ productId }) => {
             </div>
 
             {/* Rating Distribution */}
-            <div className="md:col-span-2 space-y-4">
+            <div className="md:col-span-2 space-y-5">
               {[5, 4, 3, 2, 1].map((rating) => (
-                <div key={rating} className="flex items-end gap-3">
-                  <div className="flex gap-1 w-16 flex-shrink-0">
-                    {renderStars(rating, 'w-4 h-4')}
+                <div key={rating} className="flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className="flex gap-1 w-20">
+                      {renderStars(rating, 'w-4 h-4')}
+                    </div>
+                    <span className="text-xs font-bold text-gray-700 w-12 text-right">
+                      ({stats.byRating[rating] || 0})
+                    </span>
                   </div>
-                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden w-full">
                     <div
-                      className="h-full bg-gradient-to-r from-beauty-red to-rose-600"
+                      className="h-full bg-gradient-to-r from-beauty-red to-rose-600 transition-all"
                       style={{
                         width: `${stats.total ? (stats.byRating[rating] / stats.total) * 100 : 0}%`,
                       }}
                     ></div>
                   </div>
-                  <span className="text-xs font-bold text-gray-700 w-10 text-right flex-shrink-0">
-                    {stats.byRating[rating] || 0}
-                  </span>
                 </div>
               ))}
             </div>

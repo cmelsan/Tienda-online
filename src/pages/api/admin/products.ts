@@ -138,13 +138,15 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
       );
     }
 
+    const priceInCents = typeof price === 'string' ? Math.round(parseFloat(price) * 100) : Math.round(price * 100);
+
     const { error } = await supabase
       .from('products')
       .update({
         name,
         slug,
         description,
-        price,
+        price: priceInCents,
         stock,
         category_id,
         subcategory_id,

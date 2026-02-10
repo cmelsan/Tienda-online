@@ -114,7 +114,7 @@ export const POST: APIRoute = async ({ request }) => {
 
                         // Generate email template with correct price formatting
                         const htmlContent = getOrderConfirmationTemplate(
-                            orderId,
+                            orderData.order_number,
                             customerName,
                             emailItems,
                             totalInCents
@@ -123,7 +123,7 @@ export const POST: APIRoute = async ({ request }) => {
                         // Send email
                         const emailResult = await sendEmail({
                             to: customerEmail,
-                            subject: `📦 Pedido confirmado #${orderId}`,
+                            subject: `📦 Pedido confirmado #${orderData.order_number}`,
                             htmlContent
                         });
 

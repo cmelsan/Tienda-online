@@ -204,7 +204,13 @@ export default function CheckoutFlow() {
             }
 
             const orderId = orderData.order_id;
-            console.log('Order created:', orderId);
+            const orderNumber = orderData.order_number;
+            console.log('Order created:', orderId, 'Order Number:', orderNumber);
+
+            // Save order number to localStorage for success page
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('eclat:lastOrderNumber', orderNumber);
+            }
 
             // Step 2: Create Stripe checkout session
             const stripeResponse = await fetch('/api/create-checkout-session', {

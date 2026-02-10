@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button.astro';
 const { searchParams } = Astro.url;
 const email = searchParams.get('email');
 const orderId = searchParams.get('orderId');
+// Order number will be available in localStorage on client side
 ---
 
 <PublicLayout title="Compra Realizada | ÉCLAT" description="Gracias por tu compra">
@@ -85,10 +86,26 @@ const orderId = searchParams.get('orderId');
         {orderId && (
             <div class="mt-4 inline-block bg-gray-50 px-4 py-2 rounded-md border border-gray-200">
                 <p class="text-xs text-gray-500 uppercase tracking-widest font-bold">Referencia del Pedido</p>
-                <p class="text-lg font-mono text-black">#{orderId.slice(0, 8)}</p>
+                <p class="text-lg font-mono text-black" id="orderNumber">#loading...</p>
             </div>
         )}
       </div>
+
+      <script>
+        // Recuperar número de pedido de localStorage
+        if (typeof window !== 'undefined') {
+          const orderNumberElement = document.getElementById('orderNumber');
+          if (orderNumberElement) {
+            const orderNumber = localStorage.getItem('eclat:lastOrderNumber');
+            if (orderNumber) {
+              orderNumberElement.textContent = `#${orderNumber}`;
+            } else {
+              // Fallback si no está disponible
+              orderNumberElement.textContent = '#N/A';
+            }
+          }
+        }
+      </script>
 
       <div class="mt-8 space-y-4">
         <a href="/" class="block w-full bg-black text-white px-8 py-4 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">

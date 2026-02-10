@@ -65,7 +65,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         // Fetch order details to get customer email
         const { data: orderData, error: orderError } = await userClient
             .from('orders')
-            .select('id, customer_name, guest_email, user_id')
+            .select('id, order_number, customer_name, guest_email, user_id')
             .eq('id', orderId)
             .single();
 
@@ -73,6 +73,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             // Get customer email (either guest_email or from auth.users)
             let customerEmail = orderData.guest_email;
             let customerName = orderData.customer_name || 'Cliente';
+            let orderNumber = orderData.order_number || orderId.slice(0, 8).toUpperCase();
 
             if (!customerEmail && orderData.user_id) {
                 try {
@@ -98,7 +99,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
                 await sendEmail({
                     to: customerEmail,
-                    subject: `Tu pedido #${orderId.slice(0, 8).toUpperCase()} ha sido enviado`,
+                    subject: `Tu pedido #${orderNumber} ha sido enviado`,
                     htmlContent: emailTemplate
                 });
 

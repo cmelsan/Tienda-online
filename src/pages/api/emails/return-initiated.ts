@@ -4,7 +4,7 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
-        const { orderId, customerEmail, customerName, returnReason } = await request.json();
+        const { orderId, orderNumber, customerEmail, customerName, returnReason } = await request.json();
 
         if (!orderId || !customerEmail) {
             return new Response(JSON.stringify({ success: false, message: 'Order ID and email are required' }), { status: 400 });
@@ -17,7 +17,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         const emailResult = await sendEmail({
             to: customerEmail,
             subject: '📦 Solicitud de Devolución Aceptada - ÉCLAT Beauty',
-            htmlContent: getReturnConfirmationTemplate(orderId, customerName, returnReason)
+            htmlContent: getReturnConfirmationTemplate(orderNumber || orderId, customerName, returnReason)
         });
 
         if (!emailResult.success) {
@@ -41,8 +41,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 };
 
-function getReturnConfirmationTemplate(orderId: string, customerName: string, reason: string): string {
-    const shortOrderId = orderId.slice(0, 8).toUpperCase();
+function getReturnConfirmationTemplate(orderIdentifier: string, customerName: string, reason: string): string {
+    // If orderIdentifier is a UUID (36 chars), slice it. Otherwise, use it as-is (it's already an order number)
+    const shortOrderId = orderIdentifier.length > 20 ? orderIdentifier.slice(0, 8).toUpperCase() : orderIdentifier;
     
     return `
 <!DOCTYPE html>

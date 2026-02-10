@@ -59,7 +59,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
             return new Response(JSON.stringify({
                 success: true,
-                order_id: data.order_id
+                order_id: data.order_id,
+                order_number: data.order_number
             }), {
                 status: 200,
                 headers: { 'Content-Type': 'application/json' }

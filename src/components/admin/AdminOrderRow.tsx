@@ -22,6 +22,7 @@ interface OrderItem {
 
 interface Order {
     id: string;
+    order_number: string;
     created_at: string;
     status: string;
     total_amount: number;
@@ -38,7 +39,7 @@ interface AdminOrderRowProps {
 export default function AdminOrderRow({ order }: AdminOrderRowProps) {
     const [currentStatus, setCurrentStatus] = useState<string>(order?.status ?? 'awaiting_payment');
 
-    const orderId = order?.id?.slice(0, 8) || 'N/A';
+    const orderId = order?.order_number || 'N/A';
     const customerEmail = order?.guest_email || 'Usuario Registrado';
     const userId = order?.user_id?.slice(0, 8);
     const itemCount = order?.items?.length || 0;

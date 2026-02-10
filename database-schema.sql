@@ -411,6 +411,7 @@ ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name;
 -- 1. Orders Table
 CREATE TABLE IF NOT EXISTS orders (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_number VARCHAR(20) NOT NULL UNIQUE, -- Human-readable order number (e.g., ORD-2026-0001)
   user_id UUID REFERENCES auth.users(id), -- Nullable for guests
   guest_email VARCHAR(255),               -- Required if user_id is null
   customer_name VARCHAR(255),             -- Customer name for email
@@ -620,6 +621,25 @@ END;
 $$;
 
 -- ============================================
+-- ORDER NUMBER SEQUENCE
+-- ============================================
+-- Sequence for generating sequential order numbers
+CREATE SEQUENCE IF NOT EXISTS order_number_seq START 1;
+
+-- Function to generate human-readable order number (e.g., ORD-2026-0001)
+CREATE OR REPLACE FUNCTION generate_order_number()
+RETURNS VARCHAR AS $$
+DECLARE
+  v_seq_value BIGINT;
+  v_order_number VARCHAR;
+BEGIN
+  v_seq_value := nextval('order_number_seq');
+  v_order_number := CONCAT('ORD-', TO_CHAR(NOW(), 'YYYY'), '-', LPAD(v_seq_value::TEXT, 4, '0'));
+  RETURN v_order_number;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ============================================
 -- ATOMIC PURCHASE LOGIC (create_order)
 -- ============================================
 -- This function handles the full checkout process:
@@ -646,6 +666,7 @@ DECLARE
   v_quantity INTEGER;
   v_current_stock INTEGER;
   v_order_id UUID;
+  v_order_number VARCHAR;
   v_item_price INTEGER;
   v_user_id UUID;
   v_customer_name VARCHAR;
@@ -676,9 +697,12 @@ BEGIN
 
   -- 3. Deduct Stock & Create Order (Transaction starts automatically)
   
+  -- Generate Order Number
+  v_order_number := generate_order_number();
+  
   -- Create Order with customer_name
-  INSERT INTO orders (user_id, guest_email, customer_name, status, total_amount, shipping_address)
-  VALUES (v_user_id, p_guest_email, v_customer_name, 'paid', p_total_amount, p_shipping_address) 
+  INSERT INTO orders (order_number, user_id, guest_email, customer_name, status, total_amount, shipping_address)
+  VALUES (v_order_number, v_user_id, p_guest_email, v_customer_name, 'paid', p_total_amount, p_shipping_address) 
   RETURNING id INTO v_order_id;
 
   -- Process Items
@@ -697,7 +721,7 @@ BEGIN
     VALUES (v_order_id, v_product_id, v_quantity, v_item_price);
   END LOOP;
 
-  RETURN jsonb_build_object('success', true, 'order_id', v_order_id);
+  RETURN jsonb_build_object('success', true, 'order_id', v_order_id, 'order_number', v_order_number);
 
 EXCEPTION WHEN OTHERS THEN
   RETURN jsonb_build_object('success', false, 'message', SQLERRM);

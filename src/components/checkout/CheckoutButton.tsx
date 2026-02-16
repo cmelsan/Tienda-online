@@ -101,7 +101,8 @@ export default function CheckoutButton() {
 
             // 4. Redirect to Stripe
             if (session.url) {
-                clearCart(); // Clear cart only after successful session creation and before redirect
+                // DON'T clear cart here - let success.astro handle it
+                // This way if user cancels, cart is still preserved
                 window.location.href = session.url;
             } else {
                 throw new Error('No checkout URL received from Stripe');

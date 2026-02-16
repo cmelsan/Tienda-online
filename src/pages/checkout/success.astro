@@ -1,6 +1,7 @@
 ---
 import PublicLayout from '@/layouts/PublicLayout.astro';
 import Button from '@/components/ui/Button.astro';
+import ClearCartOnSuccess from '@/components/checkout/ClearCartOnSuccess';
 
 // This page would ideally receive order details via URL params or session storage
 // For now, it's a generic success page
@@ -11,6 +12,9 @@ const orderId = searchParams.get('orderId');
 ---
 
 <PublicLayout title="Compra Realizada | ÉCLAT" description="Gracias por tu compra">
+  {/* Clear cart on component mount */}
+  <ClearCartOnSuccess client:load />
+  
   <script>
     // Limpiar carrito después de pago exitoso
     // El cupón ya se limpió de memoria automáticamente durante checkout

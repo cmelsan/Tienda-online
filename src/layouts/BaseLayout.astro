@@ -1,4 +1,6 @@
 ---
+import ToastContainer from '@/components/ui/ToastContainer';
+
 interface Props {
   title: string;
   description?: string;
@@ -37,6 +39,7 @@ const { title, description = 'ÉCLAT - Belleza Premium y Cuidado Personal' } = A
   </head>
   <body class="bg-white-off text-black font-sans antialiased selection:bg-beauty-red selection:text-white tracking-normal">
     <slot />
+    <ToastContainer client:load />
     <script>
       import '../lib/auth-sync';
     </script>

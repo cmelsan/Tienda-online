@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { addNotification } from '@/stores/notifications';
 
 interface Product {
   id: string;
@@ -44,7 +45,7 @@ export default function FlashSaleManager() {
       setProducts(data.data || []);
     } catch (error) {
       console.error('[FlashSaleManager] Error fetching products:', error);
-      alert(`Error al cargar productos: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      addNotification(`Error al cargar productos: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -76,7 +77,7 @@ export default function FlashSaleManager() {
       await fetchProducts();
     } catch (error) {
       console.error('[FlashSaleManager] Error updating flash sale:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      addNotification(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     } finally {
       setUpdating(false);
     }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { addNotification } from '@/stores/notifications';
 import ReturnModal from './ReturnModal';
 
 interface OrderActionsProps {
@@ -42,15 +43,15 @@ export default function OrderActions({ orderId, status, deliveredAt }: OrderActi
             const data = await response.json();
 
             if (data && data.success) {
-                alert('Pedido cancelado correctamente. El stock ha sido restaurado.');
+                addNotification('Pedido cancelado correctamente. El stock ha sido restaurado.', 'success');
                 setCurrentStatus('cancelled');
                 window.location.reload();
             } else {
-                alert('Error al cancelar: ' + (data?.message || 'Unknown error'));
+                addNotification('Error al cancelar: ' + (data?.message || 'Unknown error'), 'error');
             }
         } catch (err: any) {
             console.error('Error cancelling order:', err);
-            alert('Error de conexión al cancelar el pedido.');
+            addNotification('Error de conexión al cancelar el pedido.', 'error');
         } finally {
             setIsCancelling(false);
         }

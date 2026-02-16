@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { cartItemsArray, cartTotal, clearCart, appliedCoupon } from '@/stores/cart';
 import { supabase } from '@/lib/supabase';
+import { addNotification } from '@/stores/notifications';
 
 export default function CheckoutButton() {
     const items = useStore(cartItemsArray);
@@ -44,7 +45,7 @@ export default function CheckoutButton() {
 
         try {
             if (items.length === 0) {
-                alert('El carrito está vacío');
+                addNotification('El carrito está vacío', 'warning');
                 setIsLoading(false);
                 return;
             }
@@ -110,7 +111,7 @@ export default function CheckoutButton() {
 
         } catch (err: any) {
             console.error('Checkout error:', err);
-            alert('Error al procesar el pago: ' + err.message);
+            addNotification('Error al procesar el pago: ' + err.message, 'error');
             setIsLoading(false); // Only stop loading on error, otherwise we are navigating away
         }
     };
@@ -141,7 +142,7 @@ export default function CheckoutButton() {
                                 if (guestEmail && guestEmail.includes('@')) {
                                     handleCheckout(guestEmail);
                                 } else {
-                                    alert('Por favor, introduce un email válido.');
+                                    addNotification('Por favor, introduce un email válido.', 'warning');
                                 }
                             }}
                             disabled={isLoading}

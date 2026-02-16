@@ -75,12 +75,14 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
 </PublicLayout>
 
 <script>
+  import { showNotification } from '@/lib/notifications';
+
   const contactForm = document.getElementById('contact-form') as HTMLFormElement;
   if (contactForm) {
     contactForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       // Handle form submission here
-      alert('Gracias por tu mensaje. Nos pondremos en contacto pronto.');
+      showNotification('Gracias por tu mensaje. Nos pondremos en contacto pronto.', 'success');
       contactForm.reset();
     });
   }

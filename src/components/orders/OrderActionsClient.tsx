@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { addNotification } from '@/stores/notifications';
 import ReturnModal from './ReturnModalClient';
 
 interface OrderItem {
@@ -80,17 +81,17 @@ export default function OrderActionsClient({
             const data = await response.json();
 
             if (data.success) {
-                alert('Pedido cancelado exitosamente. El stock ha sido restaurado.');
+                addNotification('Pedido cancelado exitosamente. El stock ha sido restaurado.', 'success');
                 setCurrentStatus('cancelled');
                 setTimeout(() => window.location.reload(), 500);
             } else {
                 setError(data.message || 'Error al cancelar');
-                alert('Error: ' + (data.message || 'Error desconocido'));
+                addNotification('Error: ' + (data.message || 'Error desconocido'), 'error');
             }
         } catch (err: any) {
             const msg = err.message || 'Error de conexión';
             setError(msg);
-            alert('Error: ' + msg);
+            addNotification('Error: ' + msg, 'error');
         } finally {
             setIsCancelling(false);
         }

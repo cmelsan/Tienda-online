@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { addNotification } from '@/stores/notifications';
 
 interface AttributesManageProps {
   token: string;
@@ -43,10 +44,10 @@ export default function AttributesManage({ token: initialToken, categories, subc
         setNewSubName('');
         setNewSubCategory('');
       } else {
-        alert('Error: ' + (data.error || data.message));
+        addNotification('Error: ' + (data.error || data.message), 'error');
       }
     } catch (error: any) {
-      alert('Error al crear subcategoría: ' + error.message);
+      addNotification('Error al crear subcategoía: ' + error.message, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -73,10 +74,10 @@ export default function AttributesManage({ token: initialToken, categories, subc
       if (data.success) {
         setSubs(subs.filter(s => s.id !== id));
       } else {
-        alert('Error: ' + (data.error || data.message));
+        addNotification('Error: ' + (data.error || data.message), 'error');
       }
     } catch (error: any) {
-      alert('Error al eliminar: ' + error.message);
+      addNotification('Error al eliminar: ' + error.message, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -105,10 +106,10 @@ export default function AttributesManage({ token: initialToken, categories, subc
         setBrandsList([...brandsList, data.brand]);
         setNewBrandName('');
       } else {
-        alert('Error: ' + (data.error || data.message));
+        addNotification('Error: ' + (data.error || data.message), 'error');
       }
     } catch (error: any) {
-      alert('Error al crear marca: ' + error.message);
+      addNotification('Error al crear marca: ' + error.message, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -135,10 +136,10 @@ export default function AttributesManage({ token: initialToken, categories, subc
       if (data.success) {
         setBrandsList(brandsList.filter(b => b.id !== id));
       } else {
-        alert('Error: ' + data.message);
+        addNotification('Error: ' + data.message, 'error');
       }
     } catch (error) {
-      alert('Error al eliminar');
+      addNotification('Error al eliminar', 'error');
     } finally {
       setIsSubmitting(false);
     }

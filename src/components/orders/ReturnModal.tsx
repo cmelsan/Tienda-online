@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { addNotification } from '@/stores/notifications';
 
 interface ReturnModalProps {
     isOpen: boolean;
@@ -27,7 +28,7 @@ export default function ReturnModal({ isOpen, onClose, orderId, onReturnRequeste
         e.preventDefault();
 
         if (!selectedReason) {
-            alert('Por favor selecciona un motivo de devolución');
+            addNotification('Por favor selecciona un motivo de devolución', 'warning');
             return;
         }
 
@@ -55,7 +56,7 @@ export default function ReturnModal({ isOpen, onClose, orderId, onReturnRequeste
 
             if (!response.ok || !data?.success) {
                 console.error('[ReturnModal] Error response:', data);
-                alert(`Error: ${data?.message || 'No se pudo procesar la solicitud'}`);
+                addNotification(`Error: ${data?.message || 'No se pudo procesar la solicitud'}`, 'error');
                 return;
             }
 
@@ -64,7 +65,7 @@ export default function ReturnModal({ isOpen, onClose, orderId, onReturnRequeste
             onReturnRequested();
         } catch (err: any) {
             console.error('[ReturnModal] Exception:', err);
-            alert('Error de conexión al solicitar la devolución');
+            addNotification('Error de conexión al solicitar la devolución', 'error');
         } finally {
             setIsSubmitting(false);
         }

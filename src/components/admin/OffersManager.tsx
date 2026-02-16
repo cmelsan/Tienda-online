@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { addNotification } from '@/stores/notifications';
 
 interface Product {
   id: string;
@@ -61,7 +62,7 @@ export default function OffersManager() {
       setSelectedOffers(data.featuredOffers || []);
     } catch (error) {
       console.error('[OffersManager] Error fetching data:', error);
-      alert(`Error al cargar datos: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      addNotification(`Error al cargar datos: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     } finally {
       setLoading(false);
     }

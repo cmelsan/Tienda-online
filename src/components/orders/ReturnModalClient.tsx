@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { addNotification } from '@/stores/notifications';
 
 interface OrderItem {
     id: string;
@@ -80,7 +81,7 @@ export default function ReturnModalClient({
 
     const handleSubmitReturn = async () => {
         if (selectedItems.size === 0) {
-            alert('Selecciona al menos un producto para devolver');
+            addNotification('Selecciona al menos un producto para devolver', 'warning');
             return;
         }
 
@@ -102,13 +103,13 @@ export default function ReturnModalClient({
             const data = await response.json();
 
             if (!response.ok || !data?.success) {
-                alert(`Error: ${data?.message || 'No se pudo procesar la solicitud'}`);
+                addNotification(`Error: ${data?.message || 'No se pudo procesar la solicitud'}`, 'error');
                 return;
             }
 
             setReturnRequested(true);
         } catch (err: any) {
-            alert('Error de conexión al solicitar la devolución');
+            addNotification('Error de conexión al solicitar la devolución', 'error');
         } finally {
             setIsSubmitting(false);
         }

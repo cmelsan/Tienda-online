@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useStore } from '@nanostores/react';
 import { cartItems, cartTotal, cartSubtotal, appliedCoupon, applyCoupon, removeCoupon } from '@/stores/cart';
+import { addNotification } from '@/stores/notifications';
 import { getOrCreateSessionId, clearSessionId } from '@/lib/sessionManager';
 import EmailStep from './EmailStep';
 import AddressStep from './AddressStep';
@@ -83,7 +84,7 @@ export default function CheckoutFlow() {
                     setIsGuest(false);
                 }
             } catch (err: any) {
-                alert('Error al crear cuenta: ' + err.message);
+                addNotification('Error al crear cuenta: ' + err.message, 'error');
                 setProcessing(false);
                 return;
             }
@@ -163,7 +164,7 @@ export default function CheckoutFlow() {
 
     const handlePayment = async () => {
         if (!email || !shippingAddress) {
-            alert('Por favor completa todos los pasos anteriores');
+            addNotification('Por favor completa todos los pasos anteriores', 'warning');
             return;
         }
 
@@ -198,7 +199,7 @@ export default function CheckoutFlow() {
             const orderData = await createOrderResponse.json();
 
             if (!createOrderResponse.ok || !orderData.success) {
-                alert(orderData.message || 'Error al crear la orden');
+                addNotification(orderData.message || 'Error al crear la orden', 'error');
                 setProcessing(false);
                 return;
             }
@@ -228,7 +229,7 @@ export default function CheckoutFlow() {
             const stripeData = await stripeResponse.json();
 
             if (!stripeResponse.ok || !stripeData.url) {
-                alert(stripeData.error || 'Error al crear sesión de pago');
+                addNotification(stripeData.error || 'Error al crear sesión de pago', 'error');
                 setProcessing(false);
                 return;
             }
@@ -238,7 +239,7 @@ export default function CheckoutFlow() {
             console.log('[Checkout] Redirigiendo a Stripe - URL:', stripeData.url);
             window.location.href = stripeData.url;
         } catch (error: any) {
-            alert('Error: ' + error.message);
+            addNotification('Error: ' + error.message, 'error');
             setProcessing(false);
         }
     };

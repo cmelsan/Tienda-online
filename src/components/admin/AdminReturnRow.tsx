@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { addNotification } from '@/stores/notifications';
 
 interface AdminReturnRowProps {
     orderId: string;
@@ -33,14 +34,14 @@ export default function AdminReturnRow({ orderId, orderTotal, refundAmount, orde
             if (error) throw error;
 
             if (data && data.success) {
-                alert(`Devolución ${approved ? 'aprobada' : 'rechazada'} correctamente`);
+                addNotification(`Devolución ${approved ? 'aprobada' : 'rechazada'} correctamente`, 'success');
                 window.location.reload();
             } else {
-                alert('Error: ' + (data?.message || 'No se pudo procesar'));
+                addNotification('Error: ' + (data?.message || 'No se pudo procesar'), 'error');
             }
         } catch (err: any) {
             console.error('Error processing return:', err);
-            alert('Error de conexión');
+            addNotification('Error de conexión', 'error');
         } finally {
             setIsProcessing(false);
         }
@@ -58,14 +59,14 @@ export default function AdminReturnRow({ orderId, orderTotal, refundAmount, orde
             if (error) throw error;
 
             if (data && data.success) {
-                alert('Reembolso procesado correctamente. En producción se ejecutaría el reembolso en Stripe.');
+                addNotification('Reembolso procesado correctamente. En producción se ejecutaría el reembolso en Stripe.', 'success');
                 window.location.reload();
             } else {
-                alert('Error: ' + (data?.message || 'No se pudo procesar'));
+                addNotification('Error: ' + (data?.message || 'No se pudo procesar'), 'error');
             }
         } catch (err: any) {
             console.error('Error processing refund:', err);
-            alert('Error de conexión');
+            addNotification('Error de conexión', 'error');
         } finally {
             setIsProcessing(false);
         }

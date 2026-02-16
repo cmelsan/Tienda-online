@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { cartItemsArray, cartTotal, cartSubtotal, appliedCoupon, removeFromCart, updateQuantity, clearCart, isCartOpen } from '@/stores/cart';
+import { addNotification } from '@/stores/notifications';
 import { formatPrice } from '@/lib/utils';
 
 export default function CartSlideOver() {
@@ -182,7 +183,7 @@ export default function CartSlideOver() {
                                                         try {
                                                             updateQuantity(item.product?.id, item.quantity + 1);
                                                         } catch (err) {
-                                                            alert(err instanceof Error ? err.message : 'Error');
+                                                            addNotification(err instanceof Error ? err.message : 'Error', 'error');
                                                         }
                                                     }}
                                                     className="w-8 h-8 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-700 font-semibold border-l border-gray-300"

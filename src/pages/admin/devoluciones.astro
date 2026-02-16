@@ -35,7 +35,7 @@ const { data: returnRequests } = await supabase
       created_at
     )
   `)
-  .in('status', ['return_requested', 'returned', 'partially_returned'])
+  .in('status', ['return_requested', 'returned', 'partially_returned', 'refunded', 'partially_refunded'])
   .order('created_at', { ascending: false });
 
 const formatDate = (dateStr: string) => {
@@ -83,9 +83,10 @@ const formatPrice = (amount: number) => {
           const returnReason = returnHistory?.notes || 'Sin motivo especificado';
           const requestDate = returnHistory?.created_at || order.created_at;
           const isRefundStage = order.status === 'returned' || order.status === 'partially_returned';
-          const headerColor = isRefundStage ? 'bg-indigo-50 border-indigo-200' : 'bg-orange-50 border-orange-200';
-          const badgeColor = isRefundStage ? 'bg-indigo-100 text-indigo-700 border-indigo-300' : 'bg-orange-100 text-orange-700 border-orange-300';
-          const statusLabel = order.status === 'partially_returned' ? 'Parcialmente Devuelto' : isRefundStage ? 'Devuelto - Reembolso Pendiente' : 'Devolución Solicitada';
+          const isRefunded = order.status === 'refunded' || order.status === 'partially_refunded';
+          const headerColor = isRefunded ? 'bg-green-50 border-green-200' : (isRefundStage ? 'bg-indigo-50 border-indigo-200' : 'bg-orange-50 border-orange-200');
+          const badgeColor = isRefunded ? 'bg-green-100 text-green-700 border-green-300' : (isRefundStage ? 'bg-indigo-100 text-indigo-700 border-indigo-300' : 'bg-orange-100 text-orange-700 border-orange-300');
+          const statusLabel = isRefunded ? (order.status === 'refunded' ? 'Reembolso Completado' : 'Reembolso Parcial Completado') : (order.status === 'partially_returned' ? 'Parcialmente Devuelto' : (isRefundStage ? 'Devuelto - Reembolso Pendiente' : 'Devolución Solicitada'));
 
           // Calcular reembolso de los items en devolución
           const returnItems = order.order_items?.filter((i: any) => 

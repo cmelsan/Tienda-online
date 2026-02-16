@@ -32,8 +32,9 @@ export default function ProductAddToCart({ productId, productName, price, image,
                 1
             );
 
-            // Open cart
+            // Open cart - update store AND dispatch event for legacy compatibility
             isCartOpen.set(true);
+            window.dispatchEvent(new CustomEvent('toggle-cart'));
         } catch (error) {
             console.error('[ProductAddToCart] Error:', error);
         }

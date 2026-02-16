@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { cartItemsArray, cartTotal, cartSubtotal, appliedCoupon, removeFromCart, updateQuantity, clearCart } from '@/stores/cart';
+import { cartItemsArray, cartTotal, cartSubtotal, appliedCoupon, removeFromCart, updateQuantity, clearCart, isCartOpen } from '@/stores/cart';
 import { formatPrice } from '@/lib/utils';
 
 export default function CartSlideOver() {
@@ -10,17 +10,31 @@ export default function CartSlideOver() {
     const subtotal = useStore(cartSubtotal);
     const total = useStore(cartTotal);
     const coupon = useStore(appliedCoupon);
+    const cartOpenState = useStore(isCartOpen);
 
+    // Sync with store state
     useEffect(() => {
-        const handleToggle = () => setIsOpen(!isOpen);
+        setIsOpen(cartOpenState);
+    }, [cartOpenState]);
+
+    // Also handle toggle-cart event for legacy compatibility
+    useEffect(() => {
+        const handleToggle = () => {
+            const newState = !isOpen;
+            setIsOpen(newState);
+            isCartOpen.set(newState);
+        };
         window.addEventListener('toggle-cart', handleToggle);
         return () => window.removeEventListener('toggle-cart', handleToggle);
     }, [isOpen]);
 
-    // Close on escape key
+    // Close on escape key and sync with store
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setIsOpen(false);
+            if (e.key === 'Escape') {
+                setIsOpen(false);
+                isCartOpen.set(false);
+            }
         };
         if (isOpen) {
             document.addEventListener('keydown', handleEscape);
@@ -43,7 +57,10 @@ export default function CartSlideOver() {
             {/* Backdrop */}
             <div
                 className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 animate-fade-in"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                    setIsOpen(false);
+                    isCartOpen.set(false);
+                }}
             />
 
             {/* Slide Over Panel */}
@@ -56,7 +73,10 @@ export default function CartSlideOver() {
                             <p className="text-sm text-gray-500 mt-0.5">{itemCount} {itemCount === 1 ? 'artículo' : 'artículos'}</p>
                         </div>
                         <button
-                            onClick={() => setIsOpen(false)}
+                            onClick={() => {
+                                setIsOpen(false);
+                                isCartOpen.set(false);
+                            }}
                             className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                             aria-label="Cerrar carrito"
                         >
@@ -79,7 +99,10 @@ export default function CartSlideOver() {
                             <p className="text-gray-900 text-lg font-semibold mb-2">Tu carrito está vacío</p>
                             <p className="text-gray-500 text-sm mb-6">Explora nuestros productos y añade tus favoritos</p>
                             <button
-                                onClick={() => setIsOpen(false)}
+                                onClick={() => {
+                                    setIsOpen(false);
+                                    isCartOpen.set(false);
+                                }}
                                 className="px-8 py-3 bg-black text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition-colors"
                             >
                                 Seguir Comprando

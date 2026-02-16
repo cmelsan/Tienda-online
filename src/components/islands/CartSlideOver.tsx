@@ -54,21 +54,23 @@ export default function CartSlideOver() {
 
     const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
-    if (!isOpen) return null;
-
     return (
         <>
-            {/* Backdrop */}
+            {/* Backdrop - always rendered but hidden when closed */}
             <div
-                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 animate-fade-in"
+                className={`fixed inset-0 backdrop-blur-sm z-40 animate-fade-in transition-opacity duration-300 ${
+                    isOpen ? 'bg-black/40 opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                }`}
                 onClick={() => {
                     setIsOpen(false);
                     isCartOpen.set(false);
                 }}
             />
 
-            {/* Slide Over Panel */}
-            <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 flex flex-col animate-slide-in-right">
+            {/* Slide Over Panel - always rendered but positioned off-screen when closed */}
+            <div className={`fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 flex flex-col transition-transform duration-300 ${
+                isOpen ? 'translate-x-0 animate-slide-in-right' : 'translate-x-full'
+            }`}>
                 {/* Header - Limpio y Simple */}
                 <div className="border-b border-gray-200 px-6 py-5 bg-white sticky top-0">
                     <div className="flex items-center justify-between">

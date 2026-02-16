@@ -434,7 +434,7 @@ BEGIN
   IF v_refunded_items >= v_total_items THEN
     v_final_status := 'refunded';
   ELSE
-    v_final_status := 'partially_returned';
+    v_final_status := 'partially_refunded';
   END IF;
 
   UPDATE orders SET status = v_final_status, updated_at = NOW() WHERE id = p_order_id;

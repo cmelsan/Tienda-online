@@ -6,13 +6,14 @@ interface AdminReturnRowProps {
     orderId: string;
     orderTotal: string;
     refundAmount?: string;
-    orderStatus?: string; // 'return_requested', 'returned', or 'partially_returned'
+    orderStatus?: string; // 'return_requested', 'returned', 'partially_returned', 'refunded', 'partially_refunded'
 }
 
 export default function AdminReturnRow({ orderId, orderTotal, refundAmount, orderStatus = 'return_requested' }: AdminReturnRowProps) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [notes, setNotes] = useState('');
     const isRefundStage = orderStatus === 'returned' || orderStatus === 'partially_returned';
+    const isRefunded = orderStatus === 'refunded' || orderStatus === 'partially_refunded';
     const displayRefundAmount = refundAmount || orderTotal;
 
     const handleProcessReturn = async (approved: boolean, restoreStock: boolean, action: string) => {
@@ -74,7 +75,22 @@ export default function AdminReturnRow({ orderId, orderTotal, refundAmount, orde
 
     return (
         <div className="space-y-4">
-            {isRefundStage ? (
+            {isRefunded ? (
+                <>
+                    {/* REFUNDED: Show confirmation */}
+                    <div className="bg-green-50 border border-green-200 rounded p-4">
+                        <p className="text-sm font-semibold text-green-800">
+                            ✓ Reembolso completado
+                        </p>
+                        <p className="text-xs text-green-700 mt-1">
+                            Cantidad reembolsada: <span className="font-bold">{displayRefundAmount}</span>
+                            {displayRefundAmount !== orderTotal && (
+                                <span className="text-gray-600 ml-1">(total pedido: {orderTotal})</span>
+                            )}
+                        </p>
+                    </div>
+                </>
+            ) : isRefundStage ? (
                 <>
                     {/* REFUND STAGE: Process Refund */}
                     <div>

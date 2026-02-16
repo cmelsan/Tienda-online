@@ -1,6 +1,7 @@
 ---
 import Card from '@/components/ui/Card.astro';
 import WishlistButton from '@/components/islands/WishlistButton';
+import ProductAddToCart from '@/components/islands/ProductAddToCart';
 import ProductRating from '@/components/reviews/ProductRating';
 import { formatPrice } from '@/lib/utils';
 import type { Product } from '@/lib/supabase';
@@ -36,7 +37,7 @@ if (!imageUrl || imageUrl.includes('placeholder')) {
 
     <a href={`/productos/${product.slug}`} class="block">
       <!-- Product Image - Premium styling -->
-      <div class="aspect-square overflow-hidden bg-white-cream">
+      <div class="aspect-square overflow-hidden bg-white-cream relative">
         <img
           src={imageUrl}
           alt={product.name}
@@ -44,6 +45,20 @@ if (!imageUrl || imageUrl.includes('placeholder')) {
           loading="lazy"
           onerror={`this.onerror=null; this.src='${fallbackImage || '/placeholder-product.jpg'}'`}
         />
+        
+        <!-- Add to Cart Overlay - Shows on Hover -->
+        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <div class="w-full px-4">
+            <ProductAddToCart 
+              client:load
+              productId={product.id}
+              productName={product.name}
+              price={product.price}
+              image={imageUrl}
+              slug={product.slug}
+            />
+          </div>
+        </div>
       </div>
 
       <!-- Product Info - Refined spacing and typography -->

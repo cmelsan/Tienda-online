@@ -138,7 +138,7 @@ export default function CartSlideOver() {
                                             </h3>
                                             <button
                                                 onClick={() => removeFromCart(item.product?.id)}
-                                                className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                                                className="text-gray-400 hover:text-beauty-red transition-colors flex-shrink-0"
                                                 aria-label="Eliminar producto"
                                                 title="Eliminar"
                                             >

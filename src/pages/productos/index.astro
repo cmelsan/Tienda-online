@@ -3,6 +3,7 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
 import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/utils';
 import WishlistButton from '@/components/islands/WishlistButton';
+import ProductAddToCart from '@/components/islands/ProductAddToCart';
 
 // Fetch all products
 const { data: dbProducts } = await supabase
@@ -219,19 +220,15 @@ const { data: categories } = await supabase
                         </div>
                     </div>
 
-                    <!-- Add to Cart Button Logic -->
-                    <button 
-                        class="w-full bg-black text-white font-bold text-sm uppercase py-3 hover:bg-gray-800 transition-colors opacity-0 md:opacity-0 md:group-hover:opacity-100 sm:opacity-100 transition-opacity duration-300 shadow-md"
-                        onclick={`window.addToCart({ 
-                            id: '${product.id}', 
-                            name: '${product.name.replace(/'/g, "\\'")}', 
-                            price: ${product.price}, 
-                            image: '${product.images?.[0] || ''}', 
-                            slug: '${product.slug}' 
-                        })`}
-                    >
-                        Añadir a la cesta
-                    </button>
+                    <!-- Add to Cart Button Island -->
+                    <ProductAddToCart 
+                        client:load
+                        productId={product.id}
+                        productName={product.name}
+                        price={product.price}
+                        image={product.images?.[0]}
+                        slug={product.slug}
+                    />
                 </div>
             ))}
          </div>
@@ -245,28 +242,7 @@ const { data: categories } = await supabase
   import { cartItems, isCartOpen } from '@/stores/cart';
 
   window.addToCart = (product) => {
-    const currentItems = cartItems.get();
-    const existingItem = currentItems.find((item) => item.id === product.id);
 
-    if (existingItem) {
-      cartItems.set(
-        currentItems.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        )
-      );
-    } else {
-      cartItems.set([...currentItems, { ...product, quantity: 1 }]);
-    }
-    
-    // Open cart drawer
-    isCartOpen.set(true);
-  };
-</script>
-
-<style>
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-  }
   .custom-scrollbar::-webkit-scrollbar-track {
     background: #f1f1f1;
   }

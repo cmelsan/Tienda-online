@@ -100,7 +100,8 @@ export async function validateCoupon(
       };
     }
 
-    // Optional: Check if user has already used this coupon (if userId provided)
+    // Check if user has already used this coupon (if userId provided)
+    // Restrict to one use per user
     if (userId) {
       const { data: userUsage, error: usageError } = await supabase
         .from('coupon_usage')
@@ -111,11 +112,10 @@ export async function validateCoupon(
 
       // If no error and data exists, user has already used this coupon
       if (!usageError && userUsage) {
-        // You can customize this behavior:
-        // 1. Allow multiple uses per user
-        // 2. Restrict to one use per user
-        // For now, we log it but allow it (modify based on your business rules)
-        console.log('[Coupon] User has previously used this coupon:', { couponId: coupon.id, userId });
+        return {
+          valid: false,
+          error: 'Ya has utilizado este código de descuento. Solo puedes usarlo una vez.',
+        };
       }
     }
 

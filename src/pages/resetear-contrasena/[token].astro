@@ -44,10 +44,10 @@ if (!resetToken || new Date(resetToken.expires_at) < new Date()) {
             name="password"
             required
             placeholder="CONTRASEÑA"
-            minlength="8"
+            minlength="6"
             class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 uppercase rounded-none"
           />
-          <p class="text-xs text-gray-400 mt-1">Mínimo 8 caracteres</p>
+          <p class="text-xs text-gray-400 mt-1">Mínimo 6 caracteres</p>
         </div>
 
         <div>
@@ -58,7 +58,7 @@ if (!resetToken || new Date(resetToken.expires_at) < new Date()) {
             name="confirm-password"
             required
             placeholder="CONFIRMAR CONTRASEÑA"
-            minlength="8"
+            minlength="6"
             class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 uppercase rounded-none"
           />
         </div>
@@ -97,8 +97,8 @@ if (!resetToken || new Date(resetToken.expires_at) < new Date()) {
       errorDiv.classList.add('hidden');
 
       // Validations
-      if (password.length < 8) {
-        errorDiv.textContent = 'La contraseña debe tener al menos 8 caracteres';
+      if (password.length < 6) {
+        errorDiv.textContent = 'La contraseña debe tener al menos 6 caracteres';
         errorDiv.classList.remove('hidden');
         return;
       }

@@ -13,8 +13,8 @@ export async function POST({ request }: any) {
       });
     }
 
-    if (password.length < 8) {
-      return new Response(JSON.stringify({ error: 'La contraseña debe tener al menos 8 caracteres' }), {
+    if (password.length < 6) {
+      return new Response(JSON.stringify({ error: 'La contraseña debe tener al menos 6 caracteres' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });

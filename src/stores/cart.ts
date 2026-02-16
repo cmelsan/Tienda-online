@@ -111,8 +111,25 @@ export const cartItemsArray = computed(cartItems, (items) => {
 
 /**
  * Add product to cart
+ * Price should be stored in cents (e.g., 4200 = 42.00€)
  */
 export function addToCart(product: Product, quantity: number = 1) {
+    // Validate inputs
+    if (!product || !product.id) {
+        throw new Error('Producto inválido');
+    }
+
+    if (quantity < 1 || isNaN(quantity)) {
+        throw new Error('Cantidad debe ser mayor a 0');
+    }
+
+    // Ensure price is a valid number in cents
+    const price = product.price;
+    if (typeof price !== 'number' || price < 0) {
+        console.error('[addToCart] Invalid price:', { productId: product.id, price });
+        throw new Error('Precio del producto inválido');
+    }
+
     const currentItems = cartItems.get();
     const existingItem = currentItems[product.id];
 
@@ -140,6 +157,9 @@ export function addToCart(product: Product, quantity: number = 1) {
             quantity,
         });
     }
+
+    // Log for debugging
+    console.log('[addToCart] Item added:', { productId: product.id, quantity, price });
 
     // Sync to backend
     syncToBackend(cartItems.get());

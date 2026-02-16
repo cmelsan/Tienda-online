@@ -4,7 +4,10 @@ import { addToCart } from '@/stores/cart';
 import type { Product } from '@/lib/supabase';
 
 interface AddToCartButtonProps {
-    product: Product;
+    product: Product & {
+        discount?: number;
+        discountedPrice?: number;
+    };
 }
 
 export default function AddToCartButton({ product }: AddToCartButtonProps) {
@@ -14,8 +17,20 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
     const [error, setError] = useState('');
 
     const handleAddToCart = async () => {
+        // Validate product
+        if (!product || !product.id) {
+            setError('Producto inválido');
+            console.error('[AddToCart] Invalid product:', product);
+            return;
+        }
+
         if (product.stock === 0) {
             setError('Producto agotado');
+            return;
+        }
+
+        if (quantity < 1 || isNaN(quantity)) {
+            setError('Cantidad inválida');
             return;
         }
 
@@ -23,6 +38,15 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
         setError('');
 
         try {
+            console.log('[AddToCart] Adding product:', {
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                discount: product.discount || 0,
+                discountedPrice: product.discountedPrice || product.price,
+                quantity
+            });
+
             addToCart(product, quantity);
 
             // Show success feedback
@@ -31,15 +55,21 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
 
             // Reset quantity
             setQuantity(1);
+
+            // Open cart to show item was added
+            window.dispatchEvent(new CustomEvent('toggle-cart'));
+
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error al añadir al carrito');
+            const errorMsg = err instanceof Error ? err.message : 'Error al añadir al carrito';
+            setError(errorMsg);
+            console.error('[AddToCart] Error:', errorMsg, err);
         } finally {
             setIsAdding(false);
         }
     };
 
     const isOutOfStock = product.stock === 0;
-    const maxQuantity = Math.min(product.stock, 10);
+    const maxQuantity = Math.min(product.stock || 0, 10);
 
     return (
         <div className="space-y-4">

@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { addNotification } from '@/stores/notifications';
 
 interface Order {
     id: string;
@@ -170,7 +171,7 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                 onActionComplete(data.data.new_status);
             }
 
-            alert(data.data?.message || 'Acción completada exitosamente');
+            addNotification(data.data?.message || 'Acción completada exitosamente', 'success');
         } catch (err: any) {
             setError(err.message || 'Error de conexión');
         } finally {

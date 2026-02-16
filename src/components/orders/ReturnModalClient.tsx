@@ -129,7 +129,7 @@ export default function ReturnModalClient({
                 <div className="sticky top-0 bg-white px-6 pt-6 pb-4 border-b border-gray-100 z-10">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold text-gray-900">
-                            {returnRequested ? '✓ Devolución Solicitada' : 'Solicitar Devolución'}
+                            {returnRequested ? 'Devoluci\u00f3n Solicitada' : 'Solicitar Devoluci\u00f3n'}
                         </h2>
                         <button
                             onClick={handleClose}
@@ -148,7 +148,7 @@ export default function ReturnModalClient({
                             <div className="bg-green-50 border border-green-200 rounded p-4">
                                 <h3 className="font-bold text-green-700 mb-2">¡Solicitud Aceptada!</h3>
                                 <p className="text-sm text-green-700">
-                                    ✓ Hemos recibido tu solicitud de devolución para {selectedItems.size} producto(s).
+                                    Hemos recibido tu solicitud de devoluci\u00f3n para {selectedItems.size} producto(s).
                                 </p>
                                 <p className="text-sm text-green-700 mt-1">
                                     Reembolso estimado: <strong>{formatPrice(refundTotal)}</strong>

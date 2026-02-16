@@ -76,7 +76,7 @@ export default function ReturnModal({ isOpen, onClose, orderId, onReturnRequeste
             <div className="bg-white max-w-2xl w-full p-8 rounded-none shadow-2xl max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-start mb-6">
                     <h2 className="text-2xl font-bold uppercase tracking-wider">
-                        {returnRequested ? '✓ Devolución Solicitada' : 'Solicitar Devolución'}
+                        {returnRequested ? 'Devolución Solicitada' : 'Solicitar Devolución'}
                     </h2>
                     <button
                         onClick={onClose}
@@ -93,12 +93,12 @@ export default function ReturnModal({ isOpen, onClose, orderId, onReturnRequeste
                         <div className="bg-green-50 border-2 border-green-200 p-6 rounded">
                             <h3 className="text-lg font-bold text-green-700 mb-3">¡Solicitud Aceptada!</h3>
                             <p className="text-green-700 text-sm mb-4">
-                                ✓ <strong>Hemos enviado un correo con la etiqueta de devolución a tu email asociado</strong> con toda la información necesaria.
+                                <strong>Hemos enviado un correo con la etiqueta de devolución a tu email asociado</strong> con toda la información necesaria.
                             </p>
                         </div>
 
                         <div className="bg-blue-50 border-l-4 border-blue-600 p-6">
-                            <h4 className="font-bold uppercase text-xs mb-3 text-blue-900">📧 Próximos Pasos</h4>
+                            <h4 className="font-bold uppercase text-xs mb-3 text-blue-900">Próximos Pasos</h4>
                             <ol className="space-y-3 text-sm text-blue-900">
                                 <li><strong>1. Revisa tu email:</strong> Encontrarás la etiqueta de devolución con las instrucciones completas</li>
                                 <li><strong>2. Descarga la etiqueta:</strong> Obtén el PDF desde el archivo adjunto al email</li>
@@ -110,7 +110,7 @@ export default function ReturnModal({ isOpen, onClose, orderId, onReturnRequeste
 
                         <div className="bg-yellow-50 border-2 border-yellow-300 p-4 rounded">
                             <p className="text-xs text-yellow-800">
-                                <strong>⏱️ Plazo máximo:</strong> Tienes 14 días desde hoy para enviar el paquete. 
+                                <strong>Plazo máximo:</strong> Tienes 14 días desde hoy para enviar el paquete. 
                                 Guarda el número de seguimiento de tu envío.
                             </p>
                         </div>
@@ -171,10 +171,10 @@ export default function ReturnModal({ isOpen, onClose, orderId, onReturnRequeste
                         <div className="bg-gray-50 p-4 border-l-4 border-black">
                             <h3 className="font-bold uppercase tracking-wider text-xs mb-3">Política de Devoluciones</h3>
                             <ul className="space-y-2 text-xs text-gray-700">
-                                <li>✓ Tienes <strong>30 días</strong> desde la fecha de entrega para solicitar una devolución</li>
-                                <li>✓ Debes enviar los artículos en su embalaje original a: <strong>Calle de la Moda 123, Polígono Industrial, Madrid</strong></li>
-                                <li>✓ Recibirás un correo con la <strong>etiqueta de devolución</strong> a tu email asociado</li>
-                                <li>✓ <strong>Aviso Importante:</strong> Una vez recibido y validado el paquete, el reembolso se procesará en tu método de pago original en un plazo de <strong>5 a 7 días hábiles</strong></li>
+                                <li>Tienes <strong>30 días</strong> desde la fecha de entrega para solicitar una devolución</li>
+                                <li>Debes enviar los artículos en su embalaje original a: <strong>Calle de la Moda 123, Polígono Industrial, Madrid</strong></li>
+                                <li>Recibirás un correo con la <strong>etiqueta de devolución</strong> a tu email asociado</li>
+                                <li><strong>Aviso Importante:</strong> Una vez recibido y validado el paquete, el reembolso se procesará en tu método de pago original en un plazo de <strong>5 a 7 días hábiles</strong></li>
                             </ul>
                         </div>
 

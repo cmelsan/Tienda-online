@@ -124,8 +124,8 @@ export default function CartSlideOver() {
                                     {/* Product Image */}
                                     <div className="w-20 h-20 flex-shrink-0">
                                         <img
-                                            src={item.product.images[0] || '/placeholder-product.jpg'}
-                                            alt={item.product.name}
+                                            src={item.product?.images?.[0] || '/placeholder-product.jpg'}
+                                            alt={item.product?.name || 'Producto'}
                                             className="w-full h-full object-cover rounded-lg"
                                         />
                                     </div>
@@ -134,10 +134,10 @@ export default function CartSlideOver() {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between gap-2 mb-2">
                                             <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-tight">
-                                                {item.product.name}
+                                                {item.product?.name || 'Producto'}
                                             </h3>
                                             <button
-                                                onClick={() => removeFromCart(item.product.id)}
+                                                onClick={() => removeFromCart(item.product?.id)}
                                                 className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
                                                 aria-label="Eliminar producto"
                                                 title="Eliminar"
@@ -149,17 +149,17 @@ export default function CartSlideOver() {
                                         </div>
 
                                         <p className="text-base font-bold text-black mb-3">
-                                            {item.product.discount > 0 ? (
+                                            {item.product?.discount ? (
                                                 <div className="flex gap-2 items-center">
                                                     <span className="line-through text-gray-400 text-sm">
-                                                        {formatPrice(item.product.price)}
+                                                        {formatPrice(item.product?.price || 0)}
                                                     </span>
                                                     <span className="text-beauty-red">
-                                                        {formatPrice(item.product.discountedPrice || item.product.price)}
+                                                        {formatPrice(item.product?.discountedPrice || item.product?.price || 0)}
                                                     </span>
                                                 </div>
                                             ) : (
-                                                formatPrice(item.product.price)
+                                                formatPrice(item.product?.price || 0)
                                             )}
                                         </p>
 
@@ -168,7 +168,7 @@ export default function CartSlideOver() {
                                             <span className="text-xs text-gray-500 font-medium">Cantidad:</span>
                                             <div className="flex items-center border border-gray-300 rounded-lg">
                                                 <button
-                                                    onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                                                    onClick={() => updateQuantity(item.product?.id, item.quantity - 1)}
                                                     className="w-8 h-8 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-700 font-semibold border-r border-gray-300"
                                                     title="Disminuir cantidad"
                                                 >
@@ -180,7 +180,7 @@ export default function CartSlideOver() {
                                                 <button
                                                     onClick={() => {
                                                         try {
-                                                            updateQuantity(item.product.id, item.quantity + 1);
+                                                            updateQuantity(item.product?.id, item.quantity + 1);
                                                         } catch (err) {
                                                             alert(err instanceof Error ? err.message : 'Error');
                                                         }

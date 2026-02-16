@@ -57,8 +57,8 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
             <td className="py-3 px-4 text-xs font-bold text-black">#{orderId}</td>
             <td className="py-3 px-4 text-xs text-gray-600">{dateStr}</td>
             <td className="py-3 px-4 text-xs text-gray-600">
-                <span className="font-medium block">{customerEmail}</span>
-                {userId && <span className="text-gray-400 text-xs">{userId}</span>}
+                <span className="font-medium">{customerEmail}</span>
+                {userId && <span className="text-gray-400 text-xs ml-2">({userId})</span>}
             </td>
             <td className="py-3 px-4 text-xs text-gray-600">
                 <span className="block">{itemCount} productos</span>

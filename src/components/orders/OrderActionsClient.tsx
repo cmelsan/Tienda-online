@@ -1,11 +1,24 @@
 import { useState } from 'react';
 import ReturnModal from './ReturnModalClient';
 
+interface OrderItem {
+    id: string;
+    quantity: number;
+    price_at_purchase: number;
+    return_status?: string | null;
+    product: {
+        name: string;
+        images?: string[];
+        slug?: string;
+    };
+}
+
 interface OrderActionsClientProps {
     orderId: string;
     status: string;
     deliveredAt?: string | null;
     returnDeadline?: string | null;
+    items?: OrderItem[];
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -16,7 +29,8 @@ const STATUS_LABELS: Record<string, string> = {
     cancelled: 'Cancelado',
     return_requested: 'Devolución Solicitada',
     returned: 'Devuelto',
-    refunded: 'Reembolsado'
+    refunded: 'Reembolsado',
+    partially_returned: 'Parcialmente Devuelto'
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -27,14 +41,16 @@ const STATUS_COLORS: Record<string, string> = {
     cancelled: 'text-gray-400',
     return_requested: 'text-gray-600',
     returned: 'text-gray-600',
-    refunded: 'text-gray-600'
+    refunded: 'text-gray-600',
+    partially_returned: 'text-orange-600'
 };
 
 export default function OrderActionsClient({
     orderId,
     status,
     deliveredAt,
-    returnDeadline
+    returnDeadline,
+    items = []
 }: OrderActionsClientProps) {
     const [isCancelling, setIsCancelling] = useState(false);
     const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
@@ -44,8 +60,9 @@ export default function OrderActionsClient({
     // Check if order can be cancelled (only if status is 'paid')
     const canCancel = currentStatus === 'paid';
 
-    // Check if order can request return (only if status is 'delivered')
-    const canRequestReturn = currentStatus === 'delivered';
+    // Check if order can request return (delivered or partially_returned with returnable items)
+    const hasReturnableItems = items.some(i => !i.return_status || i.return_status === 'rejected');
+    const canRequestReturn = (currentStatus === 'delivered' || currentStatus === 'partially_returned') && hasReturnableItems;
 
     const handleCancelOrder = async () => {
         if (!confirm('¿Estás seguro de que deseas cancelar este pedido? Esta acción no se puede deshacer.')) return;
@@ -123,6 +140,7 @@ export default function OrderActionsClient({
                     onClose={() => setIsReturnModalOpen(false)}
                     orderId={orderId}
                     returnDeadline={returnDeadline}
+                    items={items}
                 />
             )}
         </div>

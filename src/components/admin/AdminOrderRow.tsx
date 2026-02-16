@@ -10,6 +10,7 @@ const STATUS_LABELS: Record<string, string> = {
     return_requested: 'Devolución Solicitada',
     returned: 'Devuelto',
     refunded: 'Reembolsado',
+    partially_returned: 'Parcialmente Devuelto',
 };
 
 interface OrderItem {

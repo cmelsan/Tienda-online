@@ -10,6 +10,7 @@ const { data: orders, error } = await supabase
   .from('orders')
   .select(`
     id,
+    order_number,
     created_at,
     status,
     total_amount,

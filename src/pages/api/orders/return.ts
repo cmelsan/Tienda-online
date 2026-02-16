@@ -4,7 +4,7 @@ import { sendEmail, getReturnRequestTemplate } from '@/lib/brevo';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
-        const { orderId, reason } = await request.json();
+        const { orderId, reason, itemIds } = await request.json();
 
         if (!orderId || !reason) {
             return new Response(JSON.stringify({ success: false, message: 'Order ID and reason are required' }), { status: 400 });
@@ -18,10 +18,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             return new Response(JSON.stringify({ success: false, message: 'Unauthorized' }), { status: 401 });
         }
 
-        // Call RPC
+        // Call RPC with optional item IDs for per-item returns
         const { data, error } = await supabase.rpc('request_return', {
             p_order_id: orderId,
-            p_reason: reason
+            p_reason: reason,
+            p_item_ids: itemIds || null
         });
 
         console.log('[Return API] RPC called with:', { orderId, reason });
@@ -52,6 +53,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
             // Get order number for email subject
             let orderNumber = 'XXX';
+            let returnedItemsForEmail: { name: string; quantity: number; price: number }[] = [];
             try {
                 const { data: orderData } = await supabase
                     .from('orders')
@@ -62,13 +64,28 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 if (orderData?.order_number) {
                     orderNumber = orderData.order_number;
                 }
+
+                // Fetch items that were marked for return
+                const { data: returnItems } = await supabase
+                    .from('order_items')
+                    .select('quantity, price_at_purchase, products(name)')
+                    .eq('order_id', orderId)
+                    .eq('return_status', 'requested');
+
+                if (returnItems) {
+                    returnedItemsForEmail = returnItems.map((item: any) => ({
+                        name: item.products?.name || 'Producto',
+                        quantity: item.quantity,
+                        price: item.price_at_purchase
+                    }));
+                }
             } catch (e) {
-                console.log('[Return API] Could not fetch order number');
+                console.log('[Return API] Could not fetch order details');
             }
 
             // Send email if we have customer email
             if (customerEmail) {
-                const htmlContent = getReturnRequestTemplate(customerName, orderNumber);
+                const htmlContent = getReturnRequestTemplate(customerName, orderNumber, returnedItemsForEmail);
                 console.log('[Return API] Sending email with template...');
                 
                 await sendEmail({

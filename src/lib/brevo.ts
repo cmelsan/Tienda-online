@@ -545,7 +545,23 @@ export function getNewsletterTemplate(unsubscribeUrl: string, content: string): 
 }
 
 // Template: Solicitud de Devolución Recibida
-export function getReturnRequestTemplate(customerName: string, orderNumber: string): string {
+export function getReturnRequestTemplate(customerName: string, orderNumber: string, returnedItems?: { name: string; quantity: number; price: number }[]): string {
+  const itemsHtml = returnedItems && returnedItems.length > 0
+    ? `<div style="background: white; padding: 15px; border-radius: 6px; margin: 15px 0; border: 1px solid #e5e7eb;">
+        <p style="font-weight: bold; margin-bottom: 10px; font-size: 14px;">Productos a devolver:</p>
+        ${returnedItems.map(item => `
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6;">
+            <span>${item.name} (x${item.quantity})</span>
+            <span style="font-weight: bold;">€${(item.price / 100).toFixed(2)}</span>
+          </div>
+        `).join('')}
+        <div style="display: flex; justify-content: space-between; padding: 10px 0 0; font-weight: bold; font-size: 15px;">
+          <span>Reembolso estimado:</span>
+          <span style="color: #10b981;">€${(returnedItems.reduce((sum, i) => sum + i.price * i.quantity, 0) / 100).toFixed(2)}</span>
+        </div>
+      </div>`
+    : '';
+
   return `
     <!DOCTYPE html>
     <html>
@@ -572,7 +588,8 @@ export function getReturnRequestTemplate(customerName: string, orderNumber: stri
             
             <div class="success-box">
               <p><span class="label">✓ Devolución #${orderNumber}</span></p>
-              <p>Hemos enviado un correo con la etiqueta de devolución a tu email asociado.</p>
+              <p>Hemos recibido tu solicitud de devolución.</p>
+              ${itemsHtml}
             </div>
 
             <div class="warning-box">

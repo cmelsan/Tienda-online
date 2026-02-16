@@ -4,13 +4,15 @@ import { supabase } from '@/lib/supabase';
 interface AdminReturnRowProps {
     orderId: string;
     orderTotal: string;
-    orderStatus?: string; // 'return_requested' or 'returned'
+    refundAmount?: string;
+    orderStatus?: string; // 'return_requested', 'returned', or 'partially_returned'
 }
 
-export default function AdminReturnRow({ orderId, orderTotal, orderStatus = 'return_requested' }: AdminReturnRowProps) {
+export default function AdminReturnRow({ orderId, orderTotal, refundAmount, orderStatus = 'return_requested' }: AdminReturnRowProps) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [notes, setNotes] = useState('');
-    const isRefundStage = orderStatus === 'returned';
+    const isRefundStage = orderStatus === 'returned' || orderStatus === 'partially_returned';
+    const displayRefundAmount = refundAmount || orderTotal;
 
     const handleProcessReturn = async (approved: boolean, restoreStock: boolean, action: string) => {
         const confirmMessage = approved
@@ -45,7 +47,7 @@ export default function AdminReturnRow({ orderId, orderTotal, orderStatus = 'ret
     };
 
     const handleProcessRefund = async () => {
-        if (!confirm(`¿Procesar reembolso de ${orderTotal}? Esta acción marcará el pedido como REEMBOLSADO.`)) return;
+        if (!confirm(`¿Procesar reembolso de ${displayRefundAmount}? Esta acción marcará los productos como REEMBOLSADOS.`)) return;
 
         setIsProcessing(true);
         try {
@@ -76,7 +78,10 @@ export default function AdminReturnRow({ orderId, orderTotal, orderStatus = 'ret
                     {/* REFUND STAGE: Process Refund */}
                     <div>
                         <p className="text-sm font-semibold text-gray-700 mb-3">
-                            Devolución aprobada. Procesar reembolso de <span className="text-green-600">{orderTotal}</span>
+                            Devolución aprobada. Procesar reembolso de <span className="text-green-600">{displayRefundAmount}</span>
+                            {displayRefundAmount !== orderTotal && (
+                                <span className="text-xs text-gray-500 ml-1">(total pedido: {orderTotal})</span>
+                            )}
                         </p>
                     </div>
 

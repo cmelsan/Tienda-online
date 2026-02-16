@@ -31,6 +31,7 @@ const STATUS_LABELS: Record<string, string> = {
     return_requested: 'Devolución Solicitada',
     returned: 'Devuelto',
     refunded: 'Reembolsado',
+    partially_returned: 'Parcialmente Devuelto',
 };
 
 export default function AdminOrderActions({ order, onActionComplete }: AdminOrderActionsProps) {
@@ -95,6 +96,14 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                 actions.push({
                     type: 'refund',
                     label: 'Procesar Reembolso',
+                    requiresNotes: true,
+                    requiresConfirm: true
+                });
+                break;
+            case 'partially_returned':
+                actions.push({
+                    type: 'refund',
+                    label: 'Procesar Reembolso Parcial',
                     requiresNotes: true,
                     requiresConfirm: true
                 });

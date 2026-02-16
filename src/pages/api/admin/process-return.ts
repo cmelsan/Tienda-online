@@ -107,12 +107,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                         }
                     }
 
-                    // Send refund email
+                    // Send refund email - use refund_amount from RPC result if available (partial refund)
                     if (customerEmail) {
+                        const refundAmount = result?.refund_amount || orderData.total_amount;
                         const emailTemplate = getRefundProcessedTemplate(
                             customerName,
                             orderData.order_number,
-                            orderData.total_amount
+                            refundAmount
                         );
 
                         await sendEmail({

@@ -53,7 +53,7 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
     };
 
     return (
-        <tr className="hover:bg-gray-50 transition-colors border-b border-gray-100">
+        <tr className="hover:bg-gray-50 transition-colors">
             <td className="py-4 px-4 text-xs font-bold text-black whitespace-nowrap">#{orderId}</td>
             <td className="py-4 px-4 text-xs text-gray-600 whitespace-nowrap">{dateStr}</td>
             <td className="py-4 px-4 text-xs min-w-[250px]">

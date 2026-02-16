@@ -59,7 +59,7 @@ const orderList = orders || [];
               <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Acciones</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
+          <tbody>
             {orderList.map((order) => (
               <AdminOrderRow client:load order={order} />
             ))}

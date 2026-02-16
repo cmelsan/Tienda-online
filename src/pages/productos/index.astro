@@ -237,12 +237,10 @@ const { data: categories } = await supabase
   </div>
 </PublicLayout>
 
-<script>
-  // Simple functional cart exposure for inline onclicks
-  import { cartItems, isCartOpen } from '@/stores/cart';
-
-  window.addToCart = (product) => {
-
+<style>
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
   .custom-scrollbar::-webkit-scrollbar-track {
     background: #f1f1f1;
   }

@@ -14,19 +14,23 @@ export default function CartSlideOver() {
 
     // Sync with store state
     useEffect(() => {
+        console.log('[CartSlideOver] Store state changed:', cartOpenState);
         setIsOpen(cartOpenState);
     }, [cartOpenState]);
 
-    // Also handle toggle-cart event for legacy compatibility
+    // Handle toggle-cart event - no dependency on isOpen to avoid circular updates
     useEffect(() => {
         const handleToggle = () => {
-            const newState = !isOpen;
-            setIsOpen(newState);
-            isCartOpen.set(newState);
+            console.log('[CartSlideOver] Toggle event received');
+            setIsOpen((prev) => {
+                const newState = !prev;
+                isCartOpen.set(newState);
+                return newState;
+            });
         };
         window.addEventListener('toggle-cart', handleToggle);
         return () => window.removeEventListener('toggle-cart', handleToggle);
-    }, [isOpen]);
+    }, []); // Empty dependency array - only set up listener once
 
     // Close on escape key and sync with store
     useEffect(() => {

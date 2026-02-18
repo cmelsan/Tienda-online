@@ -65,32 +65,59 @@ export function SalesLineChart({ data }: SalesChartProps) {
 }
 
 export function TopProductsBarChart({ data }: TopProductsChartProps) {
+  // Calcular el máximo para referencia
+  const maxQuantity = Math.max(...data.map(d => d.quantity || 0));
+  
   return (
     <div className="bg-white border border-admin-border rounded-lg p-6 shadow-sm">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-1 h-6 bg-admin-success rounded-full"></div>
         <h3 className="text-base font-bold text-admin-text">Top 5 Productos Más Vendidos</h3>
       </div>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 60 }}>
+      <ResponsiveContainer width="100%" height={450}>
+        <BarChart 
+          data={data} 
+          margin={{ top: 20, right: 30, left: 0, bottom: 100 }}
+          layout="vertical"
+        >
           <defs>
-            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10B981" stopOpacity={0.9} />
-              <stop offset="100%" stopColor="#10B981" stopOpacity={0.6} />
+            <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#10B981" stopOpacity={0.7} />
+              <stop offset="100%" stopColor="#059669" stopOpacity={0.9} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-          <XAxis dataKey="name" fontSize={11} stroke="#6B7280" angle={-45} textAnchor="end" height={80} />
-          <YAxis fontSize={12} stroke="#6B7280" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal={true} vertical={false} />
+          <XAxis 
+            type="number" 
+            fontSize={12} 
+            stroke="#6B7280"
+            domain={[0, Math.ceil(maxQuantity * 1.1)]}
+          />
+          <YAxis 
+            type="category"
+            dataKey="name" 
+            fontSize={12} 
+            stroke="#6B7280"
+            width={200}
+          />
           <Tooltip
+            cursor={{ fill: 'rgba(16, 185, 129, 0.1)' }}
             contentStyle={{
               backgroundColor: '#fff',
-              border: '1px solid #E5E7EB',
+              border: '2px solid #10B981',
               borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              padding: '10px',
             }}
+            formatter={(value) => [`${value} ventas`, 'Cantidad']}
+            labelStyle={{ color: '#000' }}
           />
-          <Bar dataKey="quantity" fill="url(#barGradient)" radius={[4, 4, 0, 0]} />
+          <Bar 
+            dataKey="quantity" 
+            fill="url(#barGradient)" 
+            radius={[0, 8, 8, 0]}
+            barSize={35}
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>

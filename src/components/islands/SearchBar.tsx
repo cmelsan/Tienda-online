@@ -1,12 +1,39 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-interface SearchResult {
+interface Product {
     id: string;
     name: string;
     slug: string;
     image: string | null;
     price: number;
     brand: string | null;
+}
+
+interface Brand {
+    id: string;
+    name: string;
+    slug: string;
+    logo: string | null;
+}
+
+interface Category {
+    id: string;
+    name: string;
+    slug: string;
+}
+
+interface Subcategory {
+    id: string;
+    name: string;
+    slug: string;
+    category: string | null;
+}
+
+interface SearchResults {
+    products: Product[];
+    brands: Brand[];
+    categories: Category[];
+    subcategories: Subcategory[];
 }
 
 // ─── Debounce hook ──────────────────────────────────────────────────────────
@@ -31,12 +58,11 @@ function formatPrice(price: number) {
 export default function SearchBar() {
     const [isOpen, setIsOpen]       = useState(false);
     const [query, setQuery]         = useState('');
-    const [results, setResults]     = useState<SearchResult[]>([]);
+    const [results, setResults]     = useState<SearchResults>({ products: [], brands: [], categories: [], subcategories: [] });
     const [loading, setLoading]     = useState(false);
-    const [searched, setSearched]   = useState(false); // true once a fetch completed
+    const [searched, setSearched]   = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // Debounced query – fetch only fires 350 ms after the user stops typing
     const debouncedQuery = useDebounce(query, 350);
 
     // ── Body-scroll lock ────────────────────────────────────────────────────
@@ -46,11 +72,11 @@ export default function SearchBar() {
         return () => { document.body.style.overflow = ''; };
     }, [isOpen]);
 
-    // ── Live search via API endpoint ────────────────────────────────────────
+    // ── Live search ────────────────────────────────────────────────────────
     useEffect(() => {
         const q = debouncedQuery.trim();
         if (q.length < 2) {
-            setResults([]);
+            setResults({ products: [], brands: [], categories: [], subcategories: [] });
             setSearched(false);
             return;
         }
@@ -62,12 +88,12 @@ export default function SearchBar() {
             .then((r) => r.json())
             .then((data) => {
                 if (!cancelled) {
-                    setResults(data.results ?? []);
+                    setResults(data);
                     setSearched(true);
                 }
             })
             .catch(() => {
-                if (!cancelled) setResults([]);
+                if (!cancelled) setResults({ products: [], brands: [], categories: [], subcategories: [] });
             })
             .finally(() => {
                 if (!cancelled) setLoading(false);
@@ -76,7 +102,7 @@ export default function SearchBar() {
         return () => { cancelled = true; };
     }, [debouncedQuery]);
 
-    // ── Full-page search (Enter / submit) ───────────────────────────────────
+    // ── Full-page search ────────────────────────────────────────────────────
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (query.trim()) {
@@ -88,12 +114,12 @@ export default function SearchBar() {
     const handleClose = useCallback(() => {
         setIsOpen(false);
         setQuery('');
-        setResults([]);
+        setResults({ products: [], brands: [], categories: [], subcategories: [] });
         setSearched(false);
     }, []);
 
     const showDropdown  = isOpen && debouncedQuery.trim().length >= 2;
-    const hasResults    = results.length > 0;
+    const hasResults    = results.products.length > 0 || results.brands.length > 0 || results.categories.length > 0 || results.subcategories.length > 0;
     const noResults     = searched && !loading && !hasResults;
 
     return (
@@ -159,7 +185,6 @@ export default function SearchBar() {
                                 aria-label="Buscar"
                             >
                                 {loading ? (
-                                    /* Spinner while fetching */
                                     <svg className="w-8 h-8 md:w-10 md:h-10 animate-spin" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
@@ -177,62 +202,158 @@ export default function SearchBar() {
                         </p>
                     </form>
 
-                    {/* ── Live dropdown ────────────────────────────────────── */}
+                    {/* ── Results dropdown ────────────────────────────────────── */}
                     {showDropdown && (
-                        <div className="w-full max-w-4xl px-4 mt-4 relative z-50">
-                            <div className="bg-white rounded-lg shadow-2xl overflow-hidden relative z-50">
+                        <div className="w-full max-w-4xl px-4 mt-4">
+                            <div className="bg-white rounded-lg shadow-2xl overflow-hidden relative z-50 max-h-96 overflow-y-auto">
 
-                                {/* Results list */}
-                                {hasResults && (
-                                    <ul>
-                                        {results.map((item) => (
-                                            <li key={item.id}>
-                                                <a
-                                                    href={`/productos/${item.slug}`}
-                                                    onClick={handleClose}
-                                                    className="flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors group"
-                                                >
-                                                    {/* Thumbnail */}
-                                                    <div className="w-14 h-14 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
-                                                        {item.image ? (
-                                                            <img
-                                                                src={item.image}
-                                                                alt={item.name}
-                                                                className="w-full h-full object-cover"
-                                                                loading="lazy"
-                                                            />
-                                                        ) : (
-                                                            <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                                </svg>
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    {/* Name + brand */}
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-bold text-black truncate group-hover:text-rose-600 transition-colors">
-                                                            {item.name}
-                                                        </p>
-                                                        {item.brand && (
-                                                            <p className="text-xs text-gray-400 uppercase tracking-wider mt-0.5">
-                                                                {item.brand}
+                                {/* PRODUCTOS */}
+                                {results.products.length > 0 && (
+                                    <div className="border-b border-gray-100">
+                                        <h3 className="px-5 py-3 text-xs font-bold uppercase tracking-widest bg-gray-50 text-gray-500">
+                                            Productos
+                                        </h3>
+                                        <ul>
+                                            {results.products.map((item) => (
+                                                <li key={item.id}>
+                                                    <a
+                                                        href={`/productos/${item.slug}`}
+                                                        onClick={handleClose}
+                                                        className="flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors group"
+                                                    >
+                                                        <div className="w-14 h-14 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
+                                                            {item.image ? (
+                                                                <img
+                                                                    src={item.image}
+                                                                    alt={item.name}
+                                                                    className="w-full h-full object-cover"
+                                                                    loading="lazy"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                    </svg>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-bold text-black truncate group-hover:text-rose-600 transition-colors">
+                                                                {item.name}
                                                             </p>
-                                                        )}
-                                                    </div>
-
-                                                    {/* Price */}
-                                                    <span className="text-sm font-bold text-black flex-shrink-0">
-                                                        {formatPrice(item.price)}
-                                                    </span>
-                                                </a>
-                                            </li>
-                                        ))}
-                                    </ul>
+                                                            {item.brand && (
+                                                                <p className="text-xs text-gray-400 uppercase tracking-wider mt-0.5">
+                                                                    {item.brand}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-sm font-bold text-black flex-shrink-0">
+                                                            {formatPrice(item.price)}
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
                                 )}
 
-                                {/* No results */}
+                                {/* MARCAS */}
+                                {results.brands.length > 0 && (
+                                    <div className="border-b border-gray-100">
+                                        <h3 className="px-5 py-3 text-xs font-bold uppercase tracking-widest bg-gray-50 text-gray-500">
+                                            Marcas
+                                        </h3>
+                                        <ul>
+                                            {results.brands.map((brand) => (
+                                                <li key={brand.id}>
+                                                    <a
+                                                        href={`/busqueda?brand=${encodeURIComponent(brand.name)}`}
+                                                        onClick={handleClose}
+                                                        className="flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors"
+                                                    >
+                                                        <div className="w-10 h-10 flex-shrink-0 bg-gray-100 rounded flex items-center justify-center">
+                                                            {brand.logo ? (
+                                                                <img
+                                                                    src={brand.logo}
+                                                                    alt={brand.name}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <span className="text-xs font-bold text-gray-400">{brand.name.charAt(0)}</span>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-sm font-bold text-black group-hover:text-rose-600">
+                                                            {brand.name}
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {/* CATEGORÍAS */}
+                                {results.categories.length > 0 && (
+                                    <div className="border-b border-gray-100">
+                                        <h3 className="px-5 py-3 text-xs font-bold uppercase tracking-widest bg-gray-50 text-gray-500">
+                                            Categorías
+                                        </h3>
+                                        <ul>
+                                            {results.categories.map((cat) => (
+                                                <li key={cat.id}>
+                                                    <a
+                                                        href={`/categoria/${cat.slug}`}
+                                                        onClick={handleClose}
+                                                        className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors"
+                                                    >
+                                                        <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                                        </svg>
+                                                        <span className="text-sm font-bold text-black group-hover:text-rose-600">
+                                                            {cat.name}
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {/* SUBCATEGORÍAS */}
+                                {results.subcategories.length > 0 && (
+                                    <div className="border-b border-gray-100">
+                                        <h3 className="px-5 py-3 text-xs font-bold uppercase tracking-widest bg-gray-50 text-gray-500">
+                                            SubCategorías
+                                        </h3>
+                                        <ul>
+                                            {results.subcategories.map((subcat) => (
+                                                <li key={subcat.id}>
+                                                    <a
+                                                        href={`/categoria/${subcat.category}/${subcat.slug}`}
+                                                        onClick={handleClose}
+                                                        className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors"
+                                                    >
+                                                        <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3v.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                        </svg>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-bold text-black truncate group-hover:text-rose-600">
+                                                                {subcat.name}
+                                                            </p>
+                                                            {subcat.category && (
+                                                                <p className="text-xs text-gray-400 uppercase tracking-wider">
+                                                                    en {subcat.category}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </a>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {/* NO RESULTS */}
                                 {noResults && (
                                     <div className="flex flex-col items-center py-10 gap-3 text-gray-400">
                                         <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -242,23 +363,23 @@ export default function SearchBar() {
                                         <p className="text-xs text-gray-300">Sin resultados para "<span className="italic">{debouncedQuery}</span>"</p>
                                     </div>
                                 )}
-
-                                {/* Footer: see all results */}
-                                {hasResults && (
-                                    <div className="border-t border-gray-100 px-5 py-3">
-                                        <a
-                                            href={`/busqueda?q=${encodeURIComponent(query.trim())}`}
-                                            onClick={handleClose}
-                                            className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors"
-                                        >
-                                            <span>Ver todos los resultados</span>
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </a>
-                                    </div>
-                                )}
                             </div>
+
+                            {/* Footer link: see all */}
+                            {hasResults && (
+                                <div className="mt-3 text-center">
+                                    <a
+                                        href={`/busqueda?q=${encodeURIComponent(query.trim())}`}
+                                        onClick={handleClose}
+                                        className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors"
+                                    >
+                                        <span>Ver todos los resultados</span>
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

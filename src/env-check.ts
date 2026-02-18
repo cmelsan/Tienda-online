@@ -5,6 +5,10 @@
  * In development: fails fast if configuration is missing
  */
 
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+dotenv.config({ path: '.env' });
+
 const requiredEnvVars = [
   'PUBLIC_SUPABASE_URL',
   'PUBLIC_SUPABASE_ANON_KEY',
@@ -34,14 +38,14 @@ const warnings: string[] = [];
 
 // Check required variables
 requiredEnvVars.forEach(varName => {
-  if (!import.meta.env[varName]) {
+  if (!process.env[varName]) {
     errors.push(`❌ Missing required environment variable: ${varName}`);
   }
 });
 
 // Check optional variables
 optionalEnvVars.forEach(varName => {
-  if (!import.meta.env[varName]) {
+  if (!process.env[varName]) {
     warnings.push(`⚠️  Optional environment variable not set: ${varName}`);
   }
 });
@@ -62,13 +66,13 @@ if (errors.length > 0) {
   }
 }
 
-if (warnings.length > 0 && import.meta.env.DEV) {
+if (warnings.length > 0 && process.env.NODE_ENV === 'development') {
   console.warn('\n⚠️  Environment Configuration Warnings:\n');
   warnings.forEach(warn => console.warn(warn));
   console.warn('');
 }
 
-if (errors.length === 0 && import.meta.env.DEV) {
+if (errors.length === 0 && process.env.NODE_ENV === 'development') {
   console.log('✅ All required environment variables are configured\n');
 }
 

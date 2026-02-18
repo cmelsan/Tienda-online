@@ -1,0 +1,199 @@
+---
+import PublicLayout from '@/layouts/PublicLayout.astro';
+
+interface Store {
+  id: number;
+  name: string;
+  address: string;
+  city: string;
+  phone: string;
+  email: string;
+  hours: {
+    weekday: string;
+    saturday: string;
+    sunday: string;
+  };
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+}
+
+const stores: Store[] = [
+  {
+    id: 1,
+    name: 'ÉCLAT Beauty - Centro',
+    address: 'Calle Gran Vía, 25',
+    city: 'Madrid',
+    phone: '+34 911 23 45 67',
+    email: 'centro@eclatbeauty.com',
+    hours: {
+      weekday: '10:00 - 20:00',
+      saturday: '10:00 - 18:00',
+      sunday: 'Cerrado'
+    },
+    coordinates: {
+      lat: 40.4169,
+      lng: -3.7033
+    }
+  },
+  {
+    id: 2,
+    name: 'ÉCLAT Beauty - Retiro',
+    address: 'Paseo del Retiro, 50',
+    city: 'Madrid',
+    phone: '+34 912 34 56 78',
+    email: 'retiro@eclatbeauty.com',
+    hours: {
+      weekday: '10:00 - 21:00',
+      saturday: '10:00 - 20:00',
+      sunday: '11:00 - 19:00'
+    },
+    coordinates: {
+      lat: 40.4155,
+      lng: -3.6835
+    }
+  },
+  {
+    id: 3,
+    name: 'ÉCLAT Beauty - Salamanca',
+    address: 'Calle Serrano, 120',
+    city: 'Madrid',
+    phone: '+34 913 45 67 89',
+    email: 'salamanca@eclatbeauty.com',
+    hours: {
+      weekday: '10:00 - 20:30',
+      saturday: '10:00 - 20:00',
+      sunday: '12:00 - 18:00'
+    },
+    coordinates: {
+      lat: 40.4321,
+      lng: -3.6726
+    }
+  },
+  {
+    id: 4,
+    name: 'ÉCLAT Beauty - Barcelona',
+    address: 'Paseo de Gracia, 88',
+    city: 'Barcelona',
+    phone: '+34 934 56 78 90',
+    email: 'barcelona@eclatbeauty.com',
+    hours: {
+      weekday: '10:00 - 20:00',
+      saturday: '10:00 - 19:00',
+      sunday: 'Cerrado'
+    },
+    coordinates: {
+      lat: 41.3916,
+      lng: 2.1671
+    }
+  }
+];
+---
+
+<PublicLayout title="Tiendas - ÉCLAT">
+  <div class="min-h-[80vh] bg-white">
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-pink-50 to-rose-50 py-20">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <span class="inline-block text-pink-500 text-[10px] uppercase tracking-[0.3em] mb-4 font-medium">Nuestras tiendas</span>
+        <h1 class="text-4xl md:text-5xl font-sans font-bold text-black mb-4">Visítanos en persona</h1>
+        <p class="text-gray-600 text-lg max-w-2xl">Descubre la belleza en nuestras tiendas físicas. Conoce nuestros productos, recibe consejos de expertos y disfruta de una experiencia de compra única.</p>
+      </div>
+    </div>
+
+    <!-- Stores Grid -->
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {stores.map((store) => (
+          <div class="border border-gray-200 rounded-lg p-8 hover:shadow-lg transition-shadow duration-300">
+            {/* Store Header */}
+            <div class="mb-6">
+              <h2 class="text-2xl font-bold text-black mb-2">{store.name}</h2>
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <p class="text-gray-600">{store.city}</p>
+              </div>
+            </div>
+
+            {/* Address */}
+            <div class="mb-4">
+              <p class="text-sm text-gray-500 uppercase tracking-[0.1em] mb-1">Dirección</p>
+              <p class="text-black font-medium">{store.address}</p>
+              <p class="text-gray-600">{store.city}</p>
+            </div>
+
+            {/* Contact */}
+            <div class="mb-4">
+              <p class="text-sm text-gray-500 uppercase tracking-[0.1em] mb-2">Contacto</p>
+              <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  <a href={`tel:${store.phone}`} class="text-pink-500 hover:text-pink-600 font-medium">{store.phone}</a>
+                </div>
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <a href={`mailto:${store.email}`} class="text-pink-500 hover:text-pink-600 font-medium">{store.email}</a>
+                </div>
+              </div>
+            </div>
+
+            {/* Hours */}
+            <div class="mb-6 border-t border-gray-200 pt-4">
+              <p class="text-sm text-gray-500 uppercase tracking-[0.1em] mb-2">Horario</p>
+              <div class="space-y-1 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Lunes a Viernes</span>
+                  <span class="font-medium text-black">{store.hours.weekday}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Sábado</span>
+                  <span class="font-medium text-black">{store.hours.saturday}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Domingo</span>
+                  <span class="font-medium text-black">{store.hours.sunday}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Map Link */}
+            <a 
+              href={`https://www.google.com/maps/search/${encodeURIComponent(`${store.address}, ${store.city}`)}`}
+              target="_blank"
+              class="inline-flex items-center justify-center w-full px-4 py-3 bg-pink-500 hover:bg-pink-600 text-white font-medium rounded transition-colors duration-200"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Ver en Google Maps
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="bg-gradient-to-r from-pink-50 to-rose-50 py-20">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl font-bold text-black mb-4">¿No encuentras lo que buscas?</h2>
+        <p class="text-gray-600 text-lg mb-8">Compra online y disfruta de envío rápido a toda España. También puedes contactar con nuestro equipo para asistencia personalizada.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/contacto" class="inline-flex items-center justify-center px-8 py-3 bg-pink-500 hover:bg-pink-600 text-white font-medium rounded transition-colors duration-200">
+            Contactar
+          </a>
+          <a href="/" class="inline-flex items-center justify-center px-8 py-3 border-2 border-pink-500 text-pink-500 hover:bg-pink-50 font-medium rounded transition-colors duration-200">
+            Volver a tienda
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</PublicLayout>

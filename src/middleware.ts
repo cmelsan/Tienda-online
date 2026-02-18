@@ -1,4 +1,3 @@
-import { defineMiddleware } from 'astro/middleware';
 import type { MiddlewareHandler } from 'astro';
 import { createServerSupabaseClient } from './lib/supabase';
 
@@ -85,4 +84,4 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
     }
 
     return next();
-});
+};

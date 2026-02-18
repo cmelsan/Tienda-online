@@ -19,7 +19,7 @@ export const GET: APIRoute = async ({ url }) => {
     .select('id, name, slug, images, price, brand:brands(name)')
     // ILIKE is case-insensitive: matches name OR brand name
     .or(`name.ilike.%${q}%,description.ilike.%${q}%`)
-    .eq('active', true)
+    .eq('is_active', true)
     .order('name', { ascending: true })
     .limit(6);
 

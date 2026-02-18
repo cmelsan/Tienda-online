@@ -179,8 +179,8 @@ export default function SearchBar() {
 
                     {/* ── Live dropdown ────────────────────────────────────── */}
                     {showDropdown && (
-                        <div className="w-full max-w-4xl px-4 mt-4">
-                            <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
+                        <div className="w-full max-w-4xl px-4 mt-4 relative z-50">
+                            <div className="bg-white rounded-lg shadow-2xl overflow-hidden relative z-50">
 
                                 {/* Results list */}
                                 {hasResults && (

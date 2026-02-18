@@ -85,7 +85,7 @@ BEGIN
         -- Return success
         RETURN json_build_object(
             'success', true,
-            'message', 'Order cancelled and stock restored',
+            'message', 'Pedido cancelado e inventario restaurado',
             'order_id', p_order_id,
             'new_status', 'cancelled',
             'code', 'CANCEL_SUCCESS'
@@ -168,7 +168,7 @@ BEGIN
 
         RETURN json_build_object(
             'success', true,
-            'message', 'Order marked as shipped',
+            'message', 'Marcado como enviado',
             'order_id', p_order_id,
             'new_status', 'shipped',
             'code', 'SHIPPED_SUCCESS'
@@ -256,7 +256,7 @@ BEGIN
 
         RETURN json_build_object(
             'success', true,
-            'message', 'Order marked as delivered',
+            'message', 'Marcado como entregado',
             'order_id', p_order_id,
             'new_status', 'delivered',
             'delivered_at', NOW(),
@@ -373,7 +373,7 @@ BEGIN
 
         RETURN json_build_object(
             'success', true,
-            'message', 'Return processed successfully',
+            'message', 'Devolución procesada exitosamente',
             'order_id', p_order_id,
             'new_status', p_new_status,
             'stock_restored', p_restore_stock,

@@ -43,7 +43,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             {
                 p_order_id: orderId,
                 p_admin_id: session.user.id,
-                p_notes: notes || 'Marked as shipped'
+                p_notes: notes || 'Marcado como enviado'
             }
         );
 

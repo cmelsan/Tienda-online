@@ -74,7 +74,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
         return new Response(JSON.stringify({ 
             success: true, 
-            message: 'Order status updated successfully'
+            message: 'Estado del pedido actualizado exitosamente'
         }), { status: 200 });
 
     } catch (err: any) {

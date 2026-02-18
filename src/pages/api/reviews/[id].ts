@@ -104,7 +104,7 @@ export const DELETE: APIRoute = async ({ request, params }) => {
 
     if (deleteError) throw deleteError;
 
-    return new Response(JSON.stringify({ message: 'Review deleted' }), { status: 200 });
+    return new Response(JSON.stringify({ message: 'Reseña eliminada' }), { status: 200 });
   } catch (error) {
     console.error('Error deleting review:', error);
     return new Response(

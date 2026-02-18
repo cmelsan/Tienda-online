@@ -1,0 +1,300 @@
+[2026-01-19T22:22:33.370Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:22:33.376Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:22:33.382Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:22:33.588Z] [Middleware] Session found: true
+[2026-01-19T22:22:33.590Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:22:42.927Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:22:42.931Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:22:42.936Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:22:43.113Z] [Middleware] Session found: true
+[2026-01-19T22:22:43.115Z] [Middleware] User ID: c5754cb7-63a3-4d86-96e1-a4bd65a57879
+[2026-01-19T22:29:00.854Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:29:00.856Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:29:00.859Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:29:00.866Z] [Middleware] Session found: true
+[2026-01-19T22:29:00.869Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:29:04.032Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:29:04.034Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:29:04.038Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:29:04.042Z] [Middleware] Session found: true
+[2026-01-19T22:29:04.048Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:33:49.978Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:33:49.980Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:33:49.983Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:33:49.985Z] [Middleware] Session found: true
+[2026-01-19T22:33:49.990Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:33:50.691Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:33:50.692Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:33:50.696Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:33:50.700Z] [Middleware] Session found: true
+[2026-01-19T22:33:50.704Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:33:51.010Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:33:51.012Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:33:51.016Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:33:51.018Z] [Middleware] Session found: true
+[2026-01-19T22:33:51.028Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:36:26.266Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:36:26.268Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:36:26.271Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:36:26.273Z] [Middleware] Session found: true
+[2026-01-19T22:36:26.279Z] [Middleware] User ID: c5754cb7-63a3-4d86-96e1-a4bd65a57879
+[2026-01-19T22:36:37.358Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:36:37.359Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:36:37.363Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:36:37.368Z] [Middleware] Session found: true
+[2026-01-19T22:36:37.375Z] [Middleware] User ID: c5754cb7-63a3-4d86-96e1-a4bd65a57879
+[2026-01-19T22:36:38.676Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:36:38.677Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:36:38.682Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:36:38.688Z] [Middleware] Session found: true
+[2026-01-19T22:36:38.691Z] [Middleware] User ID: c5754cb7-63a3-4d86-96e1-a4bd65a57879
+[2026-01-19T22:38:11.022Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:38:11.023Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:38:11.026Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:38:11.028Z] [Middleware] Session found: true
+[2026-01-19T22:38:11.039Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:39:00.616Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:39:00.618Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:39:00.620Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:39:00.622Z] [Middleware] Session found: true
+[2026-01-19T22:39:00.624Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:40:20.816Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:40:20.818Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:40:20.821Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:40:20.825Z] [Middleware] Session found: true
+[2026-01-19T22:40:20.833Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:40:54.662Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:40:54.664Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:40:54.667Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:40:54.669Z] [Middleware] Session found: true
+[2026-01-19T22:40:54.673Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:41:06.983Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:41:06.986Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:41:06.988Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:41:06.989Z] [Middleware] Session found: true
+[2026-01-19T22:41:06.993Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:41:08.284Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:41:08.286Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:41:08.288Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:41:08.289Z] [Middleware] Session found: true
+[2026-01-19T22:41:08.294Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:41:14.397Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:41:14.400Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:41:14.402Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:41:14.403Z] [Middleware] Session found: true
+[2026-01-19T22:41:14.412Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:43:41.624Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:43:41.627Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:43:41.633Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:43:41.636Z] [Middleware] Session found: true
+[2026-01-19T22:43:41.645Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:44:01.574Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:44:01.578Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:44:01.579Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:44:01.581Z] [Middleware] Session found: true
+[2026-01-19T22:44:01.586Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:44:55.296Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:44:55.298Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:44:55.306Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:44:55.316Z] [Middleware] Session found: true
+[2026-01-19T22:44:55.317Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:46:32.421Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:46:32.423Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:46:32.428Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:46:32.432Z] [Middleware] Session found: true
+[2026-01-19T22:46:32.439Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:47:12.484Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:47:12.487Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:47:12.495Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:47:12.500Z] [Middleware] Session found: true
+[2026-01-19T22:47:12.505Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:47:13.614Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:47:13.616Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:47:13.618Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:47:13.621Z] [Middleware] Session found: true
+[2026-01-19T22:47:13.624Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:47:15.068Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:47:15.072Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:47:15.093Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:47:15.102Z] [Middleware] Session found: true
+[2026-01-19T22:47:15.113Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:47:23.798Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:47:23.814Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:47:23.818Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:47:23.824Z] [Middleware] Session found: true
+[2026-01-19T22:47:23.829Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:47:45.966Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:47:45.968Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:47:45.970Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:47:45.974Z] [Middleware] Session found: true
+[2026-01-19T22:47:45.977Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:47:46.524Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:47:46.526Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:47:46.530Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:47:46.532Z] [Middleware] Session found: true
+[2026-01-19T22:47:46.540Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:47:47.623Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:47:47.625Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:47:47.629Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:47:47.631Z] [Middleware] Session found: true
+[2026-01-19T22:47:47.635Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:47:57.273Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:47:57.275Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:47:57.277Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:47:57.279Z] [Middleware] Session found: true
+[2026-01-19T22:47:57.284Z] [Middleware] User ID: c5754cb7-63a3-4d86-96e1-a4bd65a57879
+[2026-01-19T22:48:03.554Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:48:03.556Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:48:03.558Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:48:03.566Z] [Middleware] Session found: true
+[2026-01-19T22:48:03.568Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:48:24.035Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:48:24.037Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:48:24.040Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:48:24.042Z] [Middleware] Session found: true
+[2026-01-19T22:48:24.045Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:49:22.244Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:49:22.246Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:49:22.250Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:49:22.252Z] [Middleware] Session found: true
+[2026-01-19T22:49:22.255Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:50:47.545Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:50:47.546Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:50:47.548Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:50:47.549Z] [Middleware] Session found: false
+[2026-01-19T22:50:47.550Z] [Middleware] No session found, redirecting to /login
+[2026-01-19T22:50:52.279Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:50:52.280Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:50:52.281Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:50:52.283Z] [Middleware] Session found: true
+[2026-01-19T22:50:52.283Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:51:06.674Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:51:06.676Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:51:06.677Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:51:06.678Z] [Middleware] Session found: false
+[2026-01-19T22:51:06.679Z] [Middleware] No session found, redirecting to /login
+[2026-01-19T22:51:13.228Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:51:13.230Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:51:13.231Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:51:13.232Z] [Middleware] Session found: true
+[2026-01-19T22:51:13.232Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:51:34.897Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:51:34.901Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:51:34.904Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:51:34.911Z] [Middleware] Session found: false
+[2026-01-19T22:51:34.916Z] [Middleware] No session found, redirecting to /login
+[2026-01-19T22:51:41.095Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:51:41.097Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:51:41.100Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:51:41.104Z] [Middleware] Session found: true
+[2026-01-19T22:51:41.108Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:52:02.559Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:52:02.565Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:52:02.576Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:52:02.581Z] [Middleware] Session found: false
+[2026-01-19T22:52:02.586Z] [Middleware] No session found, redirecting to /login
+[2026-01-19T22:52:10.365Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:52:10.367Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:52:10.369Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:52:10.371Z] [Middleware] Session found: true
+[2026-01-19T22:52:10.377Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:52:24.548Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:52:24.551Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:52:24.554Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:52:24.559Z] [Middleware] Session found: false
+[2026-01-19T22:52:24.563Z] [Middleware] No session found, redirecting to /login
+[2026-01-19T22:53:18.487Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:53:18.488Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:53:18.492Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:53:18.492Z] [Middleware] Session found: false
+[2026-01-19T22:53:18.494Z] [Middleware] No session found, redirecting to /login
+[2026-01-19T22:54:00.893Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:54:00.899Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:54:00.918Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:54:00.919Z] [Middleware] Session found: false
+[2026-01-19T22:54:00.922Z] [Middleware] No session found, redirecting to /login
+[2026-01-19T22:54:03.216Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:54:03.219Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:54:03.223Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:54:03.226Z] [Middleware] Session found: true
+[2026-01-19T22:54:03.233Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:54:09.712Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:54:09.721Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:54:09.728Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:54:09.730Z] [Middleware] Session found: true
+[2026-01-19T22:54:09.735Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:54:22.461Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta/pedidos
+[2026-01-19T22:54:22.464Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:54:22.468Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:54:22.471Z] [Middleware] Session found: false
+[2026-01-19T22:54:22.475Z] [Middleware] No session found, redirecting to /login
+[2026-01-19T22:54:31.555Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:54:31.557Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:54:31.573Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:54:31.575Z] [Middleware] Session found: true
+[2026-01-19T22:54:31.583Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T22:59:08.645Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta/pedidos
+[2026-01-19T22:59:08.647Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:59:08.650Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:59:08.652Z] [Middleware] Session found: false
+[2026-01-19T22:59:08.654Z] [Middleware] No session found, redirecting to /login
+[2026-01-19T22:59:17.722Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T22:59:17.724Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T22:59:17.728Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T22:59:17.731Z] [Middleware] Session found: true
+[2026-01-19T22:59:17.736Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T23:01:47.573Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T23:01:47.574Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T23:01:47.575Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T23:01:47.576Z] [Middleware] Session found: true
+[2026-01-19T23:01:47.576Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T23:04:59.440Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta/pedidos
+[2026-01-19T23:04:59.442Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T23:04:59.446Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T23:04:59.448Z] [Middleware] Session found: false
+[2026-01-19T23:04:59.456Z] [Middleware] No session found, redirecting to /login
+[2026-01-19T23:05:09.964Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T23:05:09.967Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T23:05:09.972Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T23:05:09.977Z] [Middleware] Session found: true
+[2026-01-19T23:05:09.984Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T23:05:31.845Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta/pedidos
+[2026-01-19T23:05:31.847Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T23:05:31.850Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T23:05:31.853Z] [Middleware] Session found: false
+[2026-01-19T23:05:31.857Z] [Middleware] No session found, redirecting to /login
+[2026-01-19T23:09:41.130Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T23:09:41.132Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T23:09:41.136Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T23:09:41.140Z] [Middleware] Session found: false
+[2026-01-19T23:09:41.148Z] [Middleware] No session found, redirecting to /login
+[2026-01-19T23:09:43.189Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T23:09:43.191Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T23:09:43.195Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T23:09:43.198Z] [Middleware] Session found: false
+[2026-01-19T23:09:43.204Z] [Middleware] No session found, redirecting to /login
+[2026-01-19T23:09:51.378Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T23:09:51.422Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T23:09:51.427Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T23:09:51.430Z] [Middleware] Session found: true
+[2026-01-19T23:09:51.438Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T23:10:12.027Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta/pedidos
+[2026-01-19T23:10:12.030Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T23:10:12.033Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T23:10:12.036Z] [Middleware] Session found: false
+[2026-01-19T23:10:12.044Z] [Middleware] No session found, redirecting to /login
+[2026-01-19T23:10:16.166Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T23:10:16.168Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T23:10:16.173Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T23:10:16.177Z] [Middleware] Session found: false
+[2026-01-19T23:10:16.183Z] [Middleware] No session found, redirecting to /login
+[2026-01-19T23:10:24.454Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T23:10:24.456Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T23:10:24.460Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T23:10:24.464Z] [Middleware] Session found: true
+[2026-01-19T23:10:24.468Z] [Middleware] User ID: 5b21fb46-c39b-4ba0-a819-f90f6d3b74e3
+[2026-01-19T23:10:49.728Z] [Middleware] Checking /mi-cuenta access for /mi-cuenta
+[2026-01-19T23:10:49.730Z] [Middleware] Cookies present - Access: true, Refresh: true
+[2026-01-19T23:10:49.734Z] [Middleware] Access Token: eyJhbGciOi...
+[2026-01-19T23:10:49.737Z] [Middleware] Session found: false
+[2026-01-19T23:10:49.744Z] [Middleware] No session found, redirecting to /login

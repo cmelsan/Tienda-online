@@ -1,7 +1,8 @@
 /**
  * Environment Variables Validation
  * This file validates that all required environment variables are present
- * Run this check at build time to fail fast if configuration is missing
+ * In Docker/CI builds: only warns (vars injected at runtime)
+ * In development: fails fast if configuration is missing
  */
 
 const requiredEnvVars = [
@@ -20,6 +21,13 @@ const optionalEnvVars = [
   'FROM_EMAIL',
   'FROM_NAME',
 ];
+
+// Detect if we're in a Docker/CI build context
+// In these environments, env vars are injected at runtime, not build time
+const isDockerBuild = process.env.CI || 
+                      process.env.DOCKER_BUILD || 
+                      process.env.NIXPACKS_BUILD ||
+                      typeof process.env.HOME === 'undefined';
 
 const errors: string[] = [];
 const warnings: string[] = [];
@@ -40,10 +48,18 @@ optionalEnvVars.forEach(varName => {
 
 // Report results
 if (errors.length > 0) {
-  console.error('\n🚨 Environment Configuration Errors:\n');
-  errors.forEach(err => console.error(err));
-  console.error('\nPlease check your .env file and ensure all required variables are set.\n');
-  throw new Error('Missing required environment variables');
+  if (isDockerBuild) {
+    // In Docker/CI: only warn, don't fail the build
+    console.warn('\n⚠️  Environment variables will be validated at runtime');
+    console.warn('📋 Expected variables:', requiredEnvVars.join(', '));
+    console.warn('');
+  } else {
+    // In development: fail fast
+    console.error('\n🚨 Environment Configuration Errors:\n');
+    errors.forEach(err => console.error(err));
+    console.error('\nPlease check your .env file and ensure all required variables are set.\n');
+    throw new Error('Missing required environment variables');
+  }
 }
 
 if (warnings.length > 0 && import.meta.env.DEV) {

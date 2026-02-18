@@ -3,6 +3,9 @@ import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 import node from '@astrojs/node';
 
+// Validate environment variables at build time
+import './src/env-check.ts';
+
 // https://astro.build/config
 export default defineConfig({
   output: 'server',

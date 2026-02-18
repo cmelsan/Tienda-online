@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+const DEBUG = import.meta.env.DEV;
+
 // Database Types
 export interface Database {
     public: {
@@ -218,7 +220,9 @@ export async function createServerSupabaseClient(
     const accessToken = accessTokenCookie?.value;
     const refreshToken = refreshTokenCookie?.value;
     
-    console.log(`[Supabase] Auth check (${isAdmin ? 'admin' : 'user'}) - Access token present:`, !!accessToken, 'Refresh token present:', !!refreshToken);
+    if (DEBUG) {
+        console.log(`[Supabase] Auth check (${isAdmin ? 'admin' : 'user'}) - Access token present:`, !!accessToken, 'Refresh token present:', !!refreshToken);
+    }
 
     const client = createClient<Database>(
         supabaseUrl,
@@ -234,7 +238,9 @@ export async function createServerSupabaseClient(
     );
 
     if (accessToken && refreshToken) {
-        console.log(`[Supabase] Setting session from ${isAdmin ? 'admin' : 'user'} cookies`);
+        if (DEBUG) {
+            console.log(`[Supabase] Setting session from ${isAdmin ? 'admin' : 'user'} cookies`);
+        }
         await client.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
@@ -259,9 +265,16 @@ export async function requestReturn(orderId: string, reason: string) {
     if (error) throw error;
     return data;
 }
-// Server-side admin client using service role key (bypasses RLS)
-// Use this ONLY for admin operations that need to modify data
-// Returns null if service role key is not available
+/**
+ * DEPRECATED: This function is unsafe and should not be used directly.
+ * Use admin operations through validated API endpoints instead.
+ * 
+ * Server-side admin client using service role key (bypasses RLS)
+ * SECURITY WARNING: This bypasses all Row Level Security policies.
+ * Only use through validated admin API endpoints with proper authorization checks.
+ * 
+ * @deprecated Use admin API endpoints with proper auth validation instead
+ */
 export function getAdminSupabaseClient(): SupabaseClient<Database> | null {
     const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
     
@@ -270,6 +283,8 @@ export function getAdminSupabaseClient(): SupabaseClient<Database> | null {
         return null;
     }
 
+    // WARNING: This client bypasses ALL RLS policies
+    // Caller MUST validate admin authorization before using
     return createClient<Database>(
         supabaseUrl,
         serviceRoleKey,
@@ -280,4 +295,45 @@ export function getAdminSupabaseClient(): SupabaseClient<Database> | null {
             },
         }
     );
+}
+
+/**
+ * Execute an operation with admin privileges (bypasses RLS)
+ * REQUIRES: Valid admin session to be provided
+ * 
+ * @param session - Authenticated session (must be validated as admin)
+ * @param operation - Async function that receives admin client
+ * @returns Result of the operation
+ * @throws Error if session is not from an admin user
+ */
+export async function executeAsAdmin<T>(
+    session: any,
+    operation: (adminClient: SupabaseClient<Database>) => Promise<T>
+): Promise<T> {
+    if (!session || !session.user) {
+        throw new Error('Valid session required for admin operations');
+    }
+
+    // Validate admin status using regular client (respects RLS)
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', session.user.id)
+        .single();
+
+    if (!profile?.is_admin) {
+        throw new Error('Unauthorized: Admin privileges required');
+    }
+
+    // Admin validated - create service role client
+    const adminClient = getAdminSupabaseClient();
+    if (!adminClient) {
+        throw new Error('Admin client not available (missing service role key)');
+    }
+
+    if (DEBUG) {
+        console.log('[Supabase] Admin operation authorized');
+    }
+
+    return await operation(adminClient);
 }

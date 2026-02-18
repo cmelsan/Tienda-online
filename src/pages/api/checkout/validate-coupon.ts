@@ -1,10 +1,13 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '@/lib/supabase';
 import { validateCoupon, calculateDiscount } from '@/lib/coupons';
+import type { CartItemForCoupon } from '@/lib/coupons';
+
+const DEBUG = import.meta.env.DEV;
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
-        const { code, totalAmount } = await request.json();
+        const { code, totalAmount, cartItems } = await request.json();
 
         // Validate input
         if (!code || totalAmount === undefined || totalAmount === null) {
@@ -22,8 +25,23 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         const { data: { session } } = await supabaseClient.auth.getSession();
         const userId = session?.user?.id || null;
 
-        // Validate coupon with all checks
-        const validation = await validateCoupon(code.toUpperCase(), totalAmount, userId);
+        // Prepare cart items for validation (if provided)
+        const itemsForValidation: CartItemForCoupon[] | undefined = cartItems?.map((item: any) => ({
+            product: {
+                id: item.product.id,
+                category_id: item.product.category_id,
+                price: item.product.price
+            },
+            quantity: item.quantity
+        }));
+
+        // Validate coupon with all checks including category restrictions
+        const validation = await validateCoupon(
+            code.toUpperCase(), 
+            totalAmount, 
+            userId,
+            itemsForValidation
+        );
 
         if (!validation.valid || !validation.coupon) {
             return new Response(JSON.stringify({
@@ -56,6 +74,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        if (DEBUG) {
+            console.log('[Validate Coupon] Success:', {
+                code: validation.coupon.code,
+                discount_amount: discountAmount
             });
         }
 

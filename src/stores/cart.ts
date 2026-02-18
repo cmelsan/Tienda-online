@@ -3,6 +3,10 @@ import { persistentMap } from '@nanostores/persistent';
 import type { Product } from '@/lib/supabase';
 import { supabase } from '@/lib/supabase';
 import { getOrCreateSessionId } from '@/lib/sessionManager';
+import { addNotification } from '@/stores/notifications';
+
+const DEBUG = import.meta.env.DEV;
+const MAX_QUANTITY_PER_ITEM = 9999; // Maximum quantity allowed per product
 
 // Cart Item Interface
 export interface CartItem {
@@ -13,45 +17,73 @@ export interface CartItem {
     quantity: number;
 }
 
-// Helper to sync with backend (optimistic, no-blocking)
-async function syncToBackend(items: Record<string, CartItem>) {
-    try {
-        const sessionId = getOrCreateSessionId();
-        const { data: { session } } = await supabase.auth.getSession();
-        const userId = session?.user?.id;
+// Helper to sync with backend (optimistic, with retry logic)
+async function syncToBackend(items: Record<string, CartItem>, retries = 3) {
+    for (let attempt = 0; attempt < retries; attempt++) {
+        try {
+            const sessionId = getOrCreateSessionId();
+            const { data: { session } } = await supabase.auth.getSession();
+            const userId = session?.user?.id;
 
-        const itemsArray = Object.values(items);
+            const itemsArray = Object.values(items);
 
-        // Find existing cart
-        let query = supabase.from('carts').select('id');
-        if (userId) {
-            query = query.eq('user_id', userId);
-        } else {
-            query = query.eq('session_id', sessionId);
+            // Find existing cart
+            let query = supabase.from('carts').select('id');
+            if (userId) {
+                query = query.eq('user_id', userId);
+            } else {
+                query = query.eq('session_id', sessionId);
+            }
+
+            const { data: carts, error: fetchError } = await query;
+            if (fetchError) throw fetchError;
+
+            const existingCart = carts && carts[0];
+
+            if (existingCart) {
+                const { error } = await supabase.from('carts').update({
+                    items: itemsArray,
+                    updated_at: new Date().toISOString()
+                }).eq('id', existingCart.id);
+                if (error) throw error;
+            } else {
+                const { error } = await supabase.from('carts').insert({
+                    user_id: userId || null,
+                    session_id: userId ? null : sessionId,
+                    items: itemsArray
+                });
+                if (error) throw error;
+            }
+
+            // Success - exit retry loop
+            if (DEBUG && attempt > 0) {
+                console.log(`[Cart] Sync succeeded on attempt ${attempt + 1}`);
+            }
+            return { success: true };
+        } catch (err) {
+            if (DEBUG) {
+                console.error(`[Cart] Sync attempt ${attempt + 1}/${retries} failed:`, err);
+            }
+            
+            // Last attempt failed
+            if (attempt === retries - 1) {
+                console.error('[Cart] All sync attempts failed:', err);
+                
+                // Notify user (only on final failure)
+                if (typeof window !== 'undefined') {
+                    addNotification(
+                        'No se pudo sincronizar tu carrito con el servidor. Los cambios están guardados localmente.',
+                        'warning',
+                        5000
+                    );
+                }
+            } else {
+                // Exponential backoff before retry
+                await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+            }
         }
-
-        const { data: carts, error: fetchError } = await query;
-        if (fetchError) throw fetchError;
-
-        const existingCart = carts && carts[0];
-
-        if (existingCart) {
-            const { error } = await supabase.from('carts').update({
-                items: itemsArray,
-                updated_at: new Date().toISOString()
-            }).eq('id', existingCart.id);
-            if (error) console.error('Error updating cart:', error);
-        } else {
-            const { error } = await supabase.from('carts').insert({
-                user_id: userId || null,
-                session_id: userId ? null : sessionId,
-                items: itemsArray
-            });
-            if (error) console.error('Error creating cart:', error);
-        }
-    } catch (err) {
-        console.error('Cart sync failed:', err);
     }
+    return { success: false };
 }
 
 // Persistent cart store (saved to localStorage)
@@ -119,8 +151,9 @@ export function addToCart(product: Product, quantity: number = 1) {
         throw new Error('Producto inválido');
     }
 
-    if (quantity < 1 || isNaN(quantity)) {
-        throw new Error('Cantidad debe ser mayor a 0');
+    // Validate quantity range and type
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY_PER_ITEM) {
+        throw new Error(`Cantidad inválida. Debe ser un número entero entre 1 y ${MAX_QUANTITY_PER_ITEM}`);
     }
 
     // Ensure price is a valid number in cents
@@ -142,6 +175,11 @@ export function addToCart(product: Product, quantity: number = 1) {
             throw new Error(`Solo hay ${product.stock} unidades disponibles`);
         }
 
+        // Check maximum quantity limit
+        if (newQuantity > MAX_QUANTITY_PER_ITEM) {
+            throw new Error(`No puedes agregar más de ${MAX_QUANTITY_PER_ITEM} unidades de un producto`);
+        }
+
         cartItems.setKey(product.id, {
             product,
             quantity: newQuantity,
@@ -158,8 +196,10 @@ export function addToCart(product: Product, quantity: number = 1) {
         });
     }
 
-    // Log for debugging
-    console.log('[addToCart] Item added:', { productId: product.id, quantity, price });
+    // Log for debugging (only in dev)
+    if (DEBUG) {
+        console.log('[addToCart] Item added:', { productId: product.id, quantity, price });
+    }
 
     // Sync to backend
     syncToBackend(cartItems.get());
@@ -184,6 +224,11 @@ export function updateQuantity(productId: string, quantity: number) {
     if (quantity <= 0) {
         removeFromCart(productId);
         return;
+    }
+
+    // Validate quantity range and type
+    if (!Number.isInteger(quantity) || quantity > MAX_QUANTITY_PER_ITEM) {
+        throw new Error(`Cantidad inválida. Debe ser un número entero entre 1 y ${MAX_QUANTITY_PER_ITEM}`);
     }
 
     const currentItems = cartItems.get();

@@ -1,6 +1,8 @@
 import type { APIRoute } from "astro";
 import { supabase } from "../../../lib/supabase";
 
+const DEBUG = import.meta.env.DEV;
+
 export const POST: APIRoute = async ({ request }) => {
     const body = await request.json();
     const { items } = body; // items: [{ id: '...', quantity: 1 }]
@@ -9,43 +11,70 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({ error: "No items provided" }), { status: 400 });
     }
 
-    // Transaction-like logic (Supabase doesn't support full transactions via client easily without RPC, 
-    // so we will do optimistic updates or individual updates for this demo)
-
-    const errors = [];
+    // Use atomic RPC function to prevent race conditions
+    // Each product stock deduction is locked with FOR UPDATE
+    const errors: string[] = [];
+    const successfulUpdates: { product_id: string; new_stock: number }[] = [];
 
     for (const item of items) {
-        // 1. Check stock
-        const { data: product, error: fetchError } = await supabase
-            .from('products')
-            .select('stock')
-            .eq('id', item.id)
-            .single();
+        try {
+            // Call atomic stock deduction function
+            const { data, error } = await supabase.rpc('decrease_product_stock_atomic', {
+                p_product_id: item.id,
+                p_quantity: item.quantity
+            });
 
-        if (fetchError || !product) {
-            errors.push(`Product ${item.id} not found`);
-            continue;
-        }
+            if (error) {
+                if (DEBUG) console.error('[Stock] RPC error:', error);
+                errors.push(`Error processing product ${item.id}: ${error.message}`);
+                continue;
+            }
 
-        if (product.stock < item.quantity) {
-            errors.push(`Insufficient stock for product ${item.id}`);
-            continue;
-        }
+            if (!data || !data.success) {
+                const errorMsg = data?.error || 'Unknown error';
+                errors.push(errorMsg);
+                if (DEBUG) {
+                    console.warn('[Stock] Deduction failed:', {
+                        product_id: item.id,
+                        error: errorMsg,
+                        available: data?.available,
+                        requested: data?.requested
+                    });
+                }
+                continue;
+            }
 
-        // 2. Decrement Stock
-        const { error: updateError } = await supabase
-            .from('products')
-            .update({ stock: product.stock - item.quantity })
-            .eq('id', item.id);
+            // Success
+            successfulUpdates.push({
+                product_id: data.product_id,
+                new_stock: data.new_stock
+            });
 
-        if (updateError) {
-            errors.push(`Failed to update stock for product ${item.id}`);
+            if (DEBUG) {
+                console.log('[Stock] Deducted atomically:', {
+                    product: data.product_name,
+                    quantity: data.quantity_deducted,
+                    new_stock: data.new_stock
+                });
+            }
+        } catch (err: any) {
+            console.error('[Stock] Exception:', err);
+            errors.push(`Exception processing product ${item.id}`);
         }
     }
 
     if (errors.length > 0) {
-        return new Response(JSON.stringify({ success: false, errors }), { status: 400 });
+        return new Response(JSON.stringify({ 
+            success: false, 
+            errors,
+            partialSuccess: successfulUpdates.length > 0,
+            successfulUpdates
+        }), { status: 400 });
     }
 
-    return new Response(JSON.stringify({ success: true, message: "Stock updated successfully" }), { status: 200 });
+    return new Response(JSON.stringify({ 
+        success: true, 
+        message: "Stock updated successfully",
+        updates: successfulUpdates
+    }), { status: 200 });
 };

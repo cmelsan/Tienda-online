@@ -1,5 +1,16 @@
 import { supabase } from './supabase';
 
+const DEBUG = import.meta.env.DEV;
+
+export interface CartItemForCoupon {
+  product: {
+    id: string;
+    category_id: string;
+    price: number;
+  };
+  quantity: number;
+}
+
 export interface CouponValidationResult {
   valid: boolean;
   coupon?: {
@@ -14,16 +25,18 @@ export interface CouponValidationResult {
 }
 
 /**
- * Validates a coupon code with comprehensive checks
+ * Validates a coupon code with comprehensive checks including category restrictions
  * @param code - The coupon code to validate
  * @param totalAmount - The total amount in cents
  * @param userId - Optional user ID to check if user already used this coupon
+ * @param cartItems - Optional cart items to validate category restrictions
  * @returns Validation result with coupon details or error message
  */
 export async function validateCoupon(
   code: string,
   totalAmount: number,
-  userId?: string | null
+  userId?: string | null,
+  cartItems?: CartItemForCoupon[]
 ): Promise<CouponValidationResult> {
   try {
     // Validate input
@@ -55,8 +68,11 @@ export async function validateCoupon(
       };
     }
 
+    // Cast to any to avoid type issues with Supabase types
+    const validCoupon = coupon as any;
+
     // Check if coupon is active
-    if (!coupon.is_active) {
+    if (!validCoupon.is_active) {
       return {
         valid: false,
         error: 'Este cupón no está disponible actualmente',
@@ -65,8 +81,8 @@ export async function validateCoupon(
 
     // Check start date (valid_from)
     const now = new Date();
-    if (coupon.valid_from && new Date(coupon.valid_from) > now) {
-      const startDate = new Date(coupon.valid_from).toLocaleDateString('es-ES');
+    if (validCoupon.valid_from && new Date(validCoupon.valid_from) > now) {
+      const startDate = new Date(validCoupon.valid_from).toLocaleDateString('es-ES');
       return {
         valid: false,
         error: `Este cupón será válido a partir del ${startDate}`,
@@ -74,8 +90,8 @@ export async function validateCoupon(
     }
 
     // Check expiration date (valid_until)
-    if (coupon.valid_until && new Date(coupon.valid_until) < now) {
-      const expiredDate = new Date(coupon.valid_until).toLocaleDateString('es-ES');
+    if (validCoupon.valid_until && new Date(validCoupon.valid_until) < now) {
+      const expiredDate = new Date(validCoupon.valid_until).toLocaleDateString('es-ES');
       return {
         valid: false,
         error: `Este cupón expiró el ${expiredDate}`,
@@ -83,16 +99,16 @@ export async function validateCoupon(
     }
 
     // Check max uses limit (global)
-    if (coupon.max_uses && coupon.current_uses >= coupon.max_uses) {
+    if (validCoupon.max_uses && validCoupon.current_uses >= validCoupon.max_uses) {
       return {
         valid: false,
-        error: `Este cupón ha alcanzado el máximo de usos (${coupon.max_uses})`,
+        error: `Este cupón ha alcanzado el máximo de usos (${validCoupon.max_uses})`,
       };
     }
 
     // Check minimum purchase amount
-    if (coupon.min_purchase_amount && totalAmount < coupon.min_purchase_amount) {
-      const minAmount = (coupon.min_purchase_amount / 100).toFixed(2);
+    if (validCoupon.min_purchase_amount && totalAmount < validCoupon.min_purchase_amount) {
+      const minAmount = (validCoupon.min_purchase_amount / 100).toFixed(2);
       const currentAmount = (totalAmount / 100).toFixed(2);
       return {
         valid: false,
@@ -106,7 +122,7 @@ export async function validateCoupon(
       const { data: userUsage, error: usageError } = await supabase
         .from('coupon_usage')
         .select('id')
-        .eq('coupon_id', coupon.id)
+        .eq('coupon_id', validCoupon.id)
         .eq('user_id', userId)
         .single();
 
@@ -119,19 +135,64 @@ export async function validateCoupon(
       }
     }
 
+    // NEW: Validate category restrictions
+    if (validCoupon.applicable_categories && validCoupon.applicable_categories.length > 0 && cartItems) {
+      // Filter items that match applicable categories
+      const validItems = cartItems.filter(item => 
+        validCoupon.applicable_categories!.includes(item.product.category_id)
+      );
+
+      if (validItems.length === 0) {
+        return {
+          valid: false,
+          error: 'Este cupón no es aplicable a los productos en tu carrito',
+        };
+      }
+
+      // Recalculate total based only on applicable items
+      const applicableTotal = validItems.reduce(
+        (sum, item) => sum + (item.product.price * item.quantity),
+        0
+      );
+
+      // Use the applicable total for min purchase validation
+      if (validCoupon.min_purchase_amount && applicableTotal < validCoupon.min_purchase_amount) {
+        const minAmount = (validCoupon.min_purchase_amount / 100).toFixed(2);
+        const currentAmount = (applicableTotal / 100).toFixed(2);
+        return {
+          valid: false,
+          error: `Compra mínima de €${minAmount} requerida en productos aplicables. Tienes €${currentAmount}`,
+        };
+      }
+
+      // Update totalAmount to applicable total for discount calculation
+      totalAmount = applicableTotal;
+
+      if (DEBUG) {
+        console.log('[Coupon] Category restriction applied:', {
+          applicable_categories: validCoupon.applicable_categories,
+          valid_items: validItems.length,
+          total_items: cartItems.length,
+          applicable_total: applicableTotal
+        });
+      }
+    }
+
     return {
       valid: true,
       coupon: {
-        id: coupon.id,
-        code: coupon.code,
-        discount_type: coupon.discount_type,
-        discount_value: coupon.discount_value,
-        max_discount_amount: coupon.max_discount_amount,
-        min_purchase_amount: coupon.min_purchase_amount,
+        id: validCoupon.id,
+        code: validCoupon.code,
+        discount_type: validCoupon.discount_type,
+        discount_value: validCoupon.discount_value,
+        max_discount_amount: validCoupon.max_discount_amount,
+        min_purchase_amount: validCoupon.min_purchase_amount,
       },
     };
   } catch (err: any) {
-    console.error('[Coupon] Validation error:', err);
+    if (DEBUG) {
+      console.error('[Coupon] Validation error:', err);
+    }
     return {
       valid: false,
       error: 'Error al validar el cupón. Por favor intenta más tarde',
@@ -172,6 +233,7 @@ export async function incrementCouponUsage(couponId: string, orderId: string, us
     // 4. Records usage in coupon_usage table
     // All in a single database transaction
     
+    // @ts-ignore - Custom RPC function not in Supabase types
     const { data, error } = await supabase.rpc('increment_coupon_usage_atomic', {
       p_coupon_id: couponId,
       p_order_id: orderId,
@@ -183,20 +245,26 @@ export async function incrementCouponUsage(couponId: string, orderId: string, us
       throw new Error(`Error incrementing coupon usage: ${error.message}`);
     }
 
-    if (!data || !data.success) {
-      const errorMsg = data?.error || 'Unknown error incrementing coupon usage';
-      console.warn('[Coupon] Usage increment rejected:', { couponId, error: errorMsg });
+    // Cast to any to avoid type issues
+    const result = data as any;
+
+    if (!result || !result.success) {
+      const errorMsg = result?.error || 'Unknown error incrementing coupon usage';
+      if (DEBUG) {
+        console.warn('[Coupon] Usage increment rejected:', { couponId, error: errorMsg });
+      }
       throw new Error(errorMsg);
     }
 
-    console.log('[Coupon] Usage recorded successfully (atomic):', { 
-      couponId, 
-      orderId, 
-      userId, 
-      discountApplied,
-      newUses: data.new_uses 
-    });
-    return { success: true, newUses: data.new_uses };
+    if (DEBUG) {
+      console.log('[Coupon] Usage recorded successfully (atomic):', { 
+        couponId, 
+        orderId, 
+        discountApplied,
+        newUses: result.new_uses 
+      });
+    }
+    return { success: true, newUses: result.new_uses };
   } catch (err: any) {
     console.error('[Coupon] Error registering coupon usage:', err.message);
     throw err; // Re-throw to let caller handle it

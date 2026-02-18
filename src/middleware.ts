@@ -1,14 +1,19 @@
 import { defineMiddleware } from 'astro/middleware';
+import type { MiddlewareHandler } from 'astro';
 import { createServerSupabaseClient } from './lib/supabase';
 
-export const onRequest = defineMiddleware(async (context: any, next: any) => {
+const DEBUG = import.meta.env.DEV;
+
+export const onRequest: MiddlewareHandler = async (context, next) => {
     const { url, redirect } = context;
 
     // Check if the route is an admin route
     if (url.pathname.startsWith('/admin')) {
         // Allow login page without authentication
         if (url.pathname === '/admin/login') {
-            console.log('[Middleware] Allowing access to /admin/login (no auth required)');
+            if (DEBUG) {
+                console.log('[Middleware] Allowing access to /admin/login (no auth required)');
+            }
             return next();
         }
 
@@ -21,7 +26,9 @@ export const onRequest = defineMiddleware(async (context: any, next: any) => {
 
             // Redirect to login if not authenticated
             if (!session) {
-                console.log('[Middleware] No admin session found, redirecting to /admin/login');
+                if (DEBUG) {
+                    console.log('[Middleware] No admin session found, redirecting to /admin/login');
+                }
                 return redirect('/admin/login');
             }
 
@@ -34,11 +41,15 @@ export const onRequest = defineMiddleware(async (context: any, next: any) => {
 
             // If not admin, redirect to home
             if (!profile?.is_admin) {
-                console.log('[Middleware] User is not admin, denying access to /admin:', session.user.id);
+                if (DEBUG) {
+                    console.log('[Middleware] User is not admin, denying access');
+                }
                 return redirect('/');
             }
             
-            console.log('[Middleware] Admin access granted for user:', session.user.id);
+            if (DEBUG) {
+                console.log('[Middleware] Admin access granted');
+            }
         } catch (error) {
             console.error('[Middleware] Error checking admin access:', error);
             return redirect('/admin/login');
@@ -48,20 +59,25 @@ export const onRequest = defineMiddleware(async (context: any, next: any) => {
     // Check if the route is a customer protected route
     if (url.pathname.startsWith('/mi-cuenta')) {
         try {
-            // Debug: Log cookies
-            const accessTokenCookie = context.cookies.get('sb-access-token');
-            console.log('[Middleware] /mi-cuenta - Checking auth');
-            console.log('[Middleware] Access token cookie:', accessTokenCookie?.value ? 'EXISTS' : 'MISSING');
+            if (DEBUG) {
+                const accessTokenCookie = context.cookies.get('sb-access-token');
+                console.log('[Middleware] /mi-cuenta - Checking auth');
+                console.log('[Middleware] Access token cookie:', accessTokenCookie?.value ? 'EXISTS' : 'MISSING');
+            }
             
             const supabase = await createServerSupabaseClient(context);
             const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
-                console.log('[Middleware] No session found, redirecting to /login');
+                if (DEBUG) {
+                    console.log('[Middleware] No session found, redirecting to /login');
+                }
                 return redirect('/login');
             }
             
-            console.log('[Middleware] Session found for user:', session.user.id);
+            if (DEBUG) {
+                console.log('[Middleware] Session validated for /mi-cuenta');
+            }
         } catch (error) {
             console.error('[Middleware] Error checking /mi-cuenta:', error);
             return redirect('/login');

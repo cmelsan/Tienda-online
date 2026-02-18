@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+const DEBUG = import.meta.env.DEV;
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
 const BREVO_API_URL = 'https://api.brevo.com/v3';
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@eclatbeauty.com';
@@ -24,12 +25,14 @@ export async function sendEmail(params: EmailParams): Promise<{ success: boolean
   try {
     const toList = Array.isArray(params.to) ? params.to : [params.to];
 
-    console.log('[Brevo] Preparing email:', {
-      apiKeyPresent: !!BREVO_API_KEY,
-      fromEmail: FROM_EMAIL,
-      toList,
-      subject: params.subject
-    });
+    if (DEBUG) {
+      console.log('[Brevo] Preparing email:', {
+        apiKeyPresent: !!BREVO_API_KEY,
+        fromEmail: FROM_EMAIL,
+        subject: params.subject,
+        recipientCount: toList.length
+      });
+    }
 
     const payload = {
       sender: {
@@ -45,7 +48,9 @@ export async function sendEmail(params: EmailParams): Promise<{ success: boolean
       ...(params.bcc && { bcc: params.bcc.map(email => ({ email })) })
     };
 
-    console.log('[Brevo] Sending to API');
+    if (DEBUG) {
+      console.log('[Brevo] Sending to API');
+    }
 
     const response = await axios.post(`${BREVO_API_URL}/smtp/email`, payload, {
       headers: {
@@ -54,7 +59,9 @@ export async function sendEmail(params: EmailParams): Promise<{ success: boolean
       }
     });
 
-    console.log('[Brevo] Success! Message ID:', response.data.messageId);
+    if (DEBUG) {
+      console.log('[Brevo] Success! Message ID:', response.data.messageId);
+    }
 
     return {
       success: true,

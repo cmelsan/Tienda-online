@@ -3,6 +3,8 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail, getOrderConfirmationTemplate } from '@/lib/brevo';
 
+const DEBUG = import.meta.env.DEV;
+
 // Initialize Supabase client for webhooks
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
@@ -11,9 +13,11 @@ export const POST: APIRoute = async ({ request }) => {
     const stripeSecretKey = import.meta.env.STRIPE_SECRET_KEY;
     const endpointSecret = import.meta.env.STRIPE_WEBHOOK_SECRET;
 
-    console.log('[Stripe Webhook] Request received');
-    console.log('[Stripe Webhook] Stripe Secret Key present:', !!stripeSecretKey);
-    console.log('[Stripe Webhook] Endpoint Secret present:', !!endpointSecret);
+    if (DEBUG) {
+        console.log('[Stripe Webhook] Request received');
+        console.log('[Stripe Webhook] Stripe Secret Key present:', !!stripeSecretKey);
+        console.log('[Stripe Webhook] Endpoint Secret present:', !!endpointSecret);
+    }
 
     if (!stripeSecretKey || !endpointSecret) {
         console.error('Missing Stripe configuration');
@@ -26,7 +30,9 @@ export const POST: APIRoute = async ({ request }) => {
 
     const signature = request.headers.get('stripe-signature');
 
-    console.log('[Stripe Webhook] Stripe Signature present:', !!signature);
+    if (DEBUG) {
+        console.log('[Stripe Webhook] Stripe Signature present:', !!signature);
+    }
 
     if (!signature) {
         return new Response('No signature provided', { status: 400 });
@@ -48,8 +54,9 @@ export const POST: APIRoute = async ({ request }) => {
         const orderId = session.metadata?.orderId;
         const customerEmail = session.customer_email;
 
-        console.log(`[Stripe Webhook] Payment successful for Order ID: ${orderId}`);
-        console.log(`[Stripe Webhook] Customer email: ${customerEmail}`);
+        if (DEBUG) {
+            console.log('[Stripe Webhook] Payment successful for Order ID:', orderId ? 'present' : 'missing');
+        }
 
         if (orderId && supabaseUrl && supabaseAnonKey) {
             const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -70,7 +77,9 @@ export const POST: APIRoute = async ({ request }) => {
 
                 // Get customer name from order (stored when order was created)
                 const customerName = orderData?.customer_name || 'Cliente';
-                console.log('[Stripe Webhook] Customer name:', customerName);
+                if (DEBUG) {
+                    console.log('[Stripe Webhook] Customer name:', customerName);
+                }
 
                 // 2. Update order status to 'paid'
                 const { data: updateData, error: updateError } = await supabase.rpc('update_order_status', {
@@ -87,7 +96,9 @@ export const POST: APIRoute = async ({ request }) => {
                 // 3. Send confirmation email if we have customer email
                 if (customerEmail && orderData) {
                     try {
-                        console.log('[Stripe Webhook] Preparing to send confirmation email to:', customerEmail);
+                        if (DEBUG) {
+                            console.log('[Stripe Webhook] Preparing to send confirmation email');
+                        }
                         
                         // Get order items WITH product names
                         const { data: itemsData, error: itemsError } = await supabase

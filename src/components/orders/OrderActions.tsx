@@ -47,7 +47,7 @@ export default function OrderActions({ orderId, status, deliveredAt }: OrderActi
                 setCurrentStatus('cancelled');
                 window.location.reload();
             } else {
-                addNotification('Error al cancelar: ' + (data?.message || 'Unknown error'), 'error');
+                addNotification('Error al cancelar: ' + (data?.message || 'Error desconocido'), 'error');
             }
         } catch (err: any) {
             console.error('Error cancelling order:', err);

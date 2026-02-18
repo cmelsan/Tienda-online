@@ -37,7 +37,7 @@ export default function FlashSaleManager() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Error: ${response.status} - ${errorData.error || 'Unknown error'}`);
+        throw new Error(`Error: ${response.status} - ${errorData.error || 'Error desconocido'}`);
       }
 
       const data = await response.json();
@@ -45,7 +45,7 @@ export default function FlashSaleManager() {
       setProducts(data.data || []);
     } catch (error) {
       console.error('[FlashSaleManager] Error fetching products:', error);
-      addNotification(`Error al cargar productos: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+      addNotification(`Error al cargar productos: ${error instanceof Error ? error.message : 'Error desconocido'}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ export default function FlashSaleManager() {
       await fetchProducts();
     } catch (error) {
       console.error('[FlashSaleManager] Error updating flash sale:', error);
-      addNotification(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+      addNotification(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`, 'error');
     } finally {
       setUpdating(false);
     }

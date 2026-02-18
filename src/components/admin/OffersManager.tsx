@@ -62,7 +62,7 @@ export default function OffersManager() {
       setSelectedOffers(data.featuredOffers || []);
     } catch (error) {
       console.error('[OffersManager] Error fetching data:', error);
-      addNotification(`Error al cargar datos: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+      addNotification(`Error al cargar datos: ${error instanceof Error ? error.message : 'Error desconocido'}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -120,7 +120,7 @@ export default function OffersManager() {
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       console.error('[OffersManager] Error saving:', error);
-      setMessage(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setMessage(`❌ Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     } finally {
       setSaving(false);
     }

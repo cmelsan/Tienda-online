@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         }
 
         // Validate status
-        const validStatuses = ['awaiting_payment', 'paid', 'shipped', 'delivered', 'cancelled', 'return_requested', 'returned', 'refunded'];
+        const validStatuses = ['awaiting_payment', 'paid', 'shipped', 'delivered', 'cancelled', 'return_requested', 'returned', 'partially_returned', 'refunded', 'partially_refunded'];
         if (!validStatuses.includes(newStatus)) {
             return new Response(JSON.stringify({ success: false, message: `Invalid status: ${newStatus}` }), { status: 400 });
         }

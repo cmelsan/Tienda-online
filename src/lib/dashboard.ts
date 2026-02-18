@@ -79,7 +79,7 @@ export async function getReturnRate(): Promise<number> {
   if (totalOrders === 0) return 0;
 
   const returnedOrders = allOrders.filter(
-    (o) => ['return_requested', 'returned', 'refunded'].includes(o.status)
+    (o) => ['return_requested', 'returned', 'partially_returned', 'refunded', 'partially_refunded'].includes(o.status)
   ).length;
 
   return (returnedOrders / totalOrders) * 100;
@@ -182,7 +182,9 @@ export async function getOrderStatusDistribution(): Promise<Array<{ name: string
     cancelled: 'Cancelado',
     return_requested: 'Devolución Solicitada',
     returned: 'Devuelto',
+    partially_returned: 'Parcialmente Devuelto',
     refunded: 'Reembolsado',
+    partially_refunded: 'Reembolso Parcial',
   };
 
   return Array.from(statusMap, ([status, value]) => ({

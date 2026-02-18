@@ -1,15 +1,15 @@
 -- ============================================================
--- RPC FUNCTIONS FOR ADMIN POST-SALE MANAGEMENT
--- EXECUTE IN SUPABASE SQL EDITOR
+-- FUNCIONES RPC PARA GESTIÓN DE VENTAS POSTERIORES DE ADMIN
+-- EJECUTAR EN EL EDITOR SQL DE SUPABASE
 -- ============================================================
 
 -- ============================================================
--- RPC #1: CANCEL ORDER (ATOMIC)
--- Conditions: status = 'paid' ONLY
--- Actions:
---   1. Update orders.status -> 'cancelled'
---   2. Restore products.stock += order_items.quantity
---   3. Insert order_status_history record
+-- RPC #1: CANCELAR PEDIDO (ATÓMICO)
+-- Condiciones: estado = 'pagado' SOLO
+-- Acciones:
+--   1. Actualizar orders.status -> 'cancelado'
+--   2. Restaurar products.stock += order_items.quantity
+--   3. Insertar registro en order_status_history
 -- ============================================================
 CREATE OR REPLACE FUNCTION admin_cancel_order_atomic(
     p_order_id UUID,
@@ -25,13 +25,13 @@ DECLARE
     v_order_item RECORD;
     v_result JSON;
 BEGIN
-    -- Validate: Order exists and status is 'paid'
+    -- Validar: El pedido existe y el estado es 'pagado'
     SELECT * INTO v_order FROM orders WHERE id = p_order_id;
     
     IF NOT FOUND THEN
         RETURN json_build_object(
             'success', false,
-            'error', 'Order not found',
+            'error', 'Pedido no encontrado',
             'code', 'ORDER_NOT_FOUND'
         );
     END IF;
@@ -39,7 +39,7 @@ BEGIN
     IF v_order.status != 'paid' THEN
         RETURN json_build_object(
             'success', false,
-            'error', 'Can only cancel orders with status paid',
+            'error', 'Solo se pueden cancelar pedidos con estado pagado',
             'current_status', v_order.status,
             'code', 'INVALID_ORDER_STATUS'
         );
@@ -47,12 +47,12 @@ BEGIN
 
     -- START TRANSACTION (implicit in plpgsql)
     BEGIN
-        -- 1. Update order status to 'cancelled'
+        -- 1. Actualizar estado del pedido a 'cancelado'
         UPDATE orders
         SET status = 'cancelled', updated_at = NOW()
         WHERE id = p_order_id;
 
-        -- 2. Restore stock for each product in order
+        -- 2. Restaurar inventario para cada producto pedido
         FOR v_order_item IN 
             SELECT oi.product_id, oi.quantity 
             FROM order_items oi 
@@ -63,7 +63,7 @@ BEGIN
             WHERE id = v_order_item.product_id;
         END LOOP;
 
-        -- 3. Insert history record
+        -- 3. Insertar registro de historial
         INSERT INTO order_status_history (
             order_id,
             from_status,
@@ -92,7 +92,7 @@ BEGIN
         );
 
     EXCEPTION WHEN OTHERS THEN
-        -- Rollback is automatic on error in plpgsql
+        -- Retroceso automático en caso de error en plpgsql
         RETURN json_build_object(
             'success', false,
             'error', SQLERRM,
@@ -103,11 +103,11 @@ END;
 $$;
 
 -- ============================================================
--- RPC #2: MARK SHIPPED
--- Conditions: status = 'paid'
--- Actions:
---   1. Update orders.status -> 'shipped'
---   2. Insert order_status_history record
+-- RPC #2: MARCAR COMO ENVIADO
+-- Condiciones: estado = 'pagado'
+-- Acciones:
+--   1. Actualizar orders.status -> 'enviado'
+--   2. Insertar registro en order_status_history
 -- ============================================================
 CREATE OR REPLACE FUNCTION admin_mark_shipped(
     p_order_id UUID,
@@ -121,13 +121,13 @@ AS $$
 DECLARE
     v_order RECORD;
 BEGIN
-    -- Validate
+    -- Validar
     SELECT * INTO v_order FROM orders WHERE id = p_order_id;
     
     IF NOT FOUND THEN
         RETURN json_build_object(
             'success', false,
-            'error', 'Order not found',
+            'error', 'Pedido no encontrado',
             'code', 'ORDER_NOT_FOUND'
         );
     END IF;
@@ -135,19 +135,19 @@ BEGIN
     IF v_order.status != 'paid' THEN
         RETURN json_build_object(
             'success', false,
-            'error', 'Can only mark paid orders as shipped',
+            'error', 'Solo se pueden marcar como enviados los pedidos pagados',
             'current_status', v_order.status,
             'code', 'INVALID_ORDER_STATUS'
         );
     END IF;
 
     BEGIN
-        -- Update status
+        -- Actualizar estado
         UPDATE orders
         SET status = 'shipped', updated_at = NOW()
         WHERE id = p_order_id;
 
-        -- Insert history
+        -- Insertar historial
         INSERT INTO order_status_history (
             order_id,
             from_status,
@@ -185,13 +185,13 @@ END;
 $$;
 
 -- ============================================================
--- RPC #3: MARK DELIVERED
--- Conditions: status = 'shipped'
--- Actions:
---   1. Update orders.status -> 'delivered'
---   2. Set orders.delivered_at = NOW()
---   3. Set orders.return_deadline = NOW() + 14 days
---   4. Insert order_status_history record
+-- RPC #3: MARCAR COMO ENTREGADO
+-- Condiciones: estado = 'enviado'
+-- Acciones:
+--   1. Actualizar orders.status -> 'entregado'
+--   2. Establecer orders.delivered_at = NOW()
+--   3. Establecer orders.return_deadline = NOW() + 14 días
+--   4. Insertar registro en order_status_history
 -- ============================================================
 CREATE OR REPLACE FUNCTION admin_mark_delivered(
     p_order_id UUID,
@@ -211,7 +211,7 @@ BEGIN
     IF NOT FOUND THEN
         RETURN json_build_object(
             'success', false,
-            'error', 'Order not found',
+            'error', 'Pedido no encontrado',
             'code', 'ORDER_NOT_FOUND'
         );
     END IF;
@@ -219,14 +219,14 @@ BEGIN
     IF v_order.status != 'shipped' THEN
         RETURN json_build_object(
             'success', false,
-            'error', 'Can only mark shipped orders as delivered',
+            'error', 'Solo se pueden marcar como entregados los pedidos enviados',
             'current_status', v_order.status,
             'code', 'INVALID_ORDER_STATUS'
         );
     END IF;
 
     BEGIN
-        -- Update status and timestamps
+        -- Actualizar estado y marcas de tiempo
         UPDATE orders
         SET 
             status = 'delivered',
@@ -235,7 +235,7 @@ BEGIN
             updated_at = NOW()
         WHERE id = p_order_id;
 
-        -- Insert history
+        -- Insertar historial
         INSERT INTO order_status_history (
             order_id,
             from_status,
@@ -275,12 +275,12 @@ END;
 $$;
 
 -- ============================================================
--- RPC #4: PROCESS RETURN / REFUND
--- Conditions: status = 'return_requested' or 'returned'
--- Actions:
---   1. Update orders.status -> 'returned' or 'refunded'
---   2. Insert order_status_history record
---   3. Optionally restore stock (for return_requested -> returned)
+-- RPC #4: PROCESAR DEVOLUCI\u00d3N / REEMBOLSO
+-- Condiciones: estado = 'solicitud_devoluci\u00f3n' o 'devuelto'
+-- Acciones:
+--   1. Actualizar orders.status -> 'devuelto' o 'reembolsado'
+--   2. Insertar registro en order_status_history
+--   3. Opcionalmente restaurar inventario (para solicitud_devoluci\u00f3n -> devuelto)
 -- ============================================================
 CREATE OR REPLACE FUNCTION admin_process_return(
     p_order_id UUID,
@@ -299,44 +299,44 @@ DECLARE
     v_allowed_from_status TEXT[] := ARRAY['return_requested', 'returned'];
     v_allowed_to_status TEXT[] := ARRAY['returned', 'refunded'];
 BEGIN
-    -- Validate
+    -- Validar
     SELECT * INTO v_order FROM orders WHERE id = p_order_id;
     
     IF NOT FOUND THEN
         RETURN json_build_object(
             'success', false,
-            'error', 'Order not found',
+            'error', 'Pedido no encontrado',
             'code', 'ORDER_NOT_FOUND'
         );
     END IF;
 
-    -- Validate current status
+    -- Validar estado actual
     IF NOT v_order.status = ANY(v_allowed_from_status) THEN
         RETURN json_build_object(
             'success', false,
-            'error', 'Order must be in return_requested or returned status',
+            'error', 'El pedido debe estar en estado solicitud_devolución o devuelto',
             'current_status', v_order.status,
             'code', 'INVALID_ORDER_STATUS'
         );
     END IF;
 
-    -- Validate new status
+    -- Validar nuevo estado
     IF NOT p_new_status = ANY(v_allowed_to_status) THEN
         RETURN json_build_object(
             'success', false,
-            'error', 'Invalid new status. Must be returned or refunded',
+            'error', 'Estado nuevo inválido. Debe ser devuelto o reembolsado',
             'provided_status', p_new_status,
             'code', 'INVALID_NEW_STATUS'
         );
     END IF;
 
     BEGIN
-        -- Update status
+        -- Actualizar estado
         UPDATE orders
         SET status = p_new_status, updated_at = NOW()
         WHERE id = p_order_id;
 
-        -- Optionally restore stock
+        -- Restaurar inventario opcionalmente
         IF p_restore_stock THEN
             FOR v_order_item IN 
                 SELECT oi.product_id, oi.quantity 
@@ -349,7 +349,7 @@ BEGIN
             END LOOP;
         END IF;
 
-        -- Insert history
+        -- Insertar historial
         INSERT INTO order_status_history (
             order_id,
             from_status,
@@ -365,7 +365,7 @@ BEGIN
             p_admin_id,
             'admin',
             CASE 
-                WHEN p_restore_stock THEN 'Stock restored. ' || COALESCE(p_notes, '')
+                WHEN p_restore_stock THEN 'Inventario restaurado. ' || COALESCE(p_notes, '')
                 ELSE p_notes
             END,
             NOW()
@@ -391,9 +391,9 @@ END;
 $$;
 
 -- ============================================================
--- RPC #5: GET ORDER ACTIONS (Helper)
--- Returns available actions for current order status
--- Useful for UI to determine which buttons to show
+-- RPC #5: OBTENER ACCIONES DISPONIBLES (Ayudante)
+-- Retorna acciones disponibles para el estado actual del pedido
+-- Útel para la UI para determinar qué botones mostrar
 -- ============================================================
 CREATE OR REPLACE FUNCTION get_order_available_actions(p_order_id UUID)
 RETURNS JSON
@@ -407,10 +407,10 @@ BEGIN
     SELECT * INTO v_order FROM orders WHERE id = p_order_id;
     
     IF NOT FOUND THEN
-        RETURN json_build_object('success', false, 'error', 'Order not found');
+        RETURN json_build_object('success', false, 'error', 'Pedido no encontrado');
     END IF;
 
-    -- Determine available actions based on status
+    -- Determinar acciones disponibles según el estado
     v_actions := ARRAY[]::TEXT[];
     
     CASE v_order.status
@@ -442,7 +442,7 @@ END;
 $$;
 
 -- ============================================================
--- GRANT PERMISSIONS
+-- PERMISOS
 -- ============================================================
 GRANT EXECUTE ON FUNCTION admin_cancel_order_atomic(UUID, UUID, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION admin_mark_shipped(UUID, UUID, TEXT) TO authenticated;
@@ -451,10 +451,10 @@ GRANT EXECUTE ON FUNCTION admin_process_return(UUID, UUID, TEXT, BOOLEAN, TEXT) 
 GRANT EXECUTE ON FUNCTION get_order_available_actions(UUID) TO authenticated;
 
 -- ============================================================
--- NOTES:
--- 1. All functions use SECURITY DEFINER to bypass RLS
--- 2. Remember to add authentication check in your API layer
--- 3. Stock restoration is automatic in cancel_order_atomic
--- 4. return_deadline is calculated at delivery time
--- 5. All timestamps are in UTC (NOW())
+-- NOTAS:
+-- 1. Todas las funciones usan SECURITY DEFINER para eludir RLS
+-- 2. Recuerda agregar verificación de autenticación en tu capa de API
+-- 3. La restauración de inventario es automática en cancel_order_atomic
+-- 4. return_deadline se calcula al momento de la entrega
+-- 5. Todas las marcas de tiempo están en UTC (NOW())
 -- ============================================================

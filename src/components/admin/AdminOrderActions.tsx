@@ -31,8 +31,9 @@ const STATUS_LABELS: Record<string, string> = {
     cancelled: 'Cancelado',
     return_requested: 'Devolución Solicitada',
     returned: 'Devuelto',
-    refunded: 'Reembolsado',
     partially_returned: 'Parcialmente Devuelto',
+    refunded: 'Reembolsado',
+    partially_refunded: 'Reembolso Parcial',
 };
 
 export default function AdminOrderActions({ order, onActionComplete }: AdminOrderActionsProps) {

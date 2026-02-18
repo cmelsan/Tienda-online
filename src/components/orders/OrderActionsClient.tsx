@@ -30,8 +30,9 @@ const STATUS_LABELS: Record<string, string> = {
     cancelled: 'Cancelado',
     return_requested: 'Devolución Solicitada',
     returned: 'Devuelto',
+    partially_returned: 'Parcialmente Devuelto',
     refunded: 'Reembolsado',
-    partially_returned: 'Parcialmente Devuelto'
+    partially_refunded: 'Reembolso Parcial'
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -43,7 +44,8 @@ const STATUS_COLORS: Record<string, string> = {
     return_requested: 'text-gray-600',
     returned: 'text-gray-600',
     refunded: 'text-gray-600',
-    partially_returned: 'text-orange-600'
+    partially_returned: 'text-orange-600',
+    partially_refunded: 'text-orange-600'
 };
 
 export default function OrderActionsClient({

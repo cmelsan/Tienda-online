@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 
 interface CountdownProps {
   endTime: string;
+  sectionId?: string;
 }
 
-export default function CountdownTimer({ endTime }: CountdownProps) {
+export default function CountdownTimer({ endTime, sectionId }: CountdownProps) {
   const [timeLeft, setTimeLeft] = useState({
     hours: 0,
     minutes: 0,
@@ -35,6 +36,24 @@ export default function CountdownTimer({ endTime }: CountdownProps) {
 
     return () => clearInterval(timer);
   }, [endTime]);
+
+  // Hide the section after a short delay when expired
+  useEffect(() => {
+    if (timeLeft.isExpired && sectionId) {
+      const hideTimer = setTimeout(() => {
+        const section = document.getElementById(sectionId);
+        if (section) {
+          section.style.transition = 'opacity 0.8s ease';
+          section.style.opacity = '0';
+          setTimeout(() => {
+            section.style.display = 'none';
+          }, 800);
+        }
+      }, 3000); // show "Oferta Finalizada" for 3 seconds then fade out
+
+      return () => clearTimeout(hideTimer);
+    }
+  }, [timeLeft.isExpired, sectionId]);
 
   if (timeLeft.isExpired) {
     return (

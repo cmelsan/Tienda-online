@@ -74,19 +74,21 @@ const { data: flashSaleSettings } = await supabase
 
 const flashSaleEnabled = flashSaleSettings?.value === true;
 
-// Fetch Flash Sale Products (up to 6)
+// Fetch Flash Sale Products (up to 6, excluding expired ones)
+const now = new Date().toISOString();
 const { data: flashSaleProducts } = await supabase
   .from('products')
   .select('*, brand:brands(name)')
   .eq('is_flash_sale', true)
+  .or(`flash_sale_end_time.is.null,flash_sale_end_time.gt.${now}`)
   .limit(6);
 
-// Get the earliest end time for countdown
+// Get the EARLIEST end time for countdown (section hides when first product expires)
 const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
   ? flashSaleProducts.reduce((earliest: string, product: any) => {
       if (!product.flash_sale_end_time) return earliest;
       if (!earliest) return product.flash_sale_end_time;
-      return new Date(product.flash_sale_end_time) > new Date(earliest) 
+      return new Date(product.flash_sale_end_time) < new Date(earliest) 
         ? product.flash_sale_end_time 
         : earliest;
     }, '')
@@ -343,7 +345,7 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
 
   {/* 4. FLASH SALE SECTION - CAROUSEL */}
   {flashSaleEnabled && flashSaleProducts && flashSaleProducts.length > 0 && (
-    <section class="py-16 lg:py-24 bg-white">
+    <section id="flash-sale-section" class="py-16 lg:py-24 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header with Timer */}
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-8 mb-12">
@@ -357,7 +359,7 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
           {/* Countdown Timer */}
           {flashSaleEndTime && (
             <div client:load>
-              <CountdownTimer client:only="react" endTime={flashSaleEndTime} />
+              <CountdownTimer client:only="react" endTime={flashSaleEndTime} sectionId="flash-sale-section" />
             </div>
           )}
         </div>

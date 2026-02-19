@@ -7,7 +7,7 @@ export const prerender = false;
  * DELETE /api/orders/delete-pending?orderId=xxx
  *
  * Deletes an order that is still in 'awaiting_payment' status.
- * Uses service role key to bypass RLS.
+ * Uses anon key + SECURITY DEFINER RPC to bypass RLS without needing service role key.
  * Safe to delete because: no payment was collected, no stock was deducted.
  */
 export const DELETE: APIRoute = async ({ request }) => {
@@ -21,45 +21,31 @@ export const DELETE: APIRoute = async ({ request }) => {
     }
 
     const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
-    if (!supabaseUrl || !serviceRoleKey) {
+    if (!supabaseUrl || !supabaseAnonKey) {
         console.error('[delete-pending] Missing Supabase config');
         return new Response(JSON.stringify({ error: 'Server configuration error' }), { status: 500, headers });
     }
 
-    // Use service role to bypass RLS
-    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    // Use anon key — the RPC function has SECURITY DEFINER so it bypasses RLS server-side
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         auth: { autoRefreshToken: false, persistSession: false },
     });
 
     try {
-        // Only operate on awaiting_payment orders (safety check)
-        const { data: order } = await supabase
-            .from('orders')
-            .select('id, status')
-            .eq('id', orderId)
-            .eq('status', 'awaiting_payment')
-            .single();
+        const { data, error } = await supabase.rpc('delete_pending_order', {
+            p_order_id: orderId
+        });
 
-        if (!order) {
-            // Already paid/cancelled or not found — nothing to do
-            return new Response(JSON.stringify({ success: true, message: 'Order not found or already processed' }), { status: 200, headers });
+        if (error) {
+            console.error('[delete-pending] RPC error:', error);
+            return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
         }
 
-        // Delete items first (FK constraint)
-        await supabase.from('order_items').delete().eq('order_id', orderId);
-
-        // Delete the order (extra safety: only if still awaiting_payment)
-        const { error: deleteError } = await supabase
-            .from('orders')
-            .delete()
-            .eq('id', orderId)
-            .eq('status', 'awaiting_payment');
-
-        if (deleteError) {
-            console.error('[delete-pending] Error deleting order:', deleteError);
-            return new Response(JSON.stringify({ error: deleteError.message }), { status: 500, headers });
+        if (!data?.success) {
+            console.warn('[delete-pending] RPC returned failure:', data);
+            return new Response(JSON.stringify({ error: data?.error || 'No se pudo eliminar el pedido' }), { status: 400, headers });
         }
 
         console.log('[delete-pending] Deleted abandoned order:', orderId);

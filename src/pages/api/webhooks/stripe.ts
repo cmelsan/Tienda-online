@@ -82,10 +82,21 @@ export const POST: APIRoute = async ({ request }) => {
                     console.log('[Stripe Webhook] Customer name:', customerName);
                 }
 
-                // 2. Update order status to 'paid'
+                // 2. Save Stripe payment_intent ID + update order status to 'paid'
+                const paymentIntentId = typeof session.payment_intent === 'string'
+                    ? session.payment_intent
+                    : session.payment_intent?.id || null;
+
+                if (paymentIntentId) {
+                    await supabase
+                        .from('orders')
+                        .update({ stripe_payment_intent_id: paymentIntentId })
+                        .eq('id', orderId);
+                }
+
                 const { data: updateData, error: updateError } = await supabase.rpc('update_order_status', {
                     p_order_id: orderId,
-                    p_status: 'paid'
+                    p_new_status: 'paid'
                 });
 
                 if (updateError) {

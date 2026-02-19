@@ -4,11 +4,18 @@ import Stripe from 'stripe';
 import { sendEmail, getRefundProcessedTemplate } from '@/lib/brevo';
 import { createCreditNote } from '@/lib/invoices';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-    apiVersion: '2023-10-16' as any,
-});
-
 export const POST: APIRoute = async ({ request, cookies }) => {
+    const stripeSecretKey = import.meta.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+        return new Response(
+            JSON.stringify({ success: false, message: 'Stripe no configurado' }),
+            { status: 500 }
+        );
+    }
+    const stripe = new Stripe(stripeSecretKey, {
+        apiVersion: '2025-12-15.clover' as any,
+    });
+
     try {
         const { orderId, notes, refundAmount } = await request.json();
 

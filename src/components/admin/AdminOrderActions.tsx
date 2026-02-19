@@ -325,12 +325,12 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                                     Monto de Reembolso (opcional - dejar vacío para reembolso total)
                                 </label>
                                 <div className="flex gap-2">
-                                    <span className="text-gray-600 py-2">$</span>
+                                    <span className="text-gray-600 py-2">€</span>
                                     <input
                                         type="number"
                                         step="0.01"
                                         min="0"
-                                        max={order.total_amount}
+                                        max={order.total_amount / 100}
                                         value={refundAmount === null ? '' : refundAmount}
                                         onChange={(e) => setRefundAmount(e.target.value ? parseFloat(e.target.value) : null)}
                                         placeholder="Dejar vacío para reembolso total"
@@ -341,7 +341,7 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                                     <p className="text-xs text-gray-600 mt-1">
                                         {refundAmount === order.total_amount 
                                             ? 'Reembolso completo' 
-                                            : `Reembolso parcial de $${refundAmount.toFixed(2)} de $${order.total_amount.toFixed(2)}`}
+                                            : `Reembolso parcial de ${(refundAmount/100).toFixed(2)}€ de ${(order.total_amount/100).toFixed(2)}€`}
                                     </p>
                                 )}
                             </div>
@@ -379,8 +379,8 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                             {modalAction === 'refund' && (
                                 <>
                                     {refundAmount === null || refundAmount === order.total_amount 
-                                        ? 'Procesar reembolso completo. El dinero ($' + order.total_amount.toFixed(2) + ') se enviará al método de pago original.'
-                                        : 'Procesar reembolso parcial de $' + refundAmount.toFixed(2) + ' de $' + order.total_amount.toFixed(2) + '. El dinero se enviará al método de pago original.'}
+                                        ? `Procesar reembolso completo. El dinero (${(order.total_amount/100).toFixed(2)}€) se enviará al método de pago original.`
+                                        : `Procesar reembolso parcial de ${(refundAmount/100).toFixed(2)}€ de ${(order.total_amount/100).toFixed(2)}€. El dinero se enviará al método de pago original.`}
                                 </>
                             )}
                         </div>

@@ -17,6 +17,20 @@ const { data: invoices } = await supabase
 
 const allInvoices = (invoices as any[]) || [];
 
+// Pedidos pagados que todavía no tienen factura de venta
+const invoicedOrderIds = new Set(
+  allInvoices.filter(i => i.type === 'invoice').map((i: any) => i.order_id)
+);
+const { data: paidOrders } = await supabase
+  .from('orders')
+  .select('id, order_number, created_at, total_amount, guest_email, customer_name')
+  .in('status', ['paid', 'shipped', 'delivered', 'return_requested', 'returned', 'refunded'])
+  .order('created_at', { ascending: false });
+
+const ordersWithoutInvoice = (paidOrders || []).filter(
+  (o: any) => !invoicedOrderIds.has(o.id)
+);
+
 // Stats
 const salesInvoices  = allInvoices.filter(i => i.type === 'invoice');
 const creditNotes    = allInvoices.filter(i => i.type === 'credit_note');
@@ -61,6 +75,58 @@ const typeLabel = (type: string, scope: string | null) => {
     <h3 class="text-sm font-bold uppercase tracking-widest text-black">Documentos contables</h3>
     <p class="text-xs text-gray-400 mt-1">Facturas de venta y facturas de abono generadas automáticamente</p>
   </div>
+
+  <!-- Pedidos sin factura -->
+  {ordersWithoutInvoice.length > 0 && (
+    <div class="mb-8 bg-white border border-gray-200">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-widest text-black">Pedidos sin factura</h4>
+          <p class="text-[10px] text-gray-400 mt-0.5">{ordersWithoutInvoice.length} pedido{ordersWithoutInvoice.length !== 1 ? 's' : ''} pago{ordersWithoutInvoice.length !== 1 ? 's' : ''} sin factura generada</p>
+        </div>
+        <button
+          id="btn-generate-all"
+          class="text-[10px] font-bold uppercase tracking-widest bg-black text-white px-4 py-2 hover:bg-pink-500 transition-colors"
+        >
+          Generar todas
+        </button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="text-left py-3 px-6 text-[10px] font-bold uppercase tracking-wider text-gray-500">Pedido</th>
+              <th class="text-left py-3 px-6 text-[10px] font-bold uppercase tracking-wider text-gray-500">Fecha</th>
+              <th class="text-left py-3 px-6 text-[10px] font-bold uppercase tracking-wider text-gray-500">Cliente</th>
+              <th class="text-right py-3 px-6 text-[10px] font-bold uppercase tracking-wider text-gray-500">Total</th>
+              <th class="text-right py-3 px-6 text-[10px] font-bold uppercase tracking-wider text-gray-500">Acción</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {ordersWithoutInvoice.map((order: any) => (
+              <tr class="hover:bg-gray-50">
+                <td class="py-3 px-6 text-sm font-mono font-bold text-black">#{order.order_number}</td>
+                <td class="py-3 px-6 text-sm text-gray-500">{formatDate(order.created_at)}</td>
+                <td class="py-3 px-6 text-sm text-gray-600 max-w-[200px] truncate">
+                  {order.guest_email || order.customer_name || '—'}
+                </td>
+                <td class="py-3 px-6 text-right text-sm font-bold text-black">{formatCents(order.total_amount)}</td>
+                <td class="py-3 px-6 text-right">
+                  <button
+                    data-order-id={order.id}
+                    data-order-number={order.order_number}
+                    class="btn-generate-one text-[10px] font-bold uppercase tracking-widest border border-black text-black px-4 py-2 hover:bg-black hover:text-white transition-colors"
+                  >
+                    Generar factura
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )}
 
   <!-- Table -->
   <div class="bg-white border border-gray-200">
@@ -127,3 +193,51 @@ const typeLabel = (type: string, scope: string | null) => {
     </div>
   </div>
 </AdminLayout>
+
+<script>
+async function generateInvoice(orderId: string, btn: HTMLButtonElement) {
+  btn.disabled = true;
+  const original = btn.textContent;
+  btn.textContent = 'Generando...';
+
+  const res = await fetch('/api/admin/invoices/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderId }),
+  });
+  const data = await res.json();
+
+  if (data.success) {
+    btn.textContent = '✓ Generada';
+    btn.classList.add('bg-black', 'text-white');
+    // Recargar tras 800ms para ver la nueva factura en la tabla
+    setTimeout(() => window.location.reload(), 800);
+  } else {
+    btn.textContent = '✗ Error';
+    btn.disabled = false;
+    setTimeout(() => { btn.textContent = original!; btn.disabled = false; }, 2000);
+  }
+}
+
+// Botones individuales
+document.querySelectorAll<HTMLButtonElement>('.btn-generate-one').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const orderId = btn.dataset.orderId!;
+    generateInvoice(orderId, btn);
+  });
+});
+
+// Botón "Generar todas"
+document.getElementById('btn-generate-all')?.addEventListener('click', async (e) => {
+  const btn = e.currentTarget as HTMLButtonElement;
+  btn.disabled = true;
+  btn.textContent = 'Generando...';
+
+  const allBtns = document.querySelectorAll<HTMLButtonElement>('.btn-generate-one');
+  for (const b of allBtns) {
+    const orderId = b.dataset.orderId!;
+    await generateInvoice(orderId, b);
+    await new Promise(r => setTimeout(r, 200)); // pequeña pausa entre llamadas
+  }
+});
+</script>

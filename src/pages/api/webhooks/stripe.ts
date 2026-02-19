@@ -124,6 +124,21 @@ export const POST: APIRoute = async ({ request }) => {
                             console.error('[Stripe Webhook] Error fetching order items:', itemsError);
                         } else {
                             console.log('[Stripe Webhook] Order items fetched:', itemsData?.length || 0);
+
+                            // Deduct stock now that payment is confirmed (not before)
+                            if (itemsData && itemsData.length > 0) {
+                                for (const item of itemsData) {
+                                    const { error: rpcStockError } = await supabase.rpc('decrease_product_stock_atomic', {
+                                        p_product_id: item.product_id,
+                                        p_quantity: item.quantity
+                                    });
+                                    if (rpcStockError) {
+                                        console.error('[Stripe Webhook] Stock deduction failed for product:', item.product_id, rpcStockError.message);
+                                    } else {
+                                        console.log('[Stripe Webhook] Stock deducted for product:', item.product_id, 'qty:', item.quantity);
+                                    }
+                                }
+                            }
                         }
 
                         // Prepare items for email template

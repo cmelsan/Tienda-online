@@ -29,30 +29,15 @@ export const POST: APIRoute = async ({ request }) => {
 
         const productIds = items.map((item: any) => item.product.id);
 
-        // Primary query — always needed for validation
+        // Single query — fetch all needed columns (price + flash sale)
         const { data: dbProducts, error: dbError } = await supabase
             .from('products')
-            .select('id, name, price, stock, images')
+            .select('id, name, price, stock, images, is_flash_sale, flash_sale_discount, flash_sale_end_time')
             .in('id', productIds);
 
         if (dbError || !dbProducts) {
             console.error('[Checkout] Error fetching products:', dbError);
             return new Response(JSON.stringify({ error: 'Failed to validate products' }), { status: 500 });
-        }
-
-        // Secondary query — flash sale discount info
-        type DiscountInfo = {
-            is_flash_sale?: boolean;
-            flash_sale_discount?: number;
-            flash_sale_end_time?: string;
-        };
-        const discountMap: Record<string, DiscountInfo> = {};
-        const { data: discountData } = await supabase
-            .from('products')
-            .select('id, is_flash_sale, flash_sale_discount, flash_sale_end_time')
-            .in('id', productIds);
-        if (discountData) {
-            discountData.forEach((d: any) => { discountMap[d.id] = d; });
         }
 
         // Prepare line items using DATABASE prices (not client prices)
@@ -68,15 +53,14 @@ export const POST: APIRoute = async ({ request }) => {
                 throw new Error(`Insufficient stock for ${dbProduct.name}. Available: ${dbProduct.stock}`);
             }
 
-            // Calculate effective price: flash sale (if active) > base price
-            const discountInfo = discountMap[dbProduct.id] || {};
+            // Calculate effective price: flash sale (if active and not expired) > base price
             let unitAmount = Math.round(dbProduct.price);
             const now = new Date();
 
-            if (discountInfo.is_flash_sale && discountInfo.flash_sale_discount && discountInfo.flash_sale_discount > 0) {
-                const endTime = discountInfo.flash_sale_end_time ? new Date(discountInfo.flash_sale_end_time) : null;
+            if (dbProduct.is_flash_sale && dbProduct.flash_sale_discount > 0) {
+                const endTime = dbProduct.flash_sale_end_time ? new Date(dbProduct.flash_sale_end_time) : null;
                 if (!endTime || endTime > now) {
-                    unitAmount = Math.round(dbProduct.price * (1 - discountInfo.flash_sale_discount / 100));
+                    unitAmount = Math.round(dbProduct.price * (1 - dbProduct.flash_sale_discount / 100));
                 }
             }
 
@@ -85,7 +69,8 @@ export const POST: APIRoute = async ({ request }) => {
                     name: dbProduct.name,
                     basePrice: dbProduct.price,
                     effectivePrice: unitAmount,
-                    isFlashSale: discountInfo.is_flash_sale,
+                    isFlashSale: dbProduct.is_flash_sale,
+                    flashDiscount: dbProduct.flash_sale_discount,
                     quantity: item.quantity,
                     stock: dbProduct.stock
                 });

@@ -2,7 +2,7 @@
 export const prerender = false;
 
 import AdminLayout from '@/layouts/AdminLayout.astro';
-import AdminOrderRow from '@/components/admin/AdminOrderRow';
+import AdminOrdersTable from '@/components/admin/AdminOrdersTable';
 import { supabase } from '@/lib/supabase';
 
 // Fetch orders with items
@@ -92,33 +92,5 @@ const totalRevenue = orderList
   </div>
 
   <!-- Tabla -->
-  {orderList && orderList.length > 0 ? (
-    <div class="bg-white border border-gray-200 overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-black text-white">
-            <tr>
-              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Pedido</th>
-              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Fecha</th>
-              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Cliente</th>
-              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Productos</th>
-              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Total</th>
-              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Estado</th>
-              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Acciones</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            {orderList.map((order) => (
-              <AdminOrderRow client:load order={order} />
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  ) : (
-    <div class="bg-white border border-gray-200 p-16 text-center">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Sin pedidos</p>
-      <p class="text-xs text-gray-400 mt-1">No hay pedidos disponibles todavia</p>
-    </div>
-  )}
+  <AdminOrdersTable client:load orders={orderList} />
 </AdminLayout>

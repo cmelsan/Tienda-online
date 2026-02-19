@@ -20,43 +20,40 @@ interface OrderStatusChartProps {
   data: Array<{ name: string; value: number }>;
 }
 
-const COLORS = ['#1f2937', '#374151', '#6b7280', '#9ca3af', '#d1d5db'];
-
 export function SalesLineChart({ data }: SalesChartProps) {
   return (
-    <div className="bg-white border border-admin-border rounded-lg p-6 shadow-sm">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-1 h-6 bg-admin-primary rounded-full"></div>
-        <h3 className="text-base font-bold text-admin-text">Ventas Últimos 7 Días</h3>
+    <div className="bg-white border border-gray-200 p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Evolucion</p>
+          <h3 className="text-sm font-black text-black">Ventas ultimos 7 dias</h3>
+        </div>
+        <div className="w-8 h-0.5 bg-pink-500"></div>
       </div>
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-          <defs>
-            <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.3} />
-              <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.05} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-          <XAxis dataKey="date" fontSize={12} stroke="#6B7280" />
-          <YAxis fontSize={12} stroke="#6B7280" />
+      <ResponsiveContainer width="100%" height={280}>
+        <LineChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
+          <XAxis dataKey="date" fontSize={11} stroke="#9CA3AF" tickLine={false} axisLine={false} />
+          <YAxis fontSize={11} stroke="#9CA3AF" tickLine={false} axisLine={false} />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#fff',
-              border: '1px solid #E5E7EB',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              backgroundColor: '#000',
+              border: 'none',
+              borderRadius: '0',
+              color: '#fff',
+              fontSize: '12px',
+              padding: '8px 12px',
             }}
-            formatter={(value) => `€${value}`}
+            formatter={(value) => [`€${value}`, 'Ventas']}
+            labelStyle={{ color: '#9CA3AF', fontSize: '10px' }}
           />
           <Line
             type="monotone"
             dataKey="sales"
-            stroke="#3B82F6"
-            strokeWidth={3}
-            dot={{ fill: '#3B82F6', r: 4 }}
-            activeDot={{ r: 6 }}
-            fill="url(#salesGradient)"
+            stroke="#EC4899"
+            strokeWidth={2.5}
+            dot={{ fill: '#000', r: 3, strokeWidth: 2, stroke: '#EC4899' }}
+            activeDot={{ r: 5, fill: '#EC4899' }}
           />
         </LineChart>
       </ResponsiveContainer>
@@ -65,58 +62,59 @@ export function SalesLineChart({ data }: SalesChartProps) {
 }
 
 export function TopProductsBarChart({ data }: TopProductsChartProps) {
-  // Calcular el máximo para referencia
   const maxQuantity = Math.max(...data.map(d => d.quantity || 0));
   
   return (
-    <div className="bg-white border border-admin-border rounded-lg p-6 shadow-sm">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-1 h-6 bg-admin-success rounded-full"></div>
-        <h3 className="text-base font-bold text-admin-text">Top 5 Productos Más Vendidos</h3>
+    <div className="bg-white border border-gray-200 p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Ranking</p>
+          <h3 className="text-sm font-black text-black">Top 5 productos mas vendidos</h3>
+        </div>
+        <div className="w-8 h-0.5 bg-pink-500"></div>
       </div>
-      <ResponsiveContainer width="100%" height={450}>
+      <ResponsiveContainer width="100%" height={300}>
         <BarChart 
           data={data} 
-          margin={{ top: 20, right: 30, left: 0, bottom: 100 }}
+          margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
           layout="vertical"
         >
-          <defs>
-            <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#10B981" stopOpacity={0.7} />
-              <stop offset="100%" stopColor="#059669" stopOpacity={0.9} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal={true} vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" horizontal={false} vertical={true} />
           <XAxis 
             type="number" 
-            fontSize={12} 
-            stroke="#6B7280"
+            fontSize={11} 
+            stroke="#9CA3AF"
+            tickLine={false}
+            axisLine={false}
             domain={[0, Math.ceil(maxQuantity * 1.1)]}
           />
           <YAxis 
             type="category"
             dataKey="name" 
-            fontSize={12} 
-            stroke="#6B7280"
-            width={200}
+            fontSize={11} 
+            stroke="#9CA3AF"
+            tickLine={false}
+            axisLine={false}
+            width={180}
           />
           <Tooltip
-            cursor={{ fill: 'rgba(16, 185, 129, 0.1)' }}
+            cursor={{ fill: 'rgba(0,0,0,0.04)' }}
             contentStyle={{
-              backgroundColor: '#fff',
-              border: '2px solid #10B981',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              padding: '10px',
+              backgroundColor: '#000',
+              border: 'none',
+              borderRadius: '0',
+              color: '#fff',
+              fontSize: '12px',
+              padding: '8px 12px',
             }}
             formatter={(value) => [`${value} ventas`, 'Cantidad']}
-            labelStyle={{ color: '#000' }}
+            labelStyle={{ color: '#9CA3AF', fontSize: '10px' }}
           />
           <Bar 
             dataKey="quantity" 
-            fill="url(#barGradient)" 
-            radius={[0, 8, 8, 0]}
-            barSize={35}
+            fill="#000"
+            radius={[0, 2, 2, 0]}
+            barSize={22}
           />
         </BarChart>
       </ResponsiveContainer>
@@ -125,46 +123,72 @@ export function TopProductsBarChart({ data }: TopProductsChartProps) {
 }
 
 export function OrderStatusPieChart({ data }: OrderStatusChartProps) {
-  const COLORS_SEMANTIC = [
-    '#3B82F6', // Blue - Paid
-    '#10B981', // Green - Delivered
-    '#F59E0B', // Amber - Shipped
-    '#6B7280', // Gray - Pending
-    '#EF4444', // Red - Cancelled
+  // Escala de negro a rosa para mantener coherencia de marca
+  const BRAND_COLORS = [
+    '#000000', // negro
+    '#1f2937', // gris muy oscuro
+    '#EC4899', // rosa principal
+    '#6b7280', // gris medio
+    '#f9a8d4', // rosa claro
+    '#374151', // gris oscuro
+    '#fce7f3', // rosa muy claro
   ];
 
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+
   return (
-    <div className="bg-white border border-admin-border rounded-lg p-6 shadow-sm">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-1 h-6 bg-admin-warning rounded-full"></div>
-        <h3 className="text-base font-bold text-admin-text">Distribución por Estado</h3>
+    <div className="bg-white border border-gray-200 p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Estados</p>
+          <h3 className="text-sm font-black text-black">Distribucion por estado</h3>
+        </div>
+        <div className="w-8 h-0.5 bg-pink-500"></div>
       </div>
-      <ResponsiveContainer width="100%" height={300}>
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            label={({ name, value }) => `${name}: ${value}`}
-            outerRadius={90}
-            fill="#8884d8"
-            dataKey="value"
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS_SEMANTIC[index % COLORS_SEMANTIC.length]} />
-            ))}
-          </Pie>
-          <Tooltip
-            contentStyle={{
-              backgroundColor: '#fff',
-              border: '1px solid #E5E7EB',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            }}
-          />
-        </PieChart>
-      </ResponsiveContainer>
+      <div className="flex gap-6 items-center">
+        <ResponsiveContainer width="55%" height={240}>
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={55}
+              outerRadius={90}
+              paddingAngle={2}
+              dataKey="value"
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={BRAND_COLORS[index % BRAND_COLORS.length]} stroke="none" />
+              ))}
+            </Pie>
+            <Tooltip
+              contentStyle={{
+                backgroundColor: '#000',
+                border: 'none',
+                borderRadius: '0',
+                color: '#fff',
+                fontSize: '12px',
+                padding: '8px 12px',
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+        {/* Leyenda custom */}
+        <div className="flex-1 space-y-2">
+          {data.map((item, index) => (
+            <div key={item.name} className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="w-2.5 h-2.5 rounded-none flex-shrink-0" style={{ backgroundColor: BRAND_COLORS[index % BRAND_COLORS.length] }}></span>
+                <span className="text-xs text-gray-600 truncate">{item.name}</span>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="text-xs font-bold text-black">{item.value}</span>
+                <span className="text-[10px] text-gray-400">{total > 0 ? Math.round((item.value / total) * 100) : 0}%</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

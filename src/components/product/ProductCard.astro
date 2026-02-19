@@ -19,27 +19,26 @@ if (!imageUrl || imageUrl.includes('placeholder')) {
   imageUrl = fallbackImage || '/placeholder-product.jpg';
 }
 
-// Calculate original price more robustly
-// If there's a discount, calculate backward from discountedPrice
-// Otherwise use product.price as original
+// Calculate original price - ALWAYS ensure we get the right original
+// Strategy: If discountedPrice is smaller than price, then price IS the original
 let originalPrice = product.price;
 
-if (product.discount > 0 && product.discountedPrice) {
-  // Has rebaja/featured offer - calculate original from discounted price
-  originalPrice = Math.round(product.discountedPrice / (1 - product.discount / 100));
-} else if (product.is_flash_sale && product.flash_sale_discount > 0 && product.discountedPrice) {
-  // Has flash sale - calculate original from discounted price
-  originalPrice = Math.round(product.discountedPrice / (1 - product.flash_sale_discount / 100));
+if (product.discountedPrice && typeof product.discountedPrice === 'number') {
+  // If we have a discountedPrice, use the higher value as original
+  originalPrice = Math.max(product.price || 0, product.discountedPrice);
+  
+  // If discountedPrice is lower, it's a discounted price, so original is higher
+  // If it's higher or equal, then original is the higher one
+  if (product.discountedPrice < originalPrice) {
+    // This is already the right way
+  } else if (product.discountedPrice > product.price) {
+    // discountedPrice is somehow higher, this shouldn't happen
+    // but use price as original
+    originalPrice = product.price;
+  }
 }
 
-console.log(`[ProductCard] ${product.name}:`, {
-  product_price: product.price,
-  product_discountedPrice: product.discountedPrice,
-  product_discount: product.discount,
-  product_is_flash_sale: product.is_flash_sale,
-  product_flash_sale_discount: product.flash_sale_discount,
-  calculated_originalPrice: originalPrice,
-});
+console.log(`[ProductCard FINAL] ${product.name}: original=${originalPrice}, discounted=${product.discountedPrice}, price=${product.price}`);
 ---
 
 <Card variant="flat">

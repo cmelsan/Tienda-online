@@ -76,9 +76,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         }
 
         // Determinar monto a reembolsar
-        let finalRefundAmount = order.total_amount;
-        
-        // Si se especifica un monto parcial, validarlo
+        // IMPORTANTE: order.total_amount está en céntimos (INTEGER en BD)
+        // refundAmount viene del input del admin en EUROS (float)
+        // Para Stripe siempre enviamos céntimos.
+        let finalRefundAmountCents: number = order.total_amount; // default: reembolso total en céntimos
+        let isPartialRefund = false;
+
         if (refundAmount !== undefined && refundAmount !== null) {
             if (refundAmount <= 0) {
                 return new Response(
@@ -90,21 +93,23 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 );
             }
 
-            if (refundAmount > order.total_amount) {
+            // El usuario introduce euros → convertir a céntimos para comparar
+            const refundAmountCents = Math.round(refundAmount * 100);
+
+            if (refundAmountCents > order.total_amount) {
                 return new Response(
                     JSON.stringify({ 
                         success: false, 
-                        message: `El monto de reembolso (${refundAmount}) no puede exceder el total del pedido (${order.total_amount})` 
+                        message: `El monto de reembolso (€${refundAmount.toFixed(2)}) no puede exceder el total del pedido (€${(order.total_amount / 100).toFixed(2)})` 
                     }),
                     { status: 400 }
                 );
             }
 
-            finalRefundAmount = refundAmount;
+            finalRefundAmountCents = refundAmountCents;
+            isPartialRefund = finalRefundAmountCents < order.total_amount;
         }
 
-        // Determinar si es reembolso total o parcial
-        const isPartialRefund = finalRefundAmount < order.total_amount;
         const newStatus = isPartialRefund ? 'partially_refunded' : 'refunded';
 
         // Obtener ítems pendientes de reembolso ANTES de llamar a Stripe
@@ -121,7 +126,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         try {
             stripeRefund = await stripe.refunds.create({
                 payment_intent: order.stripe_payment_intent_id,
-                amount: Math.round(finalRefundAmount * 100),
+                amount: finalRefundAmountCents, // ya en céntimos
                 metadata: {
                     order_id: orderId,
                     admin_id: session.user.id,
@@ -159,7 +164,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 p_admin_id: session.user.id,
                 p_new_status: newStatus,
                 p_restore_stock: false,
-                p_notes: notes || `Reembolsado por Stripe: ${stripeRefund.id}`
+                p_notes: notes || `Reembolsado €${(finalRefundAmountCents / 100).toFixed(2)} por Stripe: ${stripeRefund.id}`
             }
         );
 
@@ -178,7 +183,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         try {
             const creditResult = await createCreditNote(userClient, {
                 orderId,
-                refundAmount:    finalRefundAmount, // ya está en céntimos (INTEGER en BD)
+                refundAmount:    finalRefundAmountCents, // en céntimos (INTEGER en BD)
                 refundedItemIds,
                 stripeRefundId:  stripeRefund.id,
                 notes:           notes || undefined,

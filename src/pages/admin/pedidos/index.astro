@@ -34,32 +34,80 @@ if (error) {
 }
 
 const orderList = orders || [];
+
+// Stats por estado
+const totalOrders = orderList.length;
+const pendingOrders = orderList.filter(o => o.status === 'paid').length;
+const shippedOrders = orderList.filter(o => o.status === 'shipped').length;
+const deliveredOrders = orderList.filter(o => o.status === 'delivered').length;
+const cancelledOrders = orderList.filter(o => o.status === 'cancelled').length;
+const totalRevenue = orderList
+  .filter(o => !['cancelled', 'refunded'].includes(o.status))
+  .reduce((sum, o) => sum + (o.total_amount || 0), 0);
 ---
 
 <AdminLayout title="Pedidos">
-  <div class="mb-8 flex justify-between items-center">
-    <div>
-      <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest">Ventas</h3>
-      <p class="text-xs text-gray-400 mt-1">Gestiona pedidos y devoluciones</p>
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-end justify-between mb-6">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Ventas</p>
+        <p class="text-xs text-gray-400">Gestiona pedidos y devoluciones</p>
+      </div>
+      <p class="text-[10px] text-gray-400 uppercase tracking-widest">
+        {new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+      </p>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 lg:grid-cols-6 gap-3">
+      <div class="bg-black text-white p-4 col-span-2 lg:col-span-1">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Total</p>
+        <p class="text-3xl font-black">{totalOrders}</p>
+        <div class="w-6 h-0.5 bg-pink-500 mt-2"></div>
+      </div>
+      <div class="bg-white border border-gray-200 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Pendientes</p>
+        <p class="text-2xl font-black text-black">{pendingOrders}</p>
+      </div>
+      <div class="bg-white border border-gray-200 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Enviados</p>
+        <p class="text-2xl font-black text-black">{shippedOrders}</p>
+      </div>
+      <div class="bg-white border border-gray-200 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Entregados</p>
+        <p class="text-2xl font-black text-black">{deliveredOrders}</p>
+      </div>
+      <div class="bg-white border border-gray-200 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Cancelados</p>
+        <p class="text-2xl font-black text-black">{cancelledOrders}</p>
+      </div>
+      <div class="bg-white border border-gray-200 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Ingresos</p>
+        <p class="text-xl font-black text-black leading-tight">
+          {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(totalRevenue / 100)}
+        </p>
+      </div>
     </div>
   </div>
 
+  <!-- Tabla -->
   {orderList && orderList.length > 0 ? (
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div class="bg-white border border-gray-200 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full">
-          <thead class="bg-gray-50 border-b border-gray-200">
+          <thead class="bg-black text-white">
             <tr>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">ID</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Fecha</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Cliente</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Productos</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Total</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Estado</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Acciones</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Pedido</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Fecha</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Cliente</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Productos</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Total</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Estado</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Acciones</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="divide-y divide-gray-100">
             {orderList.map((order) => (
               <AdminOrderRow client:load order={order} />
             ))}
@@ -68,8 +116,9 @@ const orderList = orders || [];
       </div>
     </div>
   ) : (
-    <div class="bg-white border border-gray-200 p-12 text-center">
-      <p class="text-sm text-gray-600">No hay pedidos disponibles</p>
+    <div class="bg-white border border-gray-200 p-16 text-center">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Sin pedidos</p>
+      <p class="text-xs text-gray-400 mt-1">No hay pedidos disponibles todavia</p>
     </div>
   )}
 </AdminLayout>

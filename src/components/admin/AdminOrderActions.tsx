@@ -200,18 +200,25 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
     const currentAction = availableActions.find(a => a.type === modalAction);
 
     if (availableActions.length === 0) {
-        return <span className="text-xs text-gray-400">-</span>;
+        return <span className="text-[10px] text-gray-300 uppercase tracking-widest">—</span>;
     }
 
+    const ACTION_STYLES: Record<ActionType, string> = {
+        ship: 'text-black hover:text-pink-500 font-semibold',
+        deliver: 'text-black hover:text-pink-500 font-semibold',
+        cancel: 'text-red-400 hover:text-red-600 font-semibold',
+        process_return: 'text-pink-600 hover:text-pink-800 font-semibold',
+        refund: 'text-pink-600 hover:text-pink-800 font-semibold',
+    };
+
     return (
-        <div className="flex gap-2">
-            {/* Action Buttons - Inline like coupons */}
+        <div className="flex gap-3 items-center flex-wrap">
             {availableActions.map(action => (
                 <button
                     key={action.type}
                     onClick={() => handleActionClick(action.type, action.requiresConfirm || action.requiresNotes || false)}
                     disabled={isLoading}
-                    className="text-blue-600 hover:text-blue-800 font-semibold"
+                    className={`text-[11px] transition-colors disabled:opacity-40 ${ACTION_STYLES[action.type]}`}
                 >
                     {isLoading && modalAction === action.type ? 'Procesando...' : action.label}
                 </button>
@@ -219,11 +226,15 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
             
             {/* Modal */}
             {showModal && currentAction && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-                        <h3 className="text-lg font-semibold mb-6 text-gray-900">
-                            {currentAction.label}
-                        </h3>
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                    <div className="bg-white shadow-2xl p-8 max-w-md w-full mx-4">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Confirmar accion</p>
+                                <h3 className="text-sm font-black text-black">{currentAction.label}</h3>
+                            </div>
+                            <div className="w-6 h-0.5 bg-pink-500"></div>
+                        </div>
 
                         {/* Notes Input */}
                         {currentAction.requiresNotes && (
@@ -235,7 +246,7 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
                                     placeholder="Añade notas sobre esta acción..."
-                                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-400"
+                                    className="w-full px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-black transition-colors"
                                     rows={3}
                                 />
                             </div>
@@ -257,7 +268,7 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                                         value={refundAmount === null ? '' : refundAmount}
                                         onChange={(e) => setRefundAmount(e.target.value ? parseFloat(e.target.value) : null)}
                                         placeholder="Dejar vacío para reembolso total"
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-400"
+                                        className="flex-1 px-3 py-2 border border-gray-200 text-sm focus:outline-none focus:border-black transition-colors"
                                     />
                                 </div>
                                 {refundAmount !== null && (
@@ -288,13 +299,13 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
 
                         {/* Error Message */}
                         {error && (
-                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs">
                                 {error}
                             </div>
                         )}
 
                         {/* Confirmation Message */}
-                        <div className="mb-6 p-3 bg-gray-50 border border-gray-200 rounded text-gray-700 text-sm">
+                        <div className="mb-6 p-3 bg-gray-50 border border-gray-200 text-gray-600 text-xs">
                             {modalAction === 'ship' && 'Marcar este pedido como enviado.'}
                             {modalAction === 'deliver' && 'Marcar este pedido como entregado. Se calculará el plazo de devolución (14 días).'}
                             {modalAction === 'cancel' && 'Cancelar este pedido y restaurar stock. Esta acción no se puede deshacer.'}
@@ -309,18 +320,18 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                         </div>
 
                         {/* Buttons */}
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 mt-2">
                             <button
                                 onClick={handleCloseModal}
                                 disabled={isLoading}
-                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-900 rounded font-medium hover:bg-gray-50 transition-colors"
+                                className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-500 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={handleConfirm}
                                 disabled={isLoading}
-                                className="flex-1 px-4 py-2 bg-black text-white rounded font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
+                                className="flex-1 px-4 py-2.5 bg-black text-white text-xs font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors disabled:opacity-40"
                             >
                                 {isLoading ? 'Procesando...' : 'Confirmar'}
                             </button>

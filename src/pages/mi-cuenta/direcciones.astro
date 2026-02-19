@@ -3,13 +3,10 @@ export const prerender = false;
 import PublicLayout from '@/layouts/PublicLayout.astro';
 import { createServerSupabaseClient } from '@/lib/supabase';
 
-// Auth check
 const supabase = await createServerSupabaseClient(Astro);
 const { data: { session } } = await supabase.auth.getSession();
 
-if (!session) {
-  return Astro.redirect('/login');
-}
+if (!session) return Astro.redirect('/login');
 
 const user = session.user;
 const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Cliente';
@@ -18,6 +15,7 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
 <PublicLayout title="Direcciones - Mi Cuenta | ÉCLAT">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-12">
+
       <!-- Sidebar -->
       <div class="lg:col-span-1 space-y-8">
         <div class="border-b border-black pb-4">
@@ -26,47 +24,136 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
           </h2>
           <p class="text-xs text-gray-500 mt-1">{user.email}</p>
         </div>
-
         <nav class="space-y-1">
-          <a href="/mi-cuenta" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">
-            Panel Principal
-          </a>
-          <a href="/mi-cuenta/pedidos" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">
-            Mis Pedidos
-          </a>
-          <a href="/mi-cuenta/direcciones" class="block py-2 text-sm font-bold text-black border-l-2 border-black pl-3 uppercase tracking-wide">
-            Direcciones
-          </a>
-          <a href="/mi-cuenta/detalles" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">
-            Detalles de la Cuenta
-          </a>
-          <button id="logout-btn" class="block w-full text-left py-2 text-sm text-rose-600 hover:text-rose-800 border-l-2 border-transparent hover:border-rose-200 pl-3 transition-colors uppercase tracking-wide mt-8">
-            Cerrar Sesión
-          </button>
+          <a href="/mi-cuenta" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">Panel Principal</a>
+          <a href="/mi-cuenta/pedidos" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">Mis Pedidos</a>
+          <a href="/mi-cuenta/direcciones" class="block py-2 text-sm font-bold text-black border-l-2 border-black pl-3 uppercase tracking-wide">Direcciones</a>
+          <a href="/mi-cuenta/detalles" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">Detalles de la Cuenta</a>
+          <button id="logout-btn" class="block w-full text-left py-2 text-sm text-rose-600 hover:text-rose-800 border-l-2 border-transparent hover:border-rose-200 pl-3 transition-colors uppercase tracking-wide mt-8">Cerrar Sesión</button>
         </nav>
       </div>
 
       <!-- Main Content -->
       <div class="lg:col-span-3">
-        <h1 class="text-2xl font-sans font-medium text-black mb-8 uppercase tracking-wide">
-          Mis Direcciones
-        </h1>
+        <div class="flex items-center justify-between mb-8">
+          <h1 class="text-2xl font-sans font-medium text-black uppercase tracking-wide">Mis Direcciones</h1>
+          <button id="btn-add" class="bg-black text-white px-6 py-2.5 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors">
+            + Añadir dirección
+          </button>
+        </div>
 
-        <!-- Coming Soon Message -->
-        <div class="bg-gray-50 text-center py-16 border border-gray-100">
+        <!-- Estado cargando -->
+        <div id="loading" class="text-center py-16 text-gray-400 text-sm">Cargando...</div>
+
+        <!-- Lista de direcciones -->
+        <div id="address-list" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+        <!-- Estado vacío -->
+        <div id="empty-state" class="hidden bg-gray-50 text-center py-16 border border-gray-100">
           <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <h3 class="text-lg font-medium text-gray-900 mb-2">Gestión de Direcciones</h3>
-          <p class="text-gray-500 mb-6 max-w-sm mx-auto">
-            Próximamente podrás guardar y gestionar tus direcciones de envío.
-          </p>
-          <a href="/mi-cuenta" class="inline-block bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors">
-            Volver a Mi Cuenta
-          </a>
+          <p class="text-gray-500 mb-6">Todavía no tienes ninguna dirección guardada.</p>
+          <button id="btn-add-empty" class="bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors">
+            Añadir dirección
+          </button>
         </div>
+
+        <!-- Mensaje global -->
+        <div id="global-msg" class="hidden mt-4 p-4 text-sm text-center"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal formulario -->
+  <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+    <div class="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 id="modal-title" class="text-sm font-bold uppercase tracking-widest">Nueva dirección</h2>
+        <button id="modal-close" class="text-gray-400 hover:text-black transition-colors text-xl leading-none">&times;</button>
+      </div>
+
+      <form id="address-form" class="p-6 space-y-4">
+        <input type="hidden" id="field-id" />
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="col-span-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Nombre completo *</label>
+            <input id="field-name" type="text" required
+              class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors" />
+          </div>
+
+          <div class="col-span-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Teléfono</label>
+            <input id="field-phone" type="tel"
+              class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors" />
+          </div>
+
+          <div class="col-span-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Dirección (calle y número) *</label>
+            <input id="field-address" type="text" required
+              class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors" />
+          </div>
+
+          <div class="col-span-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Piso / Puerta / Escalera</label>
+            <input id="field-address2" type="text"
+              class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Código postal *</label>
+            <input id="field-postal" type="text" required
+              class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Ciudad *</label>
+            <input id="field-city" type="text" required
+              class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Provincia</label>
+            <input id="field-province" type="text"
+              class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">País</label>
+            <input id="field-country" type="text" value="España"
+              class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors" />
+          </div>
+
+          <div class="col-span-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Tipo</label>
+            <select id="field-type"
+              class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors bg-transparent">
+              <option value="shipping">Envío</option>
+              <option value="billing">Facturación</option>
+            </select>
+          </div>
+
+          <div class="col-span-2 flex items-center gap-2">
+            <input id="field-default" type="checkbox" class="h-4 w-4 border-gray-300 text-black focus:ring-black" />
+            <label for="field-default" class="text-sm text-gray-700">Establecer como dirección predeterminada</label>
+          </div>
+        </div>
+
+        <div id="form-error" class="hidden text-rose-600 text-sm pt-2"></div>
+
+        <div class="flex gap-3 pt-2">
+          <button type="submit" id="btn-save"
+            class="flex-1 bg-black text-white py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50">
+            Guardar
+          </button>
+          <button type="button" id="btn-cancel"
+            class="flex-1 border border-gray-300 text-gray-700 py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors">
+            Cancelar
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </PublicLayout>
@@ -74,10 +161,213 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
 <script>
   import { supabase } from '@/lib/supabase';
 
+  // ── Helpers ────────────────────────────────────────────────
+  const $ = (id: string) => document.getElementById(id)!;
+
+  function showMsg(text: string, ok = true) {
+    const el = $('global-msg');
+    el.textContent = text;
+    el.className = `mt-4 p-4 text-sm text-center ${ok ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`;
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 4000);
+  }
+
+  function typeName(t: string) { return t === 'billing' ? 'Facturación' : 'Envío'; }
+
+  // ── Render ─────────────────────────────────────────────────
+  function renderAddresses(addresses: any[]) {
+    const list = $('address-list');
+    $('loading').classList.add('hidden');
+
+    if (!addresses.length) {
+      $('empty-state').classList.remove('hidden');
+      list.classList.add('hidden');
+      return;
+    }
+
+    $('empty-state').classList.add('hidden');
+    list.classList.remove('hidden');
+    list.innerHTML = addresses.map(addr => {
+      const d = addr.address_data;
+      const lines = [
+        d.address,
+        d.address2,
+        [d.postal_code, d.city].filter(Boolean).join(' '),
+        [d.province, d.country].filter(Boolean).join(', '),
+        d.phone,
+      ].filter(Boolean);
+
+      return `
+        <div class="border border-gray-100 p-5 relative group" data-id="${addr.id}">
+          ${addr.is_default ? `<span class="absolute top-3 right-3 text-[9px] font-bold uppercase tracking-widest bg-black text-white px-2 py-0.5">Predeterminada</span>` : ''}
+          <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">${typeName(addr.address_type)}</p>
+          <p class="font-bold text-sm mb-2">${d.name || ''}</p>
+          <p class="text-sm text-gray-600 leading-relaxed">${lines.join('<br>')}</p>
+          <div class="flex gap-4 mt-4 pt-4 border-t border-gray-100">
+            <button class="btn-edit text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-black transition-colors"
+              data-id="${addr.id}">Editar</button>
+            ${!addr.is_default ? `<button class="btn-default text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-black transition-colors"
+              data-id="${addr.id}">Predeterminar</button>` : ''}
+            <button class="btn-delete text-xs font-bold uppercase tracking-wide text-rose-400 hover:text-rose-600 transition-colors ml-auto"
+              data-id="${addr.id}">Eliminar</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    list.querySelectorAll('.btn-edit').forEach(b => b.addEventListener('click', () => openEdit((b as HTMLElement).dataset.id!, addresses)));
+    list.querySelectorAll('.btn-default').forEach(b => b.addEventListener('click', () => setDefault((b as HTMLElement).dataset.id!)));
+    list.querySelectorAll('.btn-delete').forEach(b => b.addEventListener('click', () => deleteAddress((b as HTMLElement).dataset.id!)));
+  }
+
+  // ── Fetch ──────────────────────────────────────────────────
+  async function loadAddresses() {
+    const { data, error } = await supabase
+      .from('user_addresses')
+      .select('*')
+      .order('is_default', { ascending: false })
+      .order('created_at', { ascending: false });
+
+    if (error) { showMsg('Error al cargar las direcciones.', false); return; }
+    renderAddresses(data || []);
+  }
+
+  // ── Modal ──────────────────────────────────────────────────
+  function openModal(title: string) {
+    ($('modal-title') as HTMLElement).textContent = title;
+    $('modal').classList.remove('hidden');
+    $('form-error').classList.add('hidden');
+  }
+
+  function closeModal() {
+    $('modal').classList.add('hidden');
+    ($('address-form') as HTMLFormElement).reset();
+    ($('field-id') as HTMLInputElement).value = '';
+    ($('field-country') as HTMLInputElement).value = 'España';
+  }
+
+  function openAdd() {
+    openModal('Nueva dirección');
+  }
+
+  function openEdit(id: string, addresses: any[]) {
+    const addr = addresses.find(a => a.id === id);
+    if (!addr) return;
+    const d = addr.address_data;
+    ($('field-id') as HTMLInputElement).value = id;
+    ($('field-name') as HTMLInputElement).value = d.name || '';
+    ($('field-phone') as HTMLInputElement).value = d.phone || '';
+    ($('field-address') as HTMLInputElement).value = d.address || '';
+    ($('field-address2') as HTMLInputElement).value = d.address2 || '';
+    ($('field-postal') as HTMLInputElement).value = d.postal_code || '';
+    ($('field-city') as HTMLInputElement).value = d.city || '';
+    ($('field-province') as HTMLInputElement).value = d.province || '';
+    ($('field-country') as HTMLInputElement).value = d.country || 'España';
+    ($('field-type') as HTMLSelectElement).value = addr.address_type || 'shipping';
+    ($('field-default') as HTMLInputElement).checked = addr.is_default || false;
+    openModal('Editar dirección');
+  }
+
+  // ── Save ───────────────────────────────────────────────────
+  ($('address-form') as HTMLFormElement).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = $('btn-save') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+    $('form-error').classList.add('hidden');
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { btn.disabled = false; btn.textContent = 'Guardar'; return; }
+
+    const id = ($('field-id') as HTMLInputElement).value;
+    const isDefault = ($('field-default') as HTMLInputElement).checked;
+    const addrType = ($('field-type') as HTMLSelectElement).value;
+
+    const address_data = {
+      name:        ($('field-name') as HTMLInputElement).value.trim(),
+      phone:       ($('field-phone') as HTMLInputElement).value.trim(),
+      address:     ($('field-address') as HTMLInputElement).value.trim(),
+      address2:    ($('field-address2') as HTMLInputElement).value.trim(),
+      postal_code: ($('field-postal') as HTMLInputElement).value.trim(),
+      city:        ($('field-city') as HTMLInputElement).value.trim(),
+      province:    ($('field-province') as HTMLInputElement).value.trim(),
+      country:     ($('field-country') as HTMLInputElement).value.trim() || 'España',
+    };
+
+    // Si se pone como predeterminada, quitar la anterior
+    if (isDefault) {
+      await supabase
+        .from('user_addresses')
+        .update({ is_default: false })
+        .eq('user_id', user.id)
+        .eq('address_type', addrType)
+        .neq('id', id || '00000000-0000-0000-0000-000000000000');
+    }
+
+    let error;
+    if (id) {
+      ({ error } = await supabase
+        .from('user_addresses')
+        .update({ address_data, address_type: addrType, is_default: isDefault, updated_at: new Date().toISOString() })
+        .eq('id', id));
+    } else {
+      ({ error } = await supabase
+        .from('user_addresses')
+        .insert({ user_id: user.id, address_data, address_type: addrType, is_default: isDefault }));
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Guardar';
+
+    if (error) {
+      const errEl = $('form-error');
+      errEl.textContent = 'Error al guardar la dirección. Inténtalo de nuevo.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    closeModal();
+    showMsg(id ? 'Dirección actualizada.' : 'Dirección añadida.');
+    loadAddresses();
+  });
+
+  // ── Default ────────────────────────────────────────────────
+  async function setDefault(id: string) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: addr } = await supabase.from('user_addresses').select('address_type').eq('id', id).single();
+    if (!addr) return;
+
+    await supabase.from('user_addresses').update({ is_default: false }).eq('user_id', user.id).eq('address_type', addr.address_type);
+    const { error } = await supabase.from('user_addresses').update({ is_default: true }).eq('id', id);
+    if (error) { showMsg('Error al actualizar.', false); return; }
+    showMsg('Dirección predeterminada actualizada.');
+    loadAddresses();
+  }
+
+  // ── Delete ─────────────────────────────────────────────────
+  async function deleteAddress(id: string) {
+    if (!confirm('¿Eliminar esta dirección?')) return;
+    const { error } = await supabase.from('user_addresses').delete().eq('id', id);
+    if (error) { showMsg('Error al eliminar la dirección.', false); return; }
+    showMsg('Dirección eliminada.');
+    loadAddresses();
+  }
+
+  // ── Events ─────────────────────────────────────────────────
+  $('btn-add').addEventListener('click', openAdd);
+  $('btn-add-empty')?.addEventListener('click', openAdd);
+  $('btn-cancel').addEventListener('click', closeModal);
+  $('modal-close').addEventListener('click', closeModal);
+  $('modal').addEventListener('click', (e) => { if (e.target === $('modal')) closeModal(); });
+
   document.getElementById('logout-btn')?.addEventListener('click', async () => {
     const { error } = await supabase.auth.signOut();
     if (!error) {
        window.location.href = '/login';
     }
   });
+
+  // ── Init ───────────────────────────────────────────────────
+  loadAddresses();
 </script>

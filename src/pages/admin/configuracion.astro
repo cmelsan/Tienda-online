@@ -17,12 +17,19 @@ const { data: offersSettings } = await supabase
   .eq('key', 'offers_enabled')
   .single();
 
+const { data: novedadesSettings } = await supabase
+  .from('app_settings')
+  .select('value')
+  .eq('key', 'novedades_enabled')
+  .single();
+
 const offersEnabled = offersSettings?.value === true;
+const novedadesEnabled = novedadesSettings?.value !== false;
 ---
 
 <AdminLayout title="Configuración Global">
   <div>
-    <h2 class="text-2xl font-bold mb-4 text-gray-900">⚙️ Configuración General</h2>
-    <SettingsForm client:load token={session?.access_token || ''} offersEnabled={offersEnabled} />
+    <h2 class="text-2xl font-bold mb-4 text-gray-900">Configuración General</h2>
+    <SettingsForm client:load token={session?.access_token || ''} offersEnabled={offersEnabled} novedadesEnabled={novedadesEnabled} />
   </div>
 </AdminLayout>

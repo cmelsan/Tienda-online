@@ -4,11 +4,13 @@ import { supabase } from '@/lib/supabase';
 interface SettingsFormProps {
   token: string;
   offersEnabled: boolean;
+  novedadesEnabled: boolean;
 }
 
-export default function SettingsForm({ token: initialToken, offersEnabled: initialOffersEnabled }: SettingsFormProps) {
+export default function SettingsForm({ token: initialToken, offersEnabled: initialOffersEnabled, novedadesEnabled: initialNovedadesEnabled }: SettingsFormProps) {
   const [offersEnabled, setOffersEnabled] = useState(initialOffersEnabled);
   const [flashSaleEnabled, setFlashSaleEnabled] = useState(false);
+  const [novedadesEnabled, setNovedadesEnabled] = useState(initialNovedadesEnabled ?? true);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -65,13 +67,15 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
         setOffersEnabled(newState);
       } else if (key === 'flash_sale_enabled') {
         setFlashSaleEnabled(newState);
+      } else if (key === 'novedades_enabled') {
+        setNovedadesEnabled(newState);
       }
 
-      setMessage('✅ Configuración actualizada correctamente.');
+      setMessage('Configuracion actualizada correctamente.');
       setTimeout(() => setMessage(''), 3000);
     } catch (error: any) {
       console.error('[SettingsForm] Error:', error);
-      setMessage(`❌ ${error.message}`);
+      setMessage(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -85,6 +89,10 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
     handleToggleSetting('flash_sale_enabled', e.target.checked);
   };
 
+  const handleToggleNovedades = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleToggleSetting('novedades_enabled', e.target.checked);
+  };
+
   return (
     <div class="max-w-2xl">
       <div class="mb-8">
@@ -93,7 +101,7 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
       </div>
 
       {message && (
-        <div className={`mb-6 p-4 border text-xs font-bold uppercase tracking-wide ${message.includes('❌') ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-green-50 border-green-200 text-green-600'}`}>
+        <div className={`mb-6 p-4 border text-xs font-bold uppercase tracking-wide ${message.startsWith('Error') ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-green-50 border-green-200 text-green-600'}`}>
           {message}
         </div>
       )}
@@ -119,9 +127,9 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
         </div>
 
         {/* Flash Sale Setting */}
-        <div class="flex items-center justify-between p-8">
+        <div class="flex items-center justify-between p-8 border-b border-gray-100">
           <div>
-            <h3 class="text-sm font-bold text-black uppercase">⚡ Flash Sales en Inicio</h3>
+            <h3 class="text-sm font-bold text-black uppercase">Flash Sales en Inicio</h3>
             <p class="text-xs text-gray-500 mt-1 max-w-sm">Muestra la sección de Flash Sales en la página de inicio. Los productos se configuran en el Gestor de Flash Sales.</p>
           </div>
 
@@ -130,6 +138,25 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
               type="checkbox"
               checked={flashSaleEnabled}
               onChange={handleToggleFlashSale}
+              disabled={loading}
+              class="sr-only peer"
+            />
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+          </label>
+        </div>
+
+        {/* Novedades Setting */}
+        <div class="flex items-center justify-between p-8">
+          <div>
+            <h3 class="text-sm font-bold text-black uppercase">Seccion Novedades en Inicio</h3>
+            <p class="text-xs text-gray-500 mt-1 max-w-sm">Muestra los banners de Nuevas Llegadas y Best Sellers en la pagina de inicio.</p>
+          </div>
+
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={novedadesEnabled}
+              onChange={handleToggleNovedades}
               disabled={loading}
               class="sr-only peer"
             />

@@ -28,14 +28,33 @@ export const POST: APIRoute = async ({ request }) => {
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
         const productIds = items.map((item: any) => item.product.id);
+
+        // Primary query — always needed for validation
         const { data: dbProducts, error: dbError } = await supabase
             .from('products')
-            .select('id, name, price, stock, images, discount_price, is_flash_offer, is_flash_sale, flash_sale_discount, flash_sale_end_time')
+            .select('id, name, price, stock, images')
             .in('id', productIds);
 
         if (dbError || !dbProducts) {
             console.error('[Checkout] Error fetching products:', dbError);
             return new Response(JSON.stringify({ error: 'Failed to validate products' }), { status: 500 });
+        }
+
+        // Secondary query — discount info (gracefully ignored if columns don't exist yet)
+        type DiscountInfo = {
+            discount_price?: number;
+            is_flash_offer?: boolean;
+            is_flash_sale?: boolean;
+            flash_sale_discount?: number;
+            flash_sale_end_time?: string;
+        };
+        const discountMap: Record<string, DiscountInfo> = {};
+        const { data: discountData } = await supabase
+            .from('products')
+            .select('id, discount_price, is_flash_offer, is_flash_sale, flash_sale_discount, flash_sale_end_time')
+            .in('id', productIds);
+        if (discountData) {
+            discountData.forEach((d: any) => { discountMap[d.id] = d; });
         }
 
         // Prepare line items using DATABASE prices (not client prices)
@@ -53,16 +72,17 @@ export const POST: APIRoute = async ({ request }) => {
 
             // Calculate effective price respecting discounts from DB
             // Priority: flash sale (if active) > regular offer > base price
+            const discountInfo = discountMap[dbProduct.id] || {};
             let unitAmount = Math.round(dbProduct.price);
             const now = new Date();
 
-            if (dbProduct.is_flash_sale && dbProduct.flash_sale_discount > 0) {
-                const endTime = dbProduct.flash_sale_end_time ? new Date(dbProduct.flash_sale_end_time) : null;
+            if (discountInfo.is_flash_sale && discountInfo.flash_sale_discount && discountInfo.flash_sale_discount > 0) {
+                const endTime = discountInfo.flash_sale_end_time ? new Date(discountInfo.flash_sale_end_time) : null;
                 if (!endTime || endTime > now) {
-                    unitAmount = Math.round(dbProduct.price * (1 - dbProduct.flash_sale_discount / 100));
+                    unitAmount = Math.round(dbProduct.price * (1 - discountInfo.flash_sale_discount / 100));
                 }
-            } else if (dbProduct.is_flash_offer && dbProduct.discount_price > 0) {
-                unitAmount = Math.round(dbProduct.discount_price);
+            } else if (discountInfo.is_flash_offer && discountInfo.discount_price && discountInfo.discount_price > 0) {
+                unitAmount = Math.round(discountInfo.discount_price);
             }
 
             if (DEBUG) {
@@ -70,8 +90,8 @@ export const POST: APIRoute = async ({ request }) => {
                     name: dbProduct.name,
                     basePrice: dbProduct.price,
                     effectivePrice: unitAmount,
-                    isFlashSale: dbProduct.is_flash_sale,
-                    isFlashOffer: dbProduct.is_flash_offer,
+                    isFlashSale: discountInfo.is_flash_sale,
+                    isFlashOffer: discountInfo.is_flash_offer,
                     quantity: item.quantity,
                     stock: dbProduct.stock
                 });

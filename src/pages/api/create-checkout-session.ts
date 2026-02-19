@@ -29,15 +29,32 @@ export const POST: APIRoute = async ({ request }) => {
 
         const productIds = items.map((item: any) => item.product.id);
 
-        // Single query — fetch all needed columns (price + flash sale)
-        const { data: dbProducts, error: dbError } = await supabase
-            .from('products')
-            .select('id, name, price, stock, images, is_flash_sale, flash_sale_discount, flash_sale_end_time')
-            .in('id', productIds);
+        // Fetch products + featured_offers setting in parallel
+        const [productsResult, offersResult] = await Promise.all([
+            supabase
+                .from('products')
+                .select('id, name, price, stock, images, is_flash_sale, flash_sale_discount, flash_sale_end_time')
+                .in('id', productIds),
+            supabase
+                .from('app_settings')
+                .select('value')
+                .eq('key', 'featured_offers')
+                .single()
+        ]);
 
-        if (dbError || !dbProducts) {
-            console.error('[Checkout] Error fetching products:', dbError);
+        if (productsResult.error || !productsResult.data) {
+            console.error('[Checkout] Error fetching products:', productsResult.error);
             return new Response(JSON.stringify({ error: 'Failed to validate products' }), { status: 500 });
+        }
+        const dbProducts = productsResult.data;
+
+        // Build featured-offers discount map: productId → discount%
+        const featuredOffers: any[] = offersResult.data?.value || [];
+        const offerDiscountMap: Record<string, number> = {};
+        if (Array.isArray(featuredOffers)) {
+            featuredOffers.forEach((o: any) => {
+                if (o?.id && o?.discount > 0) offerDiscountMap[o.id] = o.discount;
+            });
         }
 
         // Prepare line items using DATABASE prices (not client prices)
@@ -53,7 +70,7 @@ export const POST: APIRoute = async ({ request }) => {
                 throw new Error(`Insufficient stock for ${dbProduct.name}. Available: ${dbProduct.stock}`);
             }
 
-            // Calculate effective price: flash sale (if active and not expired) > base price
+            // Effective price priority: flash sale > featured offer (rebajas) > base price
             let unitAmount = Math.round(dbProduct.price);
             const now = new Date();
 
@@ -62,6 +79,8 @@ export const POST: APIRoute = async ({ request }) => {
                 if (!endTime || endTime > now) {
                     unitAmount = Math.round(dbProduct.price * (1 - dbProduct.flash_sale_discount / 100));
                 }
+            } else if (offerDiscountMap[dbProduct.id]) {
+                unitAmount = Math.round(dbProduct.price * (1 - offerDiscountMap[dbProduct.id] / 100));
             }
 
             if (DEBUG) {
@@ -70,7 +89,7 @@ export const POST: APIRoute = async ({ request }) => {
                     basePrice: dbProduct.price,
                     effectivePrice: unitAmount,
                     isFlashSale: dbProduct.is_flash_sale,
-                    flashDiscount: dbProduct.flash_sale_discount,
+                    offerDiscount: offerDiscountMap[dbProduct.id] || 0,
                     quantity: item.quantity,
                     stock: dbProduct.stock
                 });

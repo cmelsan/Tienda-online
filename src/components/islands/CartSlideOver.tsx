@@ -161,17 +161,6 @@ export default function CartSlideOver() {
                                                 const originalPrice = item.product?.price || 0;
                                                 const displayPrice = item.product?.discountedPrice || originalPrice;
                                                 
-                                                console.log(`[CartSlideOver] ${item.product?.name}:`, {
-                                                    hasDiscount,
-                                                    originalPrice,
-                                                    displayPrice,
-                                                    discount: item.product?.discount,
-                                                    discountedPrice: item.product?.discountedPrice,
-                                                    is_flash_sale: item.product?.is_flash_sale,
-                                                    flash_sale_discount: item.product?.flash_sale_discount,
-                                                    price: item.product?.price,
-                                                });
-                                                
                                                 if (hasDiscount && displayPrice < originalPrice) {
                                                     return (
                                                         <div className="flex gap-2 items-center">

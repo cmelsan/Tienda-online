@@ -25,15 +25,6 @@ export default function ProductAddToCart({ productId, productName, price, discou
             } else if (is_flash_sale && flash_sale_discount && flash_sale_discount > 0) {
                 finalPrice = Math.round(price * (1 - flash_sale_discount / 100));
             }
-            
-            console.log('[ProductAddToCart] DEBUG:', {
-                received_price: price,
-                received_discountedPrice: discountedPrice,
-                received_discount: discount,
-                received_is_flash_sale: is_flash_sale,
-                received_flash_sale_discount: flash_sale_discount,
-                calculated_finalPrice: finalPrice,
-            });
 
             addToCart(
                 {

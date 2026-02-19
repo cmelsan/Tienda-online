@@ -91,8 +91,14 @@ export default function FlashSaleManager() {
 
   const toggleFlashSale = async (product: Product) => {
     const turningOn = !product.is_flash_sale;
+    // Si se activa: siempre pone fecha nueva (24h por defecto), aunque hubiera una fecha expirada
+    const existingEndTime = product.flash_sale_end_time
+      ? new Date(product.flash_sale_end_time).getTime() > Date.now()
+        ? product.flash_sale_end_time  // fecha vigente, la conservamos
+        : null                          // fecha expirada, la ignoramos
+      : null;
     const endTime = turningOn
-      ? (product.flash_sale_end_time || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString())
+      ? (existingEndTime || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString())
       : null;
 
     await updateFlashSale(product.id, {

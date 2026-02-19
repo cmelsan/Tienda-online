@@ -65,10 +65,11 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
             // Agregar al carrito manteniendo todos los datos del producto
             addToCart({
                 ...product,
-                discountedPrice: finalPrice,  // Guardar el precio con descuento
+                price: finalPrice,  // Store final discounted price
+                originalPrice: product.price,  // Explicitly store original price
+                discountedPrice: finalPrice,  // Also store as discountedPrice
                 is_flash_sale: product.is_flash_sale || false,  // Preservar campo flash sale
                 flash_sale_discount: product.flash_sale_discount || 0  // Preservar descuento de flash sale
-                // NO modificar product.price para mantener el precio original
             }, quantity);
 
             // Show success feedback

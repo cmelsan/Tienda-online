@@ -11,6 +11,7 @@ const MAX_QUANTITY_PER_ITEM = 9999; // Maximum quantity allowed per product
 // Cart Item Interface
 export interface CartItem {
     product: Product & {
+        originalPrice?: number;  // Explicitly stored original price before discount
         discount?: number;
         discountedPrice?: number;
         is_flash_sale?: boolean;
@@ -120,16 +121,10 @@ export const cartCount = computed(cartItems, (items) => {
 export const cartSubtotal = computed(cartItems, (items) => {
     return Object.values(items).reduce(
         (total, item) => {
-            let price = item.product.price;
+            let price = item.product.discountedPrice || item.product.price || 0;
             
-            // Use discountedPrice if available (from featured offers)
-            if (item.product.discountedPrice) {
-                price = item.product.discountedPrice;
-            }
-            // Otherwise calculate from flash_sale_discount if available
-            else if (item.product.is_flash_sale && item.product.flash_sale_discount) {
-                price = Math.round(item.product.price * (1 - item.product.flash_sale_discount / 100));
-            }
+            // Use discountedPrice if available (it's the final price with discount applied)
+            // Otherwise fallback to price
             
             return total + price * item.quantity;
         },

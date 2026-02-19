@@ -18,20 +18,25 @@ export default function ProductAddToCart({ productId, productName, price, discou
         e.stopPropagation();
 
         try {
-            // Calculate final price: use discountedPrice if available, else calculate from flash_sale_discount
+            // price arriving here is the ORIGINAL price from ProductCard
+            // discountedPrice is optional - might be pre-calculated
+            // Calculate final discounted price if not provided
             let finalPrice = price;
-            if (discountedPrice) {
+            if (discountedPrice && discountedPrice > 0 && discountedPrice !== price) {
                 finalPrice = discountedPrice;
             } else if (is_flash_sale && flash_sale_discount && flash_sale_discount > 0) {
                 finalPrice = Math.round(price * (1 - flash_sale_discount / 100));
+            } else if (discount && discount > 0) {
+                finalPrice = Math.round(price * (1 - discount / 100));
             }
 
             addToCart(
                 {
                     id: productId,
                     name: productName,
-                    price: price,  // Keep original price
-                    discountedPrice: finalPrice,  // Store the discounted price separately
+                    price: finalPrice,  // Store as final price for calculations
+                    originalPrice: price,  // EXPLICITLY store original price
+                    discountedPrice: finalPrice,  // Also store as discountedPrice for consistency
                     discount: discount || 0,
                     is_flash_sale: is_flash_sale || false,
                     flash_sale_discount: flash_sale_discount || 0,

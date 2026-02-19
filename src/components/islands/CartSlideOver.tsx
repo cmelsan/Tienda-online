@@ -158,8 +158,9 @@ export default function CartSlideOver() {
                                         <p className="text-base font-bold text-black mb-3">
                                             {(() => {
                                                 const hasDiscount = item.product?.discount > 0 || (item.product?.is_flash_sale && item.product?.flash_sale_discount > 0);
-                                                const originalPrice = item.product?.price || 0;
-                                                const displayPrice = item.product?.discountedPrice || originalPrice;
+                                                // Use explicitly stored originalPrice OR fallback to price
+                                                const originalPrice = item.product?.originalPrice || item.product?.price || 0;
+                                                const displayPrice = item.product?.discountedPrice || item.product?.price || 0;
                                                 
                                                 if (hasDiscount && displayPrice < originalPrice) {
                                                     return (

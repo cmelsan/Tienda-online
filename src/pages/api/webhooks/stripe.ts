@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail, getOrderConfirmationTemplate } from '@/lib/brevo';
+import { createSaleInvoice } from '@/lib/invoices';
 
 const DEBUG = import.meta.env.DEV;
 
@@ -91,6 +92,19 @@ export const POST: APIRoute = async ({ request }) => {
                     console.error('[Stripe Webhook] Error updating order status:', updateError);
                 } else {
                     console.log('[Stripe Webhook] Order status updated to paid');
+
+                    // 2b. Crear factura de venta automáticamente
+                    try {
+                        const invoiceResult = await createSaleInvoice(supabase, orderId, session.id);
+                        if (invoiceResult.success && invoiceResult.invoice_number) {
+                            console.log('[Stripe Webhook] Sale invoice created:', invoiceResult.invoice_number);
+                        } else if (!invoiceResult.success) {
+                            console.warn('[Stripe Webhook] Could not create invoice:', invoiceResult.error);
+                        }
+                    } catch (invoiceErr: any) {
+                        // No fallamos el webhook si la factura falla
+                        console.error('[Stripe Webhook] Invoice creation error:', invoiceErr.message);
+                    }
                 }
 
                 // 3. Send confirmation email if we have customer email

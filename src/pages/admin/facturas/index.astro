@@ -1,0 +1,129 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { createServerSupabaseClient } from '@/lib/supabase';
+import { formatCents, formatDate } from '@/lib/invoices';
+
+const supabase = await createServerSupabaseClient(Astro, true);
+
+const { data: invoices } = await supabase
+  .from('invoices')
+  .select(`
+    id, type, invoice_number, order_id, credit_note_scope,
+    total_amount, customer_name, customer_email, issued_at,
+    orders!invoices_order_id_fkey ( order_number )
+  `)
+  .order('issued_at', { ascending: false });
+
+const allInvoices = (invoices as any[]) || [];
+
+// Stats
+const salesInvoices  = allInvoices.filter(i => i.type === 'invoice');
+const creditNotes    = allInvoices.filter(i => i.type === 'credit_note');
+const totalFacturado = salesInvoices.reduce((s: number, i: any) => s + i.total_amount, 0);
+const totalAbonado   = creditNotes.reduce((s: number, i: any) => s + Math.abs(i.total_amount), 0);
+const neto           = totalFacturado - totalAbonado;
+
+const typeBadge = (type: string) =>
+  type === 'invoice'
+    ? 'bg-black text-white text-[10px] font-bold uppercase tracking-widest px-2 py-0.5'
+    : 'bg-gray-100 text-gray-500 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5';
+
+const typeLabel = (type: string, scope: string | null) => {
+  if (type === 'invoice') return 'Factura';
+  return scope === 'partial' ? 'Abono parcial' : 'Abono';
+};
+---
+
+<AdminLayout title="Facturas">
+  <!-- Stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+    <div class="bg-black text-white p-5">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Total documentos</p>
+      <p class="text-3xl font-bold mt-1">{allInvoices.length}</p>
+    </div>
+    <div class="bg-white border border-gray-200 p-5">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Facturado</p>
+      <p class="text-3xl font-bold text-black mt-1">{formatCents(totalFacturado)}</p>
+    </div>
+    <div class="bg-white border border-gray-200 p-5">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Abonado</p>
+      <p class="text-3xl font-bold text-black mt-1">{formatCents(totalAbonado)}</p>
+    </div>
+    <div class="bg-white border border-gray-200 p-5">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Neto</p>
+      <p class="text-3xl font-bold text-black mt-1">{formatCents(neto)}</p>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="mb-6">
+    <h3 class="text-sm font-bold uppercase tracking-widest text-black">Documentos contables</h3>
+    <p class="text-xs text-gray-400 mt-1">Facturas de venta y facturas de abono generadas automáticamente</p>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white border border-gray-200">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-black">
+          <tr>
+            <th class="text-left py-4 px-6 text-[10px] font-bold text-white uppercase tracking-wider">Número</th>
+            <th class="text-left py-4 px-6 text-[10px] font-bold text-white uppercase tracking-wider">Tipo</th>
+            <th class="text-left py-4 px-6 text-[10px] font-bold text-white uppercase tracking-wider">Pedido</th>
+            <th class="text-left py-4 px-6 text-[10px] font-bold text-white uppercase tracking-wider">Cliente</th>
+            <th class="text-left py-4 px-6 text-[10px] font-bold text-white uppercase tracking-wider">Fecha</th>
+            <th class="text-right py-4 px-6 text-[10px] font-bold text-white uppercase tracking-wider">Importe</th>
+            <th class="text-right py-4 px-6 text-[10px] font-bold text-white uppercase tracking-wider">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {allInvoices.map((inv: any) => (
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="py-4 px-6">
+                <span class="text-sm font-bold font-mono text-black">{inv.invoice_number}</span>
+              </td>
+              <td class="py-4 px-6">
+                <span class={typeBadge(inv.type)}>
+                  {typeLabel(inv.type, inv.credit_note_scope)}
+                </span>
+              </td>
+              <td class="py-4 px-6">
+                <span class="text-sm text-gray-600 font-mono">
+                  #{(inv as any).orders?.order_number || '—'}
+                </span>
+              </td>
+              <td class="py-4 px-6 text-sm text-gray-600 max-w-[180px] truncate">
+                {inv.customer_email || inv.customer_name || '—'}
+              </td>
+              <td class="py-4 px-6 text-sm text-gray-500">
+                {formatDate(inv.issued_at)}
+              </td>
+              <td class="py-4 px-6 text-right">
+                <span class={`text-sm font-bold ${inv.total_amount < 0 ? 'text-red-600' : 'text-black'}`}>
+                  {inv.total_amount < 0 ? '-' : ''}{formatCents(inv.total_amount)}
+                </span>
+              </td>
+              <td class="py-4 px-6 text-right">
+                <a
+                  href={`/admin/facturas/${inv.id}`}
+                  target="_blank"
+                  class="inline-block text-[10px] font-bold uppercase tracking-widest bg-black text-white px-4 py-2 hover:bg-pink-500 transition-colors"
+                >
+                  Ver / Imprimir
+                </a>
+              </td>
+            </tr>
+          ))}
+          {allInvoices.length === 0 && (
+            <tr>
+              <td colspan="7" class="py-12 text-center text-xs text-gray-400 uppercase tracking-widest">
+                No hay documentos contables aún
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</AdminLayout>

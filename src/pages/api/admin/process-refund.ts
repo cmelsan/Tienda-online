@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import Stripe from 'stripe';
 import { sendEmail, getRefundProcessedTemplate } from '@/lib/brevo';
+import { createCreditNote } from '@/lib/invoices';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
     apiVersion: '2023-10-16' as any,
@@ -99,6 +100,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         const isPartialRefund = finalRefundAmount < order.total_amount;
         const newStatus = isPartialRefund ? 'partially_refunded' : 'refunded';
 
+        // Obtener ítems pendientes de reembolso ANTES de llamar a Stripe
+        // (el RPC posterior cambiará sus estados; necesitamos los IDs ahora)
+        const { data: returnItems } = await userClient
+            .from('order_items')
+            .select('id, price_at_purchase, quantity')
+            .eq('order_id', orderId)
+            .in('return_status', ['requested', 'approved']);
+
+        const refundedItemIds: string[] = (returnItems || []).map((i: any) => i.id);
+
         let stripeRefund;
         try {
             stripeRefund = await stripe.refunds.create({
@@ -154,6 +165,25 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 }),
                 { status: 500 }
             );
+        }
+
+        // Crear factura de abono automáticamente
+        try {
+            const creditResult = await createCreditNote(userClient, {
+                orderId,
+                refundAmount:    finalRefundAmount, // ya está en céntimos (INTEGER en BD)
+                refundedItemIds,
+                stripeRefundId:  stripeRefund.id,
+                notes:           notes || undefined,
+            });
+            if (creditResult.success) {
+                console.log('[API] Credit note created:', creditResult.credit_note_number);
+            } else {
+                console.warn('[API] Credit note creation failed:', creditResult.error);
+            }
+        } catch (creditErr: any) {
+            // No bloqueamos el reembolso si falla la factura
+            console.error('[API] Credit note error:', creditErr.message);
         }
 
         // Registrar reembolso en tabla de auditoría (opcional)

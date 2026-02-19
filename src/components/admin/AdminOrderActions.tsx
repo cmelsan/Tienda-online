@@ -199,22 +199,24 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
 
     const currentAction = availableActions.find(a => a.type === modalAction);
 
-    // Special handler for deleting abandoned awaiting_payment orders
+    // State for inline delete confirmation modal
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
     const handleDeletePending = async () => {
-        if (!window.confirm('¿Eliminar este pedido abandonado? Esta acción no se puede deshacer.')) return;
         setIsLoading(true);
+        setShowDeleteConfirm(false);
         try {
             const res = await fetch(`/api/orders/delete-pending?orderId=${order.id}`, { method: 'DELETE' });
-            const data = await res.json();
-            if (data.success) {
+            let data: any = {};
+            try { data = await res.json(); } catch {}
+            if (res.ok && data.success) {
                 addNotification('Pedido eliminado correctamente', 'success');
-                // Reload to remove the row from the list
-                setTimeout(() => window.location.reload(), 800);
+                setTimeout(() => window.location.reload(), 600);
             } else {
-                addNotification('Error al eliminar el pedido', 'error');
+                addNotification(data.error || 'Error al eliminar el pedido', 'error');
             }
-        } catch {
-            addNotification('Error de conexión', 'error');
+        } catch (err: any) {
+            addNotification('Error: ' + (err?.message || 'desconocido'), 'error');
         } finally {
             setIsLoading(false);
         }
@@ -223,13 +225,47 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
     if (availableActions.length === 0) {
         if (order.status === 'awaiting_payment') {
             return (
-                <button
-                    onClick={handleDeletePending}
-                    disabled={isLoading}
-                    className="text-[11px] text-red-400 hover:text-red-600 font-semibold transition-colors disabled:opacity-40"
-                >
-                    {isLoading ? 'Eliminando...' : 'Eliminar'}
-                </button>
+                <>
+                    <button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        disabled={isLoading}
+                        className="text-[11px] text-red-400 hover:text-red-600 font-semibold transition-colors disabled:opacity-40"
+                    >
+                        {isLoading ? 'Eliminando...' : 'Eliminar'}
+                    </button>
+
+                    {/* Inline delete confirmation modal */}
+                    {showDeleteConfirm && (
+                        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                            <div className="bg-white shadow-2xl p-8 max-w-sm w-full mx-4">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div>
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Confirmar acción</p>
+                                        <h3 className="text-sm font-black text-black">Eliminar pedido abandonado</h3>
+                                    </div>
+                                    <div className="w-6 h-0.5 bg-red-400"></div>
+                                </div>
+                                <div className="mb-6 p-3 bg-red-50 border border-red-100 text-red-700 text-xs leading-relaxed">
+                                    Este pedido está en estado <strong>Esperando Pago</strong> y nunca se completó. Al eliminarlo se borrarán también sus líneas de pedido. Esta acción no se puede deshacer.
+                                </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setShowDeleteConfirm(false)}
+                                        className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-500 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={handleDeletePending}
+                                        className="flex-1 px-4 py-2.5 bg-red-500 text-white text-xs font-bold uppercase tracking-widest hover:bg-red-600 transition-colors"
+                                    >
+                                        Sí, eliminar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </>
             );
         }
         return <span className="text-[10px] text-gray-300 uppercase tracking-widest">—</span>;

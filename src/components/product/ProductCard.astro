@@ -19,16 +19,19 @@ if (!imageUrl || imageUrl.includes('placeholder')) {
   imageUrl = fallbackImage || '/placeholder-product.jpg';
 }
 
-// Calculate original price: if there's a discounted price, calculate the original
-// Otherwise use the price as-is (it's already the original)
+// Calculate original price more robustly
+// If there's a discount, calculate backward from discountedPrice
+// Otherwise use product.price as original
 let originalPrice = product.price;
-if (product.discountedPrice && product.discount && product.discount > 0) {
-  // If we have discountedPrice and discount %, calculate what the original was
+
+if (product.discount > 0 && product.discountedPrice) {
+  // Has rebaja/featured offer - calculate original from discounted price
   originalPrice = Math.round(product.discountedPrice / (1 - product.discount / 100));
-} else if (product.discountedPrice && product.is_flash_sale && product.flash_sale_discount && product.flash_sale_discount > 0) {
-  // For flash sales, calculate original from flash_sale_discount
+} else if (product.is_flash_sale && product.flash_sale_discount > 0 && product.discountedPrice) {
+  // Has flash sale - calculate original from discounted price
   originalPrice = Math.round(product.discountedPrice / (1 - product.flash_sale_discount / 100));
 }
+
 console.log(`[ProductCard] ${product.name}:`, {
   product_price: product.price,
   product_discountedPrice: product.discountedPrice,

@@ -5,102 +5,175 @@ import AdminLayout from '@/layouts/AdminLayout.astro';
 import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/utils';
 
-// Fetch all products with category info
 const { data: products } = await supabase
   .from('products')
   .select('*, category:categories(*)')
   .order('created_at', { ascending: false });
+
+const productList = products || [];
+const totalProducts = productList.length;
+const outOfStock = productList.filter(p => p.stock === 0).length;
+const lowStock = productList.filter(p => p.stock > 0 && p.stock <= 5).length;
+const inStock = productList.filter(p => p.stock > 5).length;
+const categories = [...new Set(productList.map(p => p.category?.name).filter(Boolean))].length;
 ---
 
 <AdminLayout title="Gestión de Productos">
-  <div class="mb-8 flex justify-between items-center">
-    <div>
-      <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest">Inventario</h3>
-      <p class="text-xs text-gray-400 mt-1">Gestiona todos tus productos</p>
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-end justify-between mb-6">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Inventario</p>
+        <p class="text-xs text-gray-400">Gestiona todos tus productos</p>
+      </div>
+      <a
+        href="/admin/productos/nuevo"
+        class="bg-black text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-pink-500 transition-colors"
+      >
+        Nuevo Producto
+      </a>
     </div>
-    <a
-      href="/admin/productos/nuevo"
-      class="bg-black text-white px-6 py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors"
-    >
-      Nuevo Producto
-    </a>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div class="bg-black text-white p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Total</p>
+        <p class="text-3xl font-black">{totalProducts}</p>
+        <div class="w-6 h-0.5 bg-pink-500 mt-2"></div>
+      </div>
+      <div class="bg-white border border-gray-200 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Con stock</p>
+        <p class="text-2xl font-black text-black">{inStock}</p>
+      </div>
+      <div class="bg-white border border-gray-200 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Stock bajo</p>
+        <p class="text-2xl font-black text-amber-500">{lowStock}</p>
+      </div>
+      <div class="bg-white border border-gray-200 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Sin stock</p>
+        <p class="text-2xl font-black text-red-500">{outOfStock}</p>
+      </div>
+      <div class="bg-white border border-gray-200 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Categorias</p>
+        <p class="text-2xl font-black text-black">{categories}</p>
+      </div>
+    </div>
   </div>
 
-  {products && products.length > 0 ? (
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+  <!-- Tabla -->
+  {productList.length > 0 ? (
+    <div class="bg-white border border-gray-200 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full">
-          <thead class="bg-gray-50 border-b border-gray-100">
+          <thead class="bg-black text-white">
             <tr>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Producto</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Categoría</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Precio</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Stock</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Acciones</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Producto</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Categoria</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Precio</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Stock</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Acciones</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
-            {products.map((product) => (
-              <tr class="hover:bg-gray-50 transition-colors">
-                <td class="py-3 px-4">
-                  <div class="flex items-center gap-3">
-                    {product.images && product.images[0] && (
-                      <img
-                        src={product.images[0]}
-                        alt={product.name}
-                        class="w-10 h-10 rounded object-cover"
-                      />
-                    )}
-                    <div class="flex-1">
-                      <p class="text-xs font-bold text-gray-900">{product.name}</p>
-                      <p class="text-xs text-gray-400">{product.slug}</p>
+          <tbody>
+            {productList.map((product) => {
+              const stockOk = product.stock > 5;
+              const stockLow = product.stock > 0 && product.stock <= 5;
+              const stockOut = product.stock === 0;
+              return (
+                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors group">
+                  <!-- Producto -->
+                  <td class="py-4 px-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-12 h-12 bg-gray-50 border border-gray-100 flex-shrink-0 overflow-hidden">
+                        {product.images && product.images[0] ? (
+                          <img
+                            src={product.images[0]}
+                            alt={product.name}
+                            class="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div class="w-full h-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-xs font-black text-black leading-snug">{product.name}</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5 truncate max-w-[300px]">{product.slug}</p>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td class="py-3 px-4 text-xs text-gray-600">
-                  {product.category?.name || '-'}
-                </td>
-                <td class="py-3 px-4 text-xs font-bold text-gray-900">
-                  {formatPrice(product.price)}
-                </td>
-                <td class="py-3 px-4">
-                  <span class={`inline-block text-xs font-semibold ${
-                    product.stock > 10
-                      ? 'text-green-700'
-                      : product.stock > 0
-                      ? 'text-yellow-700'
-                      : 'text-red-700'
-                  }`}>
-                    {product.stock} unidades
-                  </span>
-                </td>
-                <td class="py-3 px-4 text-xs space-x-2 flex gap-2">
-                  <a
-                    href={`/admin/productos/${product.id}`}
-                    class="text-blue-600 hover:text-blue-800 font-semibold"
-                  >
-                    Editar
-                  </a>
-                  <a
-                    href={`/productos/${product.slug}`}
-                    target="_blank"
-                    class="text-gray-600 hover:text-gray-800 font-semibold"
-                  >
-                    Ver
-                  </a>
-                </td>
-              </tr>
-            ))}
+                  </td>
+
+                  <!-- Categoría -->
+                  <td class="py-4 px-4 whitespace-nowrap">
+                    {product.category?.name ? (
+                      <span class="text-[10px] font-bold uppercase tracking-wide text-gray-500 border border-gray-200 px-2 py-1">
+                        {product.category.name}
+                      </span>
+                    ) : (
+                      <span class="text-[10px] text-gray-300">—</span>
+                    )}
+                  </td>
+
+                  <!-- Precio -->
+                  <td class="py-4 px-4 whitespace-nowrap">
+                    <span class="text-xs font-black text-black">{formatPrice(product.price)}</span>
+                    {product.compare_at_price && product.compare_at_price > product.price && (
+                      <p class="text-[10px] text-gray-400 line-through mt-0.5">{formatPrice(product.compare_at_price)}</p>
+                    )}
+                  </td>
+
+                  <!-- Stock -->
+                  <td class="py-4 px-4 whitespace-nowrap">
+                    <div class="flex items-center gap-2">
+                      <span class={`text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 ${
+                        stockOut
+                          ? 'bg-red-50 text-red-600 border border-red-200'
+                          : stockLow
+                          ? 'bg-amber-50 text-amber-600 border border-amber-200'
+                          : 'bg-gray-50 text-gray-600 border border-gray-200'
+                      }`}>
+                        {product.stock} uds
+                      </span>
+                      {stockOut && <span class="text-[10px] text-red-400 font-semibold">Sin stock</span>}
+                      {stockLow && <span class="text-[10px] text-amber-400 font-semibold">Bajo</span>}
+                    </div>
+                  </td>
+
+                  <!-- Acciones -->
+                  <td class="py-4 px-4">
+                    <div class="flex items-center gap-4">
+                      <a
+                        href={`/admin/productos/${product.id}`}
+                        class="text-[11px] font-bold text-black hover:text-pink-500 transition-colors uppercase tracking-wide"
+                      >
+                        Editar
+                      </a>
+                      <a
+                        href={`/productos/${product.slug}`}
+                        target="_blank"
+                        class="text-[11px] font-bold text-gray-400 hover:text-black transition-colors uppercase tracking-wide"
+                      >
+                        Ver
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
     </div>
   ) : (
-    <div class="bg-white border border-gray-200 p-12 text-center">
-      <p class="text-sm text-gray-600">No hay productos disponibles</p>
+    <div class="bg-white border border-gray-200 p-16 text-center">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Sin productos</p>
+      <p class="text-xs text-gray-400 mt-1 mb-6">Crea tu primer producto para empezar</p>
       <a
         href="/admin/productos/nuevo"
-        class="mt-4 inline-block bg-black text-white px-6 py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors"
+        class="inline-block bg-black text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-pink-500 transition-colors"
       >
         Crear Producto
       </a>

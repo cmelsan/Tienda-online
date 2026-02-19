@@ -13,10 +13,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             );
         }
 
-        // Validate status
-        if (!['returned', 'refunded'].includes(newStatus)) {
+        // Validate status — 'delivered' is used when rejecting a return (revert back)
+        if (!['returned', 'refunded', 'delivered'].includes(newStatus)) {
             return new Response(
-                JSON.stringify({ success: false, message: 'Invalid status. Must be returned or refunded' }),
+                JSON.stringify({ success: false, message: 'Invalid status' }),
                 { status: 400 }
             );
         }

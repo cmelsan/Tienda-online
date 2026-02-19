@@ -240,8 +240,8 @@ const refundedCount = returnRequests?.filter((o: any) => o.status === 'refunded'
                 <AdminReturnRow 
                   client:visible 
                   orderId={order.id}
-                  orderTotal={formatPrice(order.total_amount)}
-                  refundAmount={formatPrice(refundAmount || order.total_amount)}
+                  orderTotalCents={order.total_amount}
+                  refundAmountCents={refundAmount || order.total_amount}
                   orderStatus={order.status}
                 />
               </div>

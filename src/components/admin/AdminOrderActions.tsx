@@ -208,10 +208,8 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
             const data = await res.json();
             if (data.success) {
                 addNotification('Pedido eliminado correctamente', 'success');
-                if (onActionComplete) onActionComplete('deleted');
-                // Remove the row from DOM
-                const row = document.querySelector(`[data-order-id="${order.id}"]`);
-                if (row) row.remove();
+                // Reload to remove the row from the list
+                setTimeout(() => window.location.reload(), 800);
             } else {
                 addNotification('Error al eliminar el pedido', 'error');
             }

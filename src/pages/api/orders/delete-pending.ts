@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, getAdminSupabaseClient } from '@/lib/supabase';
 
 /**
  * DELETE /api/orders/delete-pending?orderId=xxx
@@ -49,11 +49,14 @@ export const DELETE: APIRoute = async (context) => {
             });
         }
 
-        // Delete order items first (FK constraint)
-        await supabase.from('order_items').delete().eq('order_id', orderId);
+        // Delete order items first (FK constraint) — use admin client to bypass RLS
+        const adminClient = getAdminSupabaseClient();
+        const deleteClient = adminClient || supabase;
+
+        await deleteClient.from('order_items').delete().eq('order_id', orderId);
 
         // Delete the order
-        const { error: deleteError } = await supabase
+        const { error: deleteError } = await deleteClient
             .from('orders')
             .delete()
             .eq('id', orderId)

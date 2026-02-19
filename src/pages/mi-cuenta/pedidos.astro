@@ -27,6 +27,21 @@ const { data: orders, error } = await supabase
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
+// 3. Fetch invoices linked to this user's orders
+const orderIds = (orders || []).map((o: any) => o.id);
+let invoicesByOrder: Record<string, any[]> = {};
+if (orderIds.length > 0) {
+    const { data: invoices } = await supabase
+        .from('invoices')
+        .select('id, type, invoice_number, issued_at, total_amount, credit_note_scope, order_id')
+        .in('order_id', orderIds)
+        .order('issued_at', { ascending: false });
+    for (const inv of (invoices || [])) {
+        if (!invoicesByOrder[inv.order_id]) invoicesByOrder[inv.order_id] = [];
+        invoicesByOrder[inv.order_id].push(inv);
+    }
+}
+
 const formatDate = (dateUnformated: string) => {
     return new Date(dateUnformated).toLocaleDateString('es-ES', {
         year: 'numeric',
@@ -96,6 +111,25 @@ const formatPrice = (amount: number) => {
                                         returnDeadline={order.return_deadline}
                                         items={order.items}
                                     />
+                                    {/* Invoice links */}
+                                    {invoicesByOrder[order.id]?.length > 0 && (
+                                        <div class="flex flex-wrap gap-2 justify-end mt-3">
+                                            {invoicesByOrder[order.id].map((inv: any) => (
+                                                <a
+                                                    href={`/mi-cuenta/facturas/${inv.id}`}
+                                                    target="_blank"
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider border border-black text-black hover:bg-black hover:text-white transition-colors"
+                                                >
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                    {inv.type === 'invoice'
+                                                        ? inv.invoice_number
+                                                        : `Abono ${inv.credit_note_scope === 'partial' ? 'parcial' : ''} ${inv.invoice_number}`}
+                                                </a>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

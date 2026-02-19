@@ -1,0 +1,240 @@
+---
+export const prerender = false;
+import { createServerSupabaseClient } from '@/lib/supabase';
+import { formatCents, formatDate } from '@/lib/invoices';
+
+const { id } = Astro.params;
+
+// Auth check
+const supabase = await createServerSupabaseClient(Astro);
+const { data: { user } } = await supabase.auth.getUser();
+if (!user) return Astro.redirect('/login');
+
+// Fetch invoice — RLS solo devuelve facturas de ordenes del usuario
+const { data: inv, error } = await supabase
+  .from('invoices')
+  .select(`
+    *,
+    orders!invoices_order_id_fkey ( order_number, status, user_id ),
+    reference_invoice:invoices!invoices_reference_invoice_id_fkey ( invoice_number )
+  `)
+  .eq('id', id!)
+  .single();
+
+// Si no existe o pertenece a otro usuario → redirigir
+if (error || !inv || (inv as any).orders?.user_id !== user.id) {
+  return Astro.redirect('/mi-cuenta/pedidos');
+}
+
+const invoice    = inv as any;
+const isCreditNote = invoice.type === 'credit_note';
+const lineItems    = (invoice.line_items as any[]) || [];
+const address      = invoice.customer_address || {};
+
+const docTitle = isCreditNote
+  ? `Factura de abono${invoice.credit_note_scope === 'partial' ? ' (parcial)' : ''}`
+  : 'Factura de venta';
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{invoice.invoice_number} — ÉCLAT Beauty</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; color: #111; background: #fff; }
+
+    .page { max-width: 800px; margin: 40px auto; padding: 48px; }
+
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; border-bottom: 3px solid #000; padding-bottom: 24px; }
+    .brand { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase; }
+    .brand-sub { font-size: 10px; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+    .doc-info { text-align: right; }
+    .doc-type { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #888; }
+    .doc-number { font-size: 20px; font-weight: 900; font-family: monospace; margin-top: 4px; }
+    .doc-date { font-size: 11px; color: #888; margin-top: 4px; }
+
+    .credit-banner { background: #000; color: #fff; padding: 10px 16px; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 32px; display: flex; justify-content: space-between; align-items: center; }
+    .credit-banner .ref { color: #aaa; font-weight: 400; }
+
+    .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 40px; }
+    .party-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 8px; }
+    .party-name  { font-size: 14px; font-weight: 700; }
+    .party-info  { font-size: 12px; color: #444; line-height: 1.6; margin-top: 4px; }
+
+    table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+    thead tr { background: #000; color: #fff; }
+    thead th { padding: 10px 12px; font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; text-align: left; }
+    thead th:last-child { text-align: right; }
+    tbody tr { border-bottom: 1px solid #e5e7eb; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 12px 12px; font-size: 12px; vertical-align: top; }
+    tbody td:last-child { text-align: right; font-weight: 700; }
+    .qty { color: #888; }
+
+    .totals { margin-top: 0; border-top: 2px solid #000; }
+    .totals-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
+    .totals-row:last-child { border-bottom: none; }
+    .totals-row.total-final { background: #000; color: #fff; padding: 12px 16px; font-size: 15px; font-weight: 900; }
+
+    .notes { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 11px; color: #888; }
+
+    .footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; font-size: 10px; color: #aaa; letter-spacing: 1px; }
+
+    @media print {
+      body { background: #fff; }
+      .page { margin: 0; padding: 32px; max-width: 100%; }
+      .no-print { display: none !important; }
+      @page { margin: 1cm; }
+    }
+
+    .print-btn { position: fixed; top: 24px; right: 24px; background: #000; color: #fff; border: none; padding: 12px 24px; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; }
+    .print-btn:hover { background: #ec4899; }
+    .back-btn { position: fixed; top: 24px; right: 170px; background: #f3f4f6; color: #111; border: none; padding: 12px 24px; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <a href="/mi-cuenta/pedidos" class="back-btn no-print">← Mis Pedidos</a>
+  <button onclick="window.print()" class="print-btn no-print">Imprimir / PDF</button>
+
+  <div class="page">
+    <!-- Cabecera -->
+    <div class="header">
+      <div>
+        <div class="brand">Éclat Beauty</div>
+        <div class="brand-sub">Tienda online de cosmética</div>
+      </div>
+      <div class="doc-info">
+        <div class="doc-type">{docTitle}</div>
+        <div class="doc-number">{invoice.invoice_number}</div>
+        <div class="doc-date">{formatDate(invoice.issued_at)}</div>
+      </div>
+    </div>
+
+    <!-- Banner abono -->
+    {isCreditNote && (
+      <div class="credit-banner">
+        <span>
+          Factura de abono —
+          {invoice.credit_note_scope === 'partial' ? ' devolución parcial' : ' devolución total'}
+        </span>
+        {invoice.reference_invoice?.invoice_number && (
+          <span class="ref">Ref. factura original: {invoice.reference_invoice.invoice_number}</span>
+        )}
+      </div>
+    )}
+
+    <!-- Emisor / Receptor -->
+    <div class="parties">
+      <div>
+        <div class="party-label">Emisor</div>
+        <div class="party-name">Éclat Beauty S.L.</div>
+        <div class="party-info">
+          CIF: B-XXXXXXXX<br />
+          Calle Ejemplo, 1<br />
+          28001 Madrid, España<br />
+          hola@eclatbeauty.com
+        </div>
+      </div>
+      <div>
+        <div class="party-label">Cliente</div>
+        <div class="party-name">{invoice.customer_name || 'Cliente'}</div>
+        <div class="party-info">
+          {invoice.customer_email && <>{invoice.customer_email}<br /></>}
+          {invoice.customer_nif && <>NIF/CIF: {invoice.customer_nif}<br /></>}
+          {address.address && <>{address.address}<br /></>}
+          {address.city && <>{address.city}{address.province ? `, ${address.province}` : ''}<br /></>}
+          {address.postal_code && <>{address.postal_code} {address.country || 'España'}</>}
+        </div>
+      </div>
+    </div>
+
+    <!-- Referencia pedido -->
+    <div style="margin-bottom: 24px; font-size: 11px; color: #888;">
+      Pedido: <strong style="color:#111;">#{invoice.orders?.order_number || invoice.order_id.slice(0, 8)}</strong>
+    </div>
+
+    <!-- Líneas -->
+    <table>
+      <thead>
+        <tr>
+          <th style="width:50%">Descripción</th>
+          <th class="qty" style="text-align:center">Cant.</th>
+          <th style="text-align:right">P. unitario</th>
+          <th style="text-align:right">Base imp.</th>
+          <th style="text-align:right">IVA {invoice.tax_rate}%</th>
+          <th style="text-align:right">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {lineItems.map((item: any) => {
+          const gross = Math.abs(item.unit_price_gross);
+          const net   = Math.abs(item.unit_price_net);
+          const tax   = gross - net;
+          const qty   = item.quantity;
+          const total = Math.abs(item.line_total);
+          return (
+            <tr>
+              <td>{item.name}</td>
+              <td style="text-align:center; color:#888;">{qty}</td>
+              <td style="text-align:right">{formatCents(gross)}</td>
+              <td style="text-align:right">{formatCents(net * qty)}</td>
+              <td style="text-align:right">{formatCents(tax * qty)}</td>
+              <td>
+                {isCreditNote && <span style="color:#dc2626">-</span>}
+                {formatCents(total)}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+
+    <!-- Totales -->
+    <div class="totals" style="max-width: 340px; margin-left: auto; margin-top: 0;">
+      <div class="totals-row">
+        <span>Base imponible</span>
+        <span>
+          {isCreditNote && '-'}
+          {formatCents(Math.abs(invoice.subtotal))}
+        </span>
+      </div>
+      {invoice.discount_amount > 0 && (
+        <div class="totals-row">
+          <span>Descuento (cupón)</span>
+          <span>-{formatCents(invoice.discount_amount)}</span>
+        </div>
+      )}
+      <div class="totals-row">
+        <span>IVA ({invoice.tax_rate}%)</span>
+        <span>
+          {isCreditNote && '-'}
+          {formatCents(Math.abs(invoice.tax_amount))}
+        </span>
+      </div>
+      <div class="totals-row total-final">
+        <span>TOTAL</span>
+        <span>
+          {isCreditNote && '-'}
+          {formatCents(Math.abs(invoice.total_amount))}
+        </span>
+      </div>
+    </div>
+
+    <!-- Notas -->
+    {invoice.notes && (
+      <div class="notes">
+        <p>Nota: {invoice.notes}</p>
+      </div>
+    )}
+
+    <!-- Pie -->
+    <div class="footer">
+      <span>Éclat Beauty S.L. — CIF: B-XXXXXXXX</span>
+      <span>Documento generado el {formatDate(new Date().toISOString())}</span>
+    </div>
+  </div>
+</body>
+</html>

@@ -16,6 +16,23 @@ const outOfStock = productList.filter(p => p.stock === 0).length;
 const lowStock = productList.filter(p => p.stock > 0 && p.stock <= 5).length;
 const inStock = productList.filter(p => p.stock > 5).length;
 const categories = [...new Set(productList.map(p => p.category?.name).filter(Boolean))].length;
+
+function stockBadge(stock: number) {
+  if (stock === 0) return 'bg-red-50 text-red-600 border border-red-200';
+  if (stock <= 5) return 'bg-amber-50 text-amber-600 border border-amber-200';
+  return 'bg-gray-50 text-gray-600 border border-gray-200';
+}
+
+function stockLabel(stock: number) {
+  if (stock === 0) return 'Sin stock';
+  if (stock <= 5) return 'Bajo';
+  return null;
+}
+
+function stockLabelColor(stock: number) {
+  if (stock === 0) return 'text-red-400';
+  return 'text-amber-400';
+}
 ---
 
 <AdminLayout title="Gestión de Productos">
@@ -75,11 +92,7 @@ const categories = [...new Set(productList.map(p => p.category?.name).filter(Boo
             </tr>
           </thead>
           <tbody>
-            {productList.map((product) => {
-              const stockOk = product.stock > 5;
-              const stockLow = product.stock > 0 && product.stock <= 5;
-              const stockOut = product.stock === 0;
-              return (
+            {productList.map((product) => (
                 <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors group">
                   <!-- Producto -->
                   <td class="py-4 px-4">
@@ -128,17 +141,14 @@ const categories = [...new Set(productList.map(p => p.category?.name).filter(Boo
                   <!-- Stock -->
                   <td class="py-4 px-4 whitespace-nowrap">
                     <div class="flex items-center gap-2">
-                      <span class={`text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 ${
-                        stockOut
-                          ? 'bg-red-50 text-red-600 border border-red-200'
-                          : stockLow
-                          ? 'bg-amber-50 text-amber-600 border border-amber-200'
-                          : 'bg-gray-50 text-gray-600 border border-gray-200'
-                      }`}>
+                      <span class={`text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 ${stockBadge(product.stock)}`}>
                         {product.stock} uds
                       </span>
-                      {stockOut && <span class="text-[10px] text-red-400 font-semibold">Sin stock</span>}
-                      {stockLow && <span class="text-[10px] text-amber-400 font-semibold">Bajo</span>}
+                      {stockLabel(product.stock) && (
+                        <span class={`text-[10px] font-semibold ${stockLabelColor(product.stock)}`}>
+                          {stockLabel(product.stock)}
+                        </span>
+                      )}
                     </div>
                   </td>
 
@@ -161,8 +171,7 @@ const categories = [...new Set(productList.map(p => p.category?.name).filter(Boo
                     </div>
                   </td>
                 </tr>
-              );
-            })}
+            ))}
           </tbody>
         </table>
       </div>

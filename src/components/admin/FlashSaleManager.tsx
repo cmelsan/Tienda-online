@@ -11,31 +11,30 @@ interface Product {
   flash_sale_end_time: string;
 }
 
-function getTimeStatus(endTime: string | null): {
+function getTimeStatus(endTime: string | null, isActive: boolean): {
   label: string;
   color: string;
   isExpired: boolean;
-  hoursLeft: number;
 } {
-  if (!endTime) return { label: 'â€”', color: 'text-gray-400', isExpired: false, hoursLeft: 0 };
+  if (!isActive || !endTime) return { label: '-', color: 'text-gray-300', isExpired: false };
   const diff = new Date(endTime).getTime() - Date.now();
   const hoursLeft = diff / (1000 * 60 * 60);
 
   if (diff <= 0) {
     const hoursAgo = Math.abs(Math.ceil(hoursLeft));
-    return { label: `Expirada hace ${hoursAgo}h`, color: 'text-red-600', isExpired: true, hoursLeft };
+    return { label: `Expirada hace ${hoursAgo}h`, color: 'text-red-600 font-bold', isExpired: true };
   }
 
   const h = Math.floor(hoursLeft);
   const m = Math.floor((hoursLeft - h) * 60);
 
   if (hoursLeft < 1) {
-    return { label: `${m}m restantes`, color: 'text-red-500 font-bold animate-pulse', isExpired: false, hoursLeft };
+    return { label: `${m}m restantes`, color: 'text-red-500 font-bold', isExpired: false };
   }
   if (hoursLeft < 24) {
-    return { label: `${h}h ${m}m restantes`, color: 'text-orange-500 font-bold', isExpired: false, hoursLeft };
+    return { label: `${h}h ${m}m restantes`, color: 'text-orange-500 font-bold', isExpired: false };
   }
-  return { label: `${h}h restantes`, color: 'text-emerald-600 font-semibold', isExpired: false, hoursLeft };
+  return { label: `${h}h restantes`, color: 'text-emerald-600 font-semibold', isExpired: false };
 }
 
 export default function FlashSaleManager() {
@@ -61,38 +60,7 @@ export default function FlashSaleManager() {
         throw new Error(errorData.error || 'Error desconocido');
       }
       const data = await response.json();
-      const prods: Product[] = data.data || [];
-
-      // Auto-deactivate expired products
-      const expired = prods.filter(
-        (p) => p.is_flash_sale && p.flash_sale_end_time && new Date(p.flash_sale_end_time).getTime() < Date.now()
-      );
-
-      if (expired.length > 0) {
-        await Promise.all(
-          expired.map((p) =>
-            fetch('/api/admin/flash-sales', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-              body: JSON.stringify({
-                productId: p.id,
-                data: { is_flash_sale: false, flash_sale_end_time: null, flash_sale_discount: 0 },
-              }),
-            })
-          )
-        );
-        addNotification(
-          `${expired.length} oferta${expired.length > 1 ? 's' : ''} expirada${expired.length > 1 ? 's' : ''} desactivada${expired.length > 1 ? 's' : ''} automÃ¡ticamente`,
-          'info'
-        );
-        // Refetch with clean data
-        const r2 = await fetch('/api/admin/flash-sales', { credentials: 'include' });
-        const d2 = await r2.json();
-        setProducts(d2.data || []);
-      } else {
-        setProducts(prods);
-      }
+      setProducts(data.data || []);
     } catch (error) {
       addNotification(`Error al cargar productos: ${error instanceof Error ? error.message : 'Error'}`, 'error');
     } finally {
@@ -122,14 +90,15 @@ export default function FlashSaleManager() {
   };
 
   const toggleFlashSale = async (product: Product) => {
-    const endTime = product.is_flash_sale
-      ? null
-      : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const turningOn = !product.is_flash_sale;
+    const endTime = turningOn
+      ? (product.flash_sale_end_time || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString())
+      : null;
 
     await updateFlashSale(product.id, {
-      is_flash_sale: !product.is_flash_sale,
+      is_flash_sale: turningOn,
       flash_sale_end_time: endTime,
-      flash_sale_discount: product.is_flash_sale ? 0 : product.flash_sale_discount || 20,
+      flash_sale_discount: turningOn ? (product.flash_sale_discount || 20) : 0,
     });
   };
 
@@ -147,11 +116,9 @@ export default function FlashSaleManager() {
     );
     if (expired.length === 0) return;
     setDeactivatingAll(true);
-    await Promise.all(
-      expired.map((p) =>
-        updateFlashSale(p.id, { is_flash_sale: false, flash_sale_end_time: null, flash_sale_discount: 0 })
-      )
-    );
+    for (const p of expired) {
+      await updateFlashSale(p.id, { is_flash_sale: false, flash_sale_end_time: null, flash_sale_discount: 0 });
+    }
     setDeactivatingAll(false);
     addNotification(`${expired.length} oferta(s) desactivadas`, 'success');
   };
@@ -160,6 +127,9 @@ export default function FlashSaleManager() {
   const expiredActive = activeProducts.filter(
     (p) => p.flash_sale_end_time && new Date(p.flash_sale_end_time).getTime() < Date.now()
   );
+  const vigentesCount = activeProducts.filter(
+    (p) => !p.flash_sale_end_time || new Date(p.flash_sale_end_time).getTime() > Date.now()
+  ).length;
 
   if (loading) {
     return (
@@ -174,16 +144,16 @@ export default function FlashSaleManager() {
     <div className="space-y-6">
       {/* Info banner */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-bold text-blue-900 mb-2">ðŸ“Œ CÃ³mo funcionan las Flash Sales</h3>
+        <h3 className="font-bold text-blue-900 mb-2">Como funcionan las Flash Sales</h3>
         <ul className="text-sm text-blue-800 space-y-1">
-          <li>âœ“ Activa productos para la secciÃ³n Flash Sale de la pÃ¡gina de inicio</li>
-          <li>âœ“ Establece el descuento (%) y la hora de finalizaciÃ³n</li>
-          <li>âœ“ Las ofertas expiradas se desactivan automÃ¡ticamente al cargar esta pÃ¡gina</li>
-          <li>âœ“ La secciÃ³n se oculta en la tienda cuando el tiempo llega a cero</li>
+          <li>- Activa productos para la seccion Flash Sale de la pagina de inicio</li>
+          <li>- Establece el descuento (%) y la hora de finalizacion que quieras</li>
+          <li>- Puedes cambiar la fecha en cualquier momento sin perder la configuracion</li>
+          <li>- La seccion se oculta en la tienda cuando el tiempo llega a cero</li>
         </ul>
       </div>
 
-      {/* Stats bar */}
+      {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
           <div className="text-2xl font-black text-gray-900">{products.length}</div>
@@ -194,31 +164,26 @@ export default function FlashSaleManager() {
           <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">En Flash Sale</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-          <div className="text-2xl font-black text-emerald-600">
-            {activeProducts.filter((p) => !p.flash_sale_end_time || new Date(p.flash_sale_end_time).getTime() > Date.now()).length}
-          </div>
+          <div className="text-2xl font-black text-emerald-600">{vigentesCount}</div>
           <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">Activas y vigentes</div>
         </div>
       </div>
 
-      {/* Expired warning */}
+      {/* Expired warning - solo si hay expiradas, no desactiva automaticamente */}
       {expiredActive.length > 0 && (
         <div className="flex items-center justify-between bg-red-50 border border-red-300 rounded-lg px-5 py-4">
-          <div className="flex items-center gap-3">
-            <span className="text-red-600 text-xl">âš ï¸</span>
-            <div>
-              <div className="font-bold text-red-700">
-                {expiredActive.length} oferta{expiredActive.length > 1 ? 's' : ''} con tiempo expirado
-              </div>
-              <div className="text-sm text-red-600">
-                Siguen marcadas como activas pero ya no se muestran en la tienda.
-              </div>
+          <div>
+            <div className="font-bold text-red-700">
+              {expiredActive.length} oferta{expiredActive.length > 1 ? 's' : ''} con tiempo expirado
+            </div>
+            <div className="text-sm text-red-600">
+              Siguen marcadas como activas. Cambia la fecha o desactivalas.
             </div>
           </div>
           <button
             onClick={deactivateAllExpired}
             disabled={deactivatingAll}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold text-sm transition disabled:opacity-50 whitespace-nowrap"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold text-sm transition disabled:opacity-50 whitespace-nowrap ml-4"
           >
             {deactivatingAll ? 'Desactivando...' : 'Desactivar expiradas'}
           </button>
@@ -241,7 +206,7 @@ export default function FlashSaleManager() {
           <tbody className="divide-y divide-gray-100">
             {products.map((product) => {
               const isUpdating = updating === product.id;
-              const timeStatus = getTimeStatus(product.is_flash_sale ? product.flash_sale_end_time : null);
+              const timeStatus = getTimeStatus(product.flash_sale_end_time, product.is_flash_sale);
               const rowBg = timeStatus.isExpired
                 ? 'bg-red-50'
                 : product.is_flash_sale
@@ -258,10 +223,10 @@ export default function FlashSaleManager() {
 
                   {/* Price */}
                   <td className="px-4 py-3 text-right">
-                    <div className="font-bold text-gray-800">{(product.price / 100).toFixed(2)} â‚¬</div>
+                    <div className="font-bold text-gray-800">{(product.price / 100).toFixed(2)} &euro;</div>
                     {product.is_flash_sale && product.flash_sale_discount > 0 && (
                       <div className="text-xs text-rose-600 font-semibold">
-                        â†’ {((product.price * (1 - product.flash_sale_discount / 100)) / 100).toFixed(2)} â‚¬
+                        con dto: {((product.price * (1 - product.flash_sale_discount / 100)) / 100).toFixed(2)} &euro;
                       </div>
                     )}
                   </td>
@@ -282,7 +247,7 @@ export default function FlashSaleManager() {
                       {isUpdating ? (
                         <span className="inline-block w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
                       ) : product.is_flash_sale ? (
-                        timeStatus.isExpired ? 'âš  Expirada' : 'âœ“ Activa'
+                        timeStatus.isExpired ? 'Expirada' : 'Activa'
                       ) : (
                         'Inactiva'
                       )}
@@ -298,7 +263,12 @@ export default function FlashSaleManager() {
                           min="1"
                           max="90"
                           value={product.flash_sale_discount || 0}
-                          onChange={(e) => updateDiscount(product.id, parseInt(e.target.value))}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            setProducts((prev) =>
+                              prev.map((p) => (p.id === product.id ? { ...p, flash_sale_discount: val } : p))
+                            );
+                          }}
                           onBlur={(e) => updateDiscount(product.id, parseInt(e.target.value))}
                           disabled={isUpdating}
                           className="w-16 px-2 py-1 border border-gray-300 rounded text-center font-bold text-sm focus:border-rose-400 focus:outline-none disabled:opacity-50"
@@ -306,7 +276,7 @@ export default function FlashSaleManager() {
                         <span className="text-gray-500 text-xs">%</span>
                       </div>
                     ) : (
-                      <span className="text-gray-300">â€”</span>
+                      <span className="text-gray-300 text-sm">-</span>
                     )}
                   </td>
 
@@ -325,17 +295,13 @@ export default function FlashSaleManager() {
                         className="px-2 py-1 border border-gray-300 rounded text-xs focus:border-rose-400 focus:outline-none disabled:opacity-50 w-full max-w-[180px]"
                       />
                     ) : (
-                      <span className="text-gray-300 text-sm">â€”</span>
+                      <span className="text-gray-300 text-sm">-</span>
                     )}
                   </td>
 
                   {/* Time remaining */}
                   <td className="px-4 py-3 text-center">
-                    {product.is_flash_sale && product.flash_sale_end_time ? (
-                      <span className={`text-xs ${timeStatus.color}`}>{timeStatus.label}</span>
-                    ) : (
-                      <span className="text-gray-300 text-xs">â€”</span>
-                    )}
+                    <span className={`text-xs ${timeStatus.color}`}>{timeStatus.label}</span>
                   </td>
                 </tr>
               );

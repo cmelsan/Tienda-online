@@ -25,7 +25,18 @@ let originalPrice = product.price;
 if (product.discountedPrice && product.discount && product.discount > 0) {
   // If we have discountedPrice and discount %, calculate what the original was
   originalPrice = Math.round(product.discountedPrice / (1 - product.discount / 100));
+} else if (product.discountedPrice && product.is_flash_sale && product.flash_sale_discount && product.flash_sale_discount > 0) {
+  // For flash sales, calculate original from flash_sale_discount
+  originalPrice = Math.round(product.discountedPrice / (1 - product.flash_sale_discount / 100));
 }
+console.log(`[ProductCard] ${product.name}:`, {
+  product_price: product.price,
+  product_discountedPrice: product.discountedPrice,
+  product_discount: product.discount,
+  product_is_flash_sale: product.is_flash_sale,
+  product_flash_sale_discount: product.flash_sale_discount,
+  calculated_originalPrice: originalPrice,
+});
 ---
 
 <Card variant="flat">

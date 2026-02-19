@@ -44,6 +44,7 @@ const offersEnabled = offersSettingData?.value === true;
 let productDiscount = 0;
 let productDiscountedPrice = product.price;
 
+// Check for featured offers (rebajas)
 if (offersEnabled) {
   const { data: offersData } = await supabase
     .from('app_settings')
@@ -59,6 +60,12 @@ if (offersEnabled) {
       productDiscountedPrice = Math.round(product.price * (1 - productDiscount / 100));
     }
   }
+}
+
+// If no featured offer, check for flash sale
+if (productDiscount === 0 && product.is_flash_sale && product.flash_sale_discount) {
+  productDiscount = product.flash_sale_discount;
+  productDiscountedPrice = Math.round(product.price * (1 - productDiscount / 100));
 }
 
 // Map category slug to fallback image for related products

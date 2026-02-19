@@ -156,10 +156,21 @@ if (offersEnabled) {
 // 4.7 Add discount info to products if offers are enabled
 const productsWithDiscounts = displayProducts.map(product => {
   const offer = featuredOffers.find(o => o.id === product.id);
+  
+  // Calculate discounted price based on offer or flash sale
+  let discountedPrice = 0;
+  if (offer) {
+    // Featured offer (rebaja)
+    discountedPrice = Math.round(product.price * (1 - offer.discount / 100));
+  } else if (product.is_flash_sale && product.flash_sale_discount > 0) {
+    // Flash sale
+    discountedPrice = Math.round(product.price * (1 - product.flash_sale_discount / 100));
+  }
+  
   return {
     ...product,
     discount: offer?.discount || 0,
-    discountedPrice: offer ? Math.round(product.price * (1 - offer.discount / 100)) : 0,
+    discountedPrice: discountedPrice,
     is_flash_sale: product.is_flash_sale || false,
     flash_sale_discount: product.flash_sale_discount || 0
   };

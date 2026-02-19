@@ -40,10 +40,8 @@ export const POST: APIRoute = async ({ request }) => {
             return new Response(JSON.stringify({ error: 'Failed to validate products' }), { status: 500 });
         }
 
-        // Secondary query — discount info (gracefully ignored if columns don't exist yet)
+        // Secondary query — flash sale discount info
         type DiscountInfo = {
-            discount_price?: number;
-            is_flash_offer?: boolean;
             is_flash_sale?: boolean;
             flash_sale_discount?: number;
             flash_sale_end_time?: string;
@@ -51,7 +49,7 @@ export const POST: APIRoute = async ({ request }) => {
         const discountMap: Record<string, DiscountInfo> = {};
         const { data: discountData } = await supabase
             .from('products')
-            .select('id, discount_price, is_flash_offer, is_flash_sale, flash_sale_discount, flash_sale_end_time')
+            .select('id, is_flash_sale, flash_sale_discount, flash_sale_end_time')
             .in('id', productIds);
         if (discountData) {
             discountData.forEach((d: any) => { discountMap[d.id] = d; });
@@ -70,8 +68,7 @@ export const POST: APIRoute = async ({ request }) => {
                 throw new Error(`Insufficient stock for ${dbProduct.name}. Available: ${dbProduct.stock}`);
             }
 
-            // Calculate effective price respecting discounts from DB
-            // Priority: flash sale (if active) > regular offer > base price
+            // Calculate effective price: flash sale (if active) > base price
             const discountInfo = discountMap[dbProduct.id] || {};
             let unitAmount = Math.round(dbProduct.price);
             const now = new Date();
@@ -81,8 +78,6 @@ export const POST: APIRoute = async ({ request }) => {
                 if (!endTime || endTime > now) {
                     unitAmount = Math.round(dbProduct.price * (1 - discountInfo.flash_sale_discount / 100));
                 }
-            } else if (discountInfo.is_flash_offer && discountInfo.discount_price && discountInfo.discount_price > 0) {
-                unitAmount = Math.round(discountInfo.discount_price);
             }
 
             if (DEBUG) {
@@ -91,7 +86,6 @@ export const POST: APIRoute = async ({ request }) => {
                     basePrice: dbProduct.price,
                     effectivePrice: unitAmount,
                     isFlashSale: discountInfo.is_flash_sale,
-                    isFlashOffer: discountInfo.is_flash_offer,
                     quantity: item.quantity,
                     stock: dbProduct.stock
                 });

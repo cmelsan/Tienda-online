@@ -157,18 +157,30 @@ export default function CartSlideOver() {
 
                                         <p className="text-base font-bold text-black mb-3">
                                             {(() => {
-                                                const hasDiscount = item.product?.discount > 0 || (item.product?.is_flash_sale && item.product?.flash_sale_discount > 0);
-                                                // Use explicitly stored originalPrice OR fallback to price
-                                                const originalPrice = item.product?.originalPrice || item.product?.price || 0;
-                                                const displayPrice = item.product?.discountedPrice || item.product?.price || 0;
-                                                
-                                                if (hasDiscount && displayPrice < originalPrice) {
+                                                const discountPercent = item.product?.discount || item.product?.flash_sale_discount || 0;
+                                                const currentPrice = item.product?.price || 0;
+                                                const displayPrice = item.product?.discountedPrice || currentPrice;
+
+                                                // Calculate original price with all fallbacks:
+                                                // 1. Use explicitly stored originalPrice
+                                                // 2. Calculate from discount % (handles old cart data)
+                                                // 3. Use price as-is if no discount
+                                                let originalPrice = item.product?.originalPrice || 0;
+                                                if (!originalPrice && discountPercent > 0 && displayPrice > 0) {
+                                                    originalPrice = Math.round(displayPrice / (1 - discountPercent / 100));
+                                                } else if (!originalPrice) {
+                                                    originalPrice = currentPrice;
+                                                }
+
+                                                const hasDiscount = discountPercent > 0 && originalPrice > displayPrice;
+
+                                                if (hasDiscount) {
                                                     return (
                                                         <div className="flex gap-2 items-center">
                                                             <span className="line-through text-gray-400 text-sm">
                                                                 {formatPrice(originalPrice)}
                                                             </span>
-                                                            <span className="text-beauty-red">
+                                                            <span className="text-beauty-red font-bold">
                                                                 {formatPrice(displayPrice)}
                                                             </span>
                                                         </div>

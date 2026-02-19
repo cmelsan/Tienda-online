@@ -6,12 +6,12 @@ import { formatCents, formatDate } from '@/lib/invoices';
 const { id } = Astro.params;
 const supabase = await createServerSupabaseClient(Astro, true);
 
+// Query principal sin join auto-referencial
 const { data: inv, error } = await supabase
   .from('invoices')
   .select(`
     *,
-    orders!invoices_order_id_fkey ( order_number, status ),
-    reference_invoice:invoices!invoices_reference_invoice_id_fkey ( invoice_number )
+    orders!invoices_order_id_fkey ( order_number, status )
   `)
   .eq('id', id!)
   .single();
@@ -21,6 +21,18 @@ if (error || !inv) {
 }
 
 const invoice = inv as any;
+
+// Si es abono, buscar la factura original por separado
+let referenceInvoiceNumber: string | null = null;
+if (invoice.reference_invoice_id) {
+  const { data: refInv } = await supabase
+    .from('invoices')
+    .select('invoice_number')
+    .eq('id', invoice.reference_invoice_id)
+    .single();
+  referenceInvoiceNumber = refInv?.invoice_number ?? null;
+}
+
 const isCreditNote = invoice.type === 'credit_note';
 const lineItems    = (invoice.line_items as any[]) || [];
 const address      = invoice.customer_address || {};
@@ -124,9 +136,9 @@ const docTitle = isCreditNote
           Factura de abono —
           {invoice.credit_note_scope === 'partial' ? ' devolución parcial' : ' devolución total'}
         </span>
-        {(invoice as any).reference_invoice?.invoice_number && (
+        {referenceInvoiceNumber && (
           <span class="ref">
-            Ref. factura original: {(invoice as any).reference_invoice.invoice_number}
+            Ref. factura original: {referenceInvoiceNumber}
           </span>
         )}
       </div>

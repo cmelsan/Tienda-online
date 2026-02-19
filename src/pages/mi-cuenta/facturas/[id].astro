@@ -15,8 +15,7 @@ const { data: inv, error } = await supabase
   .from('invoices')
   .select(`
     *,
-    orders!invoices_order_id_fkey ( order_number, status, user_id ),
-    reference_invoice:invoices!invoices_reference_invoice_id_fkey ( invoice_number )
+    orders!invoices_order_id_fkey ( order_number, status, user_id )
   `)
   .eq('id', id!)
   .single();
@@ -27,6 +26,17 @@ if (error || !inv || (inv as any).orders?.user_id !== user.id) {
 }
 
 const invoice    = inv as any;
+
+// Factura original (para abonos) — query separada para evitar join auto-referencial
+let referenceInvoiceNumber: string | null = null;
+if (invoice.reference_invoice_id) {
+  const { data: refInv } = await supabase
+    .from('invoices')
+    .select('invoice_number')
+    .eq('id', invoice.reference_invoice_id)
+    .single();
+  referenceInvoiceNumber = refInv?.invoice_number ?? null;
+}
 const isCreditNote = invoice.type === 'credit_note';
 const lineItems    = (invoice.line_items as any[]) || [];
 const address      = invoice.customer_address || {};
@@ -120,8 +130,8 @@ const docTitle = isCreditNote
           Factura de abono —
           {invoice.credit_note_scope === 'partial' ? ' devolución parcial' : ' devolución total'}
         </span>
-        {invoice.reference_invoice?.invoice_number && (
-          <span class="ref">Ref. factura original: {invoice.reference_invoice.invoice_number}</span>
+        {referenceInvoiceNumber && (
+          <span class="ref">Ref. factura original: {referenceInvoiceNumber}</span>
         )}
       </div>
     )}

@@ -123,12 +123,18 @@ export default function CartSlideOver() {
                                     className="flex gap-4 pb-4 border-b border-gray-100 last:border-0"
                                 >
                                     {/* Product Image */}
-                                    <div className="w-20 h-20 flex-shrink-0">
+                                    <div className="w-20 h-20 flex-shrink-0 relative">
                                         <img
                                             src={item.product?.images?.[0] || '/placeholder-product.jpg'}
                                             alt={item.product?.name || 'Producto'}
                                             className="w-full h-full object-cover rounded-lg"
                                         />
+                                        {/* Discount Badge */}
+                                        {(item.product?.discount > 0 || (item.product?.is_flash_sale && item.product?.flash_sale_discount > 0)) && (
+                                            <div className="absolute -top-2 -left-2 w-10 h-10 flex items-center justify-center rounded-full bg-beauty-red text-white font-bold text-xs shadow-md">
+                                                -{item.product?.discount || item.product?.flash_sale_discount}%
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Product Info */}

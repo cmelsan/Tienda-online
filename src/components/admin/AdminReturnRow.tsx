@@ -78,14 +78,14 @@ export default function AdminReturnRow({ orderId, orderTotal, refundAmount, orde
             {isRefunded ? (
                 <>
                     {/* REFUNDED: Show confirmation */}
-                    <div className="bg-green-50 border border-green-200 rounded p-4">
-                        <p className="text-sm font-semibold text-green-800">
+                    <div className="bg-gray-50 border border-gray-200 p-4">
+                        <p className="text-sm font-bold uppercase tracking-wider text-black">
                             Reembolso completado
                         </p>
-                        <p className="text-xs text-green-700 mt-1">
-                            Cantidad reembolsada: <span className="font-bold">{displayRefundAmount}</span>
+                        <p className="text-xs text-gray-600 mt-1">
+                            Cantidad reembolsada: <span className="font-bold text-black">{displayRefundAmount}</span>
                             {displayRefundAmount !== orderTotal && (
-                                <span className="text-gray-600 ml-1">(total pedido: {orderTotal})</span>
+                                <span className="text-gray-500 ml-1">(total pedido: {orderTotal})</span>
                             )}
                         </p>
                     </div>
@@ -94,10 +94,10 @@ export default function AdminReturnRow({ orderId, orderTotal, refundAmount, orde
                 <>
                     {/* REFUND STAGE: Process Refund */}
                     <div>
-                        <p className="text-sm font-semibold text-gray-700 mb-3">
-                            Devolución aprobada. Procesar reembolso de <span className="text-green-600">{displayRefundAmount}</span>
+                        <p className="text-sm font-bold text-black mb-3 uppercase tracking-wider">
+                            Devolución aprobada — procesar reembolso de <span className="text-pink-500">{displayRefundAmount}</span>
                             {displayRefundAmount !== orderTotal && (
-                                <span className="text-xs text-gray-500 ml-1">(total pedido: {orderTotal})</span>
+                                <span className="text-xs text-gray-500 ml-1 lowercase font-normal">(total pedido: {orderTotal})</span>
                             )}
                         </p>
                     </div>
@@ -106,7 +106,7 @@ export default function AdminReturnRow({ orderId, orderTotal, refundAmount, orde
                         <button
                             onClick={handleProcessRefund}
                             disabled={isProcessing}
-                            className="flex-1 bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
+                            className="flex-1 bg-black hover:bg-pink-500 text-white px-4 py-3 text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isProcessing ? 'Procesando...' : 'Procesar Reembolso'}
                         </button>
@@ -123,7 +123,7 @@ export default function AdminReturnRow({ orderId, orderTotal, refundAmount, orde
                         <textarea
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            className="w-full border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none resize-none rounded"
+                            className="w-full border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none resize-none"
                             rows={2}
                             placeholder="Añade comentarios sobre esta devolución..."
                             disabled={isProcessing}
@@ -135,25 +135,25 @@ export default function AdminReturnRow({ orderId, orderTotal, refundAmount, orde
                         <button
                             onClick={() => handleProcessReturn(true, true, 'Devolución aprobada y stock restaurado')}
                             disabled={isProcessing}
-                            className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
+                            className="flex-1 bg-black hover:bg-pink-500 text-white px-4 py-3 text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isProcessing ? 'Procesando...' : 'Aprobar y Restaurar Stock'}
+                            {isProcessing ? 'Procesando...' : 'Aprobar + Stock'}
                         </button>
 
                         <button
                             onClick={() => handleProcessReturn(true, false, 'Devolución aprobada sin restaurar stock')}
                             disabled={isProcessing}
-                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
+                            className="flex-1 bg-gray-700 hover:bg-gray-900 text-white px-4 py-3 text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isProcessing ? 'Procesando...' : 'Aprobar sin Restaurar Stock'}
+                            {isProcessing ? 'Procesando...' : 'Aprobar sin Stock'}
                         </button>
 
                         <button
                             onClick={() => handleProcessReturn(false, false, 'Devolución rechazada')}
                             disabled={isProcessing}
-                            className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
+                            className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isProcessing ? 'Procesando...' : 'Rechazar Devolución'}
+                            {isProcessing ? 'Procesando...' : 'Rechazar'}
                         </button>
                     </div>
                 </>

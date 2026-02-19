@@ -50,7 +50,9 @@ if (Array.isArray(featuredOffers) && featuredOffers.length > 0) {
         return {
           ...product,
           discount: offer.discount || 0,
-          discountedPrice: Math.round(product.price * (1 - (offer.discount || 0) / 100))
+          discountedPrice: Math.round(product.price * (1 - (offer.discount || 0) / 100)),
+          is_flash_sale: product.is_flash_sale || false,
+          flash_sale_discount: product.flash_sale_discount || 0
         };
       }
       return null;

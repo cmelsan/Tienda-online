@@ -185,7 +185,9 @@ const { data: relatedProducts } = await supabase
             product={{
               ...product,
               discount: productDiscount,
-              discountedPrice: productDiscountedPrice
+              discountedPrice: productDiscountedPrice,
+              is_flash_sale: product.is_flash_sale || false,
+              flash_sale_discount: product.flash_sale_discount || 0
             }} 
             client:visible 
           />

@@ -159,7 +159,9 @@ const productsWithDiscounts = displayProducts.map(product => {
   return {
     ...product,
     discount: offer?.discount || 0,
-    discountedPrice: offer ? Math.round(product.price * (1 - offer.discount / 100)) : 0
+    discountedPrice: offer ? Math.round(product.price * (1 - offer.discount / 100)) : 0,
+    is_flash_sale: product.is_flash_sale || false,
+    flash_sale_discount: product.flash_sale_discount || 0
   };
 });
 

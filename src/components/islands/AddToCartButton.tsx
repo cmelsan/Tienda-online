@@ -57,13 +57,17 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
                 finalPrice: finalPrice,
                 discount: product.discount || product.flash_sale_discount || 0,
                 discountedPrice: finalPrice,
+                is_flash_sale: product.is_flash_sale || false,
+                flash_sale_discount: product.flash_sale_discount || 0,
                 quantity
             });
 
             // Agregar al carrito manteniendo todos los datos del producto
             addToCart({
                 ...product,
-                discountedPrice: finalPrice  // Guardar el precio con descuento
+                discountedPrice: finalPrice,  // Guardar el precio con descuento
+                is_flash_sale: product.is_flash_sale || false,  // Preservar campo flash sale
+                flash_sale_discount: product.flash_sale_discount || 0  // Preservar descuento de flash sale
                 // NO modificar product.price para mantener el precio original
             }, quantity);
 

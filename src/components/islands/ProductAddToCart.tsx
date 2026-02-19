@@ -8,16 +8,23 @@ interface ProductAddToCartProps {
     discount?: number;
     image?: string;
     slug: string;
+    is_flash_sale?: boolean;
+    flash_sale_discount?: number;
 }
 
-export default function ProductAddToCart({ productId, productName, price, discountedPrice, discount, image, slug }: ProductAddToCartProps) {
+export default function ProductAddToCart({ productId, productName, price, discountedPrice, discount, image, slug, is_flash_sale, flash_sale_discount }: ProductAddToCartProps) {
     const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
         try {
-            // Use discounted price if available (from ofertas/rebajas)
-            const finalPrice = discountedPrice || price;
+            // Calculate final price: use discountedPrice if available, else calculate from flash_sale_discount
+            let finalPrice = price;
+            if (discountedPrice) {
+                finalPrice = discountedPrice;
+            } else if (is_flash_sale && flash_sale_discount && flash_sale_discount > 0) {
+                finalPrice = Math.round(price * (1 - flash_sale_discount / 100));
+            }
             
             console.log('[ProductAddToCart] Adding product:', {
                 id: productId,
@@ -25,6 +32,8 @@ export default function ProductAddToCart({ productId, productName, price, discou
                 originalPrice: price,
                 finalPrice: finalPrice,
                 discount: discount || 0,
+                is_flash_sale: is_flash_sale || false,
+                flash_sale_discount: flash_sale_discount || 0,
             });
 
             addToCart(
@@ -34,6 +43,8 @@ export default function ProductAddToCart({ productId, productName, price, discou
                     price: finalPrice,  // Use the discounted price
                     discountedPrice: finalPrice,
                     discount: discount || 0,
+                    is_flash_sale: is_flash_sale || false,
+                    flash_sale_discount: flash_sale_discount || 0,
                     images: image ? [image] : [],
                     slug,
                     stock: 999,

@@ -20,6 +20,12 @@ export const DELETE: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({ error: 'Missing orderId' }), { status: 400, headers });
     }
 
+    // Validar formato UUID antes de llegar al RPC
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_REGEX.test(orderId)) {
+        return new Response(JSON.stringify({ error: 'Invalid orderId format' }), { status: 400, headers });
+    }
+
     const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 

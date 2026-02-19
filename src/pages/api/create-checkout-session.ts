@@ -22,6 +22,12 @@ export const POST: APIRoute = async ({ request }) => {
             return new Response(JSON.stringify({ error: 'Missing required parameters' }), { status: 400 });
         }
 
+        // SECURITY: Validate orderId format before hitting the DB
+        const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!UUID_REGEX.test(orderId)) {
+            return new Response(JSON.stringify({ error: 'Invalid orderId' }), { status: 400 });
+        }
+
         // SECURITY: Validate prices against database (never trust client)
         const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
         const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;

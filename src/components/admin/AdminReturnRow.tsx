@@ -1,6 +1,50 @@
 import { useState } from 'react';
 import { addNotification } from '@/stores/notifications';
 
+type ConfirmActionType = 'approve_stock' | 'approve_no_stock' | 'reject' | 'refund';
+
+// Extraído fuera del componente padre para evitar redefinición en cada render
+interface ConfirmModalProps {
+    action: ConfirmActionType;
+    refundAmountCents: number;
+    onCancel: () => void;
+    onConfirm: (action: ConfirmActionType) => void;
+}
+
+function ConfirmModal({ action, refundAmountCents, onCancel, onConfirm }: ConfirmModalProps) {
+    const messages: Record<ConfirmActionType, string> = {
+        approve_stock: `¿Aprobar devolución y restaurar stock?`,
+        approve_no_stock: `¿Aprobar devolución sin restaurar stock?`,
+        reject: `¿Rechazar devolución? El pedido volverá a estado "Entregado".`,
+        refund: `¿Procesar reembolso de ${formatPrice(refundAmountCents)} en Stripe? Esta acción no se puede deshacer.`,
+    };
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+            <div className="bg-white shadow-2xl p-8 max-w-sm w-full mx-4">
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-black text-black">Confirmar acción</h3>
+                    <div className="w-6 h-0.5 bg-pink-500"></div>
+                </div>
+                <p className="text-sm text-gray-600 mb-6">{messages[action]}</p>
+                <div className="flex gap-3">
+                    <button
+                        onClick={onCancel}
+                        className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-500 text-xs font-bold uppercase tracking-widest hover:bg-gray-50"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        onClick={() => onConfirm(action)}
+                        className="flex-1 px-4 py-2.5 bg-black text-white text-xs font-bold uppercase tracking-widest hover:bg-gray-900"
+                    >
+                        Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 interface AdminReturnRowProps {
     orderId: string;
     orderTotalCents: number;
@@ -15,7 +59,7 @@ function formatPrice(cents: number) {
 export default function AdminReturnRow({ orderId, orderTotalCents, refundAmountCents, orderStatus = 'return_requested' }: AdminReturnRowProps) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [notes, setNotes] = useState('');
-    const [confirmAction, setConfirmAction] = useState<null | 'approve_stock' | 'approve_no_stock' | 'reject' | 'refund'>(null);
+    const [confirmAction, setConfirmAction] = useState<null | ConfirmActionType>(null);
 
     const isRefundStage = orderStatus === 'returned' || orderStatus === 'partially_returned';
     const isRefunded = orderStatus === 'refunded' || orderStatus === 'partially_refunded';
@@ -79,49 +123,23 @@ export default function AdminReturnRow({ orderId, orderTotalCents, refundAmountC
         }
     };
 
-    // Confirm modal inline
-    const ConfirmModal = ({ action }: { action: NonNullable<typeof confirmAction> }) => {
-        const messages: Record<typeof action, string> = {
-            approve_stock: `¿Aprobar devolución y restaurar stock?`,
-            approve_no_stock: `¿Aprobar devolución sin restaurar stock?`,
-            reject: `¿Rechazar devolución? El pedido volverá a estado "Entregado".`,
-            refund: `¿Procesar reembolso de ${formatPrice(refundAmountCents)} en Stripe? Esta acción no se puede deshacer.`,
-        };
-        return (
-            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-                <div className="bg-white shadow-2xl p-8 max-w-sm w-full mx-4">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-black text-black">Confirmar acción</h3>
-                        <div className="w-6 h-0.5 bg-pink-500"></div>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-6">{messages[action]}</p>
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => setConfirmAction(null)}
-                            className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-500 text-xs font-bold uppercase tracking-widest hover:bg-gray-50"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            onClick={() => {
-                                if (action === 'approve_stock') handleProcessReturn(true, true);
-                                else if (action === 'approve_no_stock') handleProcessReturn(true, false);
-                                else if (action === 'reject') handleProcessReturn(false, false);
-                                else if (action === 'refund') handleProcessRefund();
-                            }}
-                            className="flex-1 px-4 py-2.5 bg-black text-white text-xs font-bold uppercase tracking-widest hover:bg-gray-900"
-                        >
-                            Confirmar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
+    const handleConfirm = (action: ConfirmActionType) => {
+        if (action === 'approve_stock') handleProcessReturn(true, true);
+        else if (action === 'approve_no_stock') handleProcessReturn(true, false);
+        else if (action === 'reject') handleProcessReturn(false, false);
+        else if (action === 'refund') handleProcessRefund();
     };
 
     return (
         <div className="space-y-4">
-            {confirmAction && <ConfirmModal action={confirmAction} />}
+            {confirmAction && (
+                <ConfirmModal
+                    action={confirmAction}
+                    refundAmountCents={refundAmountCents}
+                    onCancel={() => setConfirmAction(null)}
+                    onConfirm={handleConfirm}
+                />
+            )}
 
             {isRefunded ? (
                 <div className="bg-gray-50 border border-gray-200 p-4">

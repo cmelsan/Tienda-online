@@ -134,7 +134,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 }
             });
 
-            if (stripeRefund.status !== 'succeeded') {
+            // 'pending' es válido: los reembolsos bancarios tardan 5-10 días
+            if (!['succeeded', 'pending'].includes(stripeRefund.status)) {
                 return new Response(
                     JSON.stringify({ 
                         success: false, 
@@ -198,13 +199,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             console.error('[API] Credit note error:', creditErr.message);
         }
 
-        // Registrar reembolso en tabla de auditoría (opcional)
+        // Registrar reembolso en tabla de auditoría (monto real reembolsado, no el total del pedido)
         await userClient
             .from('refunds_log')
             .insert({
                 order_id: orderId,
                 stripe_refund_id: stripeRefund.id,
-                amount: order.total_amount,
+                amount: finalRefundAmountCents,
                 admin_id: session.user.id,
                 notes: notes,
                 created_at: new Date().toISOString()
@@ -230,10 +231,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         }
 
         if (customerEmail) {
+            // Usar el monto realmente reembolsado (no el total del pedido en caso de reembolso parcial)
             const emailTemplate = getRefundProcessedTemplate(
                 customerName,
                 order.order_number || orderId.slice(0, 8).toUpperCase(),
-                order.total_amount
+                finalRefundAmountCents
             );
 
             await sendEmail({

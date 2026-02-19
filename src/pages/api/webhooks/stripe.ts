@@ -76,6 +76,12 @@ export const POST: APIRoute = async ({ request }) => {
                     console.log('[Stripe Webhook] Order data fetched');
                 }
 
+                // P0: Idempotencia — si el pedido ya está pagado no procesar de nuevo
+                if (orderData?.status === 'paid' || orderData?.status === 'shipped' || orderData?.status === 'delivered') {
+                    console.log('[Stripe Webhook] Order already processed (status:', orderData.status, '), skipping idempotent event');
+                    return new Response('Already processed', { status: 200 });
+                }
+
                 // Get customer name from order (stored when order was created)
                 const customerName = orderData?.customer_name || 'Cliente';
                 if (DEBUG) {
@@ -88,10 +94,15 @@ export const POST: APIRoute = async ({ request }) => {
                     : session.payment_intent?.id || null;
 
                 if (paymentIntentId) {
-                    await supabase
+                    const { error: piError } = await supabase
                         .from('orders')
                         .update({ stripe_payment_intent_id: paymentIntentId })
                         .eq('id', orderId);
+                    if (piError) {
+                        console.error('[Stripe Webhook] CRITICAL: Failed to save stripe_payment_intent_id:', piError.message);
+                    } else {
+                        console.log('[Stripe Webhook] stripe_payment_intent_id saved:', paymentIntentId);
+                    }
                 }
 
                 const { data: updateData, error: updateError } = await supabase.rpc('update_order_status', {

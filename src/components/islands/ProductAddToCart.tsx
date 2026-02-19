@@ -26,14 +26,13 @@ export default function ProductAddToCart({ productId, productName, price, discou
                 finalPrice = Math.round(price * (1 - flash_sale_discount / 100));
             }
             
-            console.log('[ProductAddToCart] Adding product:', {
-                id: productId,
-                name: productName,
-                originalPrice: price,
-                finalPrice: finalPrice,
-                discount: discount || 0,
-                is_flash_sale: is_flash_sale || false,
-                flash_sale_discount: flash_sale_discount || 0,
+            console.log('[ProductAddToCart] DEBUG:', {
+                received_price: price,
+                received_discountedPrice: discountedPrice,
+                received_discount: discount,
+                received_is_flash_sale: is_flash_sale,
+                received_flash_sale_discount: flash_sale_discount,
+                calculated_finalPrice: finalPrice,
             });
 
             addToCart(

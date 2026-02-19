@@ -18,6 +18,14 @@ let imageUrl = product.images?.[0];
 if (!imageUrl || imageUrl.includes('placeholder')) {
   imageUrl = fallbackImage || '/placeholder-product.jpg';
 }
+
+// Calculate original price: if there's a discounted price, calculate the original
+// Otherwise use the price as-is (it's already the original)
+let originalPrice = product.price;
+if (product.discountedPrice && product.discount && product.discount > 0) {
+  // If we have discountedPrice and discount %, calculate what the original was
+  originalPrice = Math.round(product.discountedPrice / (1 - product.discount / 100));
+}
 ---
 
 <Card variant="flat">
@@ -71,7 +79,7 @@ if (!imageUrl || imageUrl.includes('placeholder')) {
               {product.discount > 0 ? (
                 <div class="flex flex-col gap-1">
                   <p class="text-xs text-gray-500 line-through">
-                    {formatPrice(product.price)}
+                    {formatPrice(originalPrice)}
                   </p>
                   <p class="text-lg font-semibold text-beauty-red tracking-tight">
                     {formatPrice(product.discountedPrice)}
@@ -79,7 +87,7 @@ if (!imageUrl || imageUrl.includes('placeholder')) {
                 </div>
               ) : (
                 <p class="text-lg font-semibold text-black tracking-tight">
-                  {formatPrice(product.price)}
+                  {formatPrice(originalPrice)}
                 </p>
               )}
             </div>
@@ -100,7 +108,7 @@ if (!imageUrl || imageUrl.includes('placeholder')) {
             client:load
             productId={product.id}
             productName={product.name}
-            price={product.price}
+            price={originalPrice}
             discountedPrice={product.discountedPrice}
             discount={product.discount}
             is_flash_sale={product.is_flash_sale}

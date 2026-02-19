@@ -68,63 +68,96 @@ const orderId = searchParams.get('orderId');
       }
     }
   </script>
-  <div class="min-h-[60vh] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100 text-center">
-      
-      <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6">
-        <svg class="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
+  <div class="min-h-[80vh] flex items-center justify-center bg-[#faf9f7] py-16 px-4">
+    <div class="max-w-lg w-full text-center">
+
+      <!-- Icono animado -->
+      <div class="relative mx-auto mb-8 w-24 h-24">
+        <div class="absolute inset-0 rounded-full bg-rose-50 animate-ping opacity-30"></div>
+        <div class="relative flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-rose-100 to-pink-50 border border-rose-200 shadow-md">
+          <svg class="h-11 w-11 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
       </div>
 
-      <div>
-        <h2 class="mt-2 text-3xl font-extrabold text-gray-900 font-sans tracking-tight">
-          ¡Gracias por tu compra!
-        </h2>
-        <p class="mt-4 text-sm text-gray-500">
-          Tu pedido ha sido procesado correctamente.
-          {email && (
-            <span> Hemos enviado un correo de confirmación a <strong class="text-black">{email}</strong>.</span>
-          )}
-        </p>
-        {orderId && (
-            <div class="mt-4 inline-block bg-gray-50 px-4 py-2 rounded-md border border-gray-200">
-                <p class="text-xs text-gray-500 uppercase tracking-widest font-bold">Referencia del Pedido</p>
-                <p class="text-lg font-mono text-black" id="orderNumber">#loading...</p>
-            </div>
+      <!-- Título -->
+      <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">¡Pedido confirmado!</h1>
+      <p class="text-gray-500 text-sm mb-8">
+        Gracias por tu compra en ÉCLAT Beauty.
+        {email && (
+          <span> Recibirás un email en <strong class="text-gray-800">{email}</strong>.</span>
         )}
-      </div>
+      </p>
+
+      <!-- Número de pedido -->
+      {orderId && (
+        <div class="mb-8 mx-auto max-w-xs">
+          <div class="bg-white border border-gray-200 rounded-xl px-6 py-4 shadow-sm">
+            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Número de pedido</p>
+            <p class="text-xl font-bold text-gray-900 font-mono tracking-wide" id="orderNumber">Cargando...</p>
+          </div>
+        </div>
+      )}
 
       <script>
-        // Recuperar número de pedido de localStorage
         if (typeof window !== 'undefined') {
-          const orderNumberElement = document.getElementById('orderNumber');
-          if (orderNumberElement) {
-            const orderNumber = localStorage.getItem('eclat:lastOrderNumber');
-            if (orderNumber) {
-              orderNumberElement.textContent = `#${orderNumber}`;
-            } else {
-              // Fallback si no está disponible
-              orderNumberElement.textContent = '#N/A';
-            }
+          const el = document.getElementById('orderNumber');
+          if (el) {
+            const n = localStorage.getItem('eclat:lastOrderNumber');
+            el.textContent = n ? `#${n}` : '#N/A';
           }
         }
       </script>
 
-      <div class="mt-8 space-y-4">
-        <a href="/" class="block w-full bg-black text-white px-8 py-4 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-            Volver a la Tienda
+      <!-- Pasos que siguen -->
+      <div class="mb-10 grid grid-cols-3 gap-4 text-center">
+        <div class="flex flex-col items-center gap-2">
+          <div class="w-10 h-10 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center">
+            <svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <p class="text-[11px] text-gray-500 leading-tight">Email de<br/>confirmación</p>
+        </div>
+        <div class="flex flex-col items-center gap-2">
+          <div class="w-10 h-10 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center">
+            <svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+            </svg>
+          </div>
+          <p class="text-[11px] text-gray-500 leading-tight">Preparación<br/>del pedido</p>
+        </div>
+        <div class="flex flex-col items-center gap-2">
+          <div class="w-10 h-10 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center">
+            <svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+            </svg>
+          </div>
+          <p class="text-[11px] text-gray-500 leading-tight">Entrega en<br/>tu domicilio</p>
+        </div>
+      </div>
+
+      <!-- CTAs -->
+      <div class="space-y-3">
+        <a href="/mi-cuenta/pedidos" class="flex items-center justify-center gap-2 w-full bg-black text-white px-8 py-4 text-xs font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors shadow-md">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+          Ver mis pedidos
         </a>
-        <a href="/mi-cuenta/pedidos" class="block w-full text-black px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors border border-gray-200">
-            Ver Mis Pedidos
+        <a href="/" class="flex items-center justify-center gap-2 w-full border border-gray-200 bg-white text-gray-700 px-8 py-3.5 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"/>
+          </svg>
+          Seguir comprando
         </a>
       </div>
-      
-      <div class="pt-6 mt-6 border-t border-gray-100">
-          <p class="text-xs text-gray-400">
-              ¿No has recibido el email? Revisa tu carpeta de spam o <a href="/contacto" class="underline hover:text-black">contáctanos</a>.
-          </p>
-      </div>
+
+      <!-- Footer note -->
+      <p class="mt-8 text-[11px] text-gray-400">
+        ¿No has recibido el email? Revisa spam o <a href="/contacto" class="underline hover:text-gray-700 transition-colors">contáctanos</a>.
+      </p>
 
     </div>
   </div>

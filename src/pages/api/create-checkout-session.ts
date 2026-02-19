@@ -30,7 +30,7 @@ export const POST: APIRoute = async ({ request }) => {
         const productIds = items.map((item: any) => item.product.id);
         const { data: dbProducts, error: dbError } = await supabase
             .from('products')
-            .select('id, name, price, stock, images')
+            .select('id, name, price, stock, images, discount_price, is_flash_offer, is_flash_sale, flash_sale_discount, flash_sale_end_time')
             .in('id', productIds);
 
         if (dbError || !dbProducts) {
@@ -51,13 +51,27 @@ export const POST: APIRoute = async ({ request }) => {
                 throw new Error(`Insufficient stock for ${dbProduct.name}. Available: ${dbProduct.stock}`);
             }
 
-            // Use DATABASE price (in cents), not client-provided price
-            const unitAmount = Math.round(dbProduct.price);
+            // Calculate effective price respecting discounts from DB
+            // Priority: flash sale (if active) > regular offer > base price
+            let unitAmount = Math.round(dbProduct.price);
+            const now = new Date();
+
+            if (dbProduct.is_flash_sale && dbProduct.flash_sale_discount > 0) {
+                const endTime = dbProduct.flash_sale_end_time ? new Date(dbProduct.flash_sale_end_time) : null;
+                if (!endTime || endTime > now) {
+                    unitAmount = Math.round(dbProduct.price * (1 - dbProduct.flash_sale_discount / 100));
+                }
+            } else if (dbProduct.is_flash_offer && dbProduct.discount_price > 0) {
+                unitAmount = Math.round(dbProduct.discount_price);
+            }
 
             if (DEBUG) {
                 console.log('[Checkout] Product validated:', {
                     name: dbProduct.name,
-                    price: unitAmount,
+                    basePrice: dbProduct.price,
+                    effectivePrice: unitAmount,
+                    isFlashSale: dbProduct.is_flash_sale,
+                    isFlashOffer: dbProduct.is_flash_offer,
                     quantity: item.quantity,
                     stock: dbProduct.stock
                 });

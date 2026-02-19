@@ -199,7 +199,41 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
 
     const currentAction = availableActions.find(a => a.type === modalAction);
 
+    // Special handler for deleting abandoned awaiting_payment orders
+    const handleDeletePending = async () => {
+        if (!window.confirm('¿Eliminar este pedido abandonado? Esta acción no se puede deshacer.')) return;
+        setIsLoading(true);
+        try {
+            const res = await fetch(`/api/orders/delete-pending?orderId=${order.id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                addNotification('Pedido eliminado correctamente', 'success');
+                if (onActionComplete) onActionComplete('deleted');
+                // Remove the row from DOM
+                const row = document.querySelector(`[data-order-id="${order.id}"]`);
+                if (row) row.remove();
+            } else {
+                addNotification('Error al eliminar el pedido', 'error');
+            }
+        } catch {
+            addNotification('Error de conexión', 'error');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     if (availableActions.length === 0) {
+        if (order.status === 'awaiting_payment') {
+            return (
+                <button
+                    onClick={handleDeletePending}
+                    disabled={isLoading}
+                    className="text-[11px] text-red-400 hover:text-red-600 font-semibold transition-colors disabled:opacity-40"
+                >
+                    {isLoading ? 'Eliminando...' : 'Eliminar'}
+                </button>
+            );
+        }
         return <span className="text-[10px] text-gray-300 uppercase tracking-widest">—</span>;
     }
 

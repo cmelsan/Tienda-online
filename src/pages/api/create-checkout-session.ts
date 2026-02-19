@@ -132,7 +132,7 @@ export const POST: APIRoute = async ({ request }) => {
             line_items,
             mode: 'payment',
             success_url: `${YOUR_DOMAIN}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${YOUR_DOMAIN}/carrito?canceled=true`,
+            cancel_url: `${YOUR_DOMAIN}/carrito?canceled=true&orderId=${orderId}`,
             customer_email: email,
             metadata: {
                 orderId: orderId,

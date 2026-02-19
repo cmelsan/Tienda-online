@@ -12,7 +12,14 @@ export const POST: APIRoute = async ({ request, cookies, redirect: astroRedirect
         });
 
         if (error) {
-            return new Response(JSON.stringify({ error: error.message }), {
+            const msg = error.message.includes('Invalid login credentials')
+              ? 'Correo o contraseña incorrectos.'
+              : error.message.includes('Email not confirmed')
+              ? 'Debes confirmar tu correo electrónico antes de iniciar sesión.'
+              : error.message.includes('Too many requests')
+              ? 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.'
+              : 'Error al iniciar sesión. Inténtalo de nuevo.';
+            return new Response(JSON.stringify({ error: msg }), {
                 status: 401,
             });
         }
@@ -65,12 +72,12 @@ export const POST: APIRoute = async ({ request, cookies, redirect: astroRedirect
             });
         }
 
-        return new Response(JSON.stringify({ error: 'No session created' }), {
+        return new Response(JSON.stringify({ error: 'No se pudo crear la sesión. Inténtalo de nuevo.' }), {
             status: 401,
         });
     } catch (err) {
         console.error('[Login API] Error:', err);
-        return new Response(JSON.stringify({ error: 'Internal server error' }), {
+        return new Response(JSON.stringify({ error: 'Error interno del servidor. Inténtalo más tarde.' }), {
             status: 500,
         });
     }

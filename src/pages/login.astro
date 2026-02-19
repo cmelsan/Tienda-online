@@ -22,8 +22,8 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
             id="email"
             name="email"
             required
-            placeholder="EMAIL"
-            class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 uppercase rounded-none"
+            placeholder="correo electrónico"
+            class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 lowercase rounded-none"
           />
         </div>
 
@@ -99,7 +99,7 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
+        throw new Error(data.error || 'Credenciales incorrectas. Por favor, inténtalo de nuevo.');
       }
 
       if (data.user) {

@@ -3,6 +3,11 @@
 -- El stock se descuenta en el webhook de Stripe al confirmar el pago.
 -- Ejecutar en Supabase SQL Editor
 -- ============================================
+-- Este archivo contiene 3 funciones a actualizar:
+-- 1. create_order         → crea con 'awaiting_payment', sin descontar stock
+-- 2. cancel_order         → permite cancelar también desde 'awaiting_payment' (sin restaurar stock)
+-- 3. admin_cancel_order_atomic → ídem para el admin
+-- ============================================
 
 CREATE OR REPLACE FUNCTION create_order(
   p_items JSONB,
@@ -74,5 +79,119 @@ BEGIN
 
 EXCEPTION WHEN OTHERS THEN
   RETURN jsonb_build_object('success', false, 'message', SQLERRM);
+END;
+$$;
+
+
+-- ============================================================
+-- 2. cancel_order actualizado
+-- Permite cancelar desde 'paid' (restaura stock) o desde
+-- 'awaiting_payment' (no restaura stock, nunca se descontó).
+-- ============================================================
+CREATE OR REPLACE FUNCTION cancel_order(p_order_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_order_status VARCHAR;
+  v_user_id UUID;
+  v_item RECORD;
+BEGIN
+  SELECT status, user_id INTO v_order_status, v_user_id
+  FROM orders WHERE id = p_order_id;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Order not found');
+  END IF;
+
+  IF v_user_id != auth.uid() THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Unauthorized');
+  END IF;
+
+  IF v_order_status NOT IN ('paid', 'awaiting_payment') THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Order cannot be cancelled. It may already be shipped or cancelled.');
+  END IF;
+
+  UPDATE orders SET status = 'cancelled', updated_at = NOW() WHERE id = p_order_id;
+
+  -- Solo restaurar stock si el pedido estaba 'paid' (el stock se descuenta en el webhook)
+  IF v_order_status = 'paid' THEN
+    FOR v_item IN SELECT product_id, quantity FROM order_items WHERE order_id = p_order_id LOOP
+      UPDATE products SET stock = stock + v_item.quantity WHERE id = v_item.product_id;
+    END LOOP;
+  END IF;
+
+  -- Liberar cupón si existía
+  IF EXISTS (SELECT 1 FROM coupon_usage WHERE order_id = p_order_id) THEN
+    UPDATE coupons
+    SET current_uses = GREATEST(0, current_uses - 1)
+    WHERE id IN (SELECT coupon_id FROM coupon_usage WHERE order_id = p_order_id);
+    DELETE FROM coupon_usage WHERE order_id = p_order_id;
+  END IF;
+
+  INSERT INTO order_status_history (order_id, from_status, to_status, changed_by, changed_by_type, notes)
+  VALUES (p_order_id, v_order_status, 'cancelled', auth.uid(), 'user', 'Self-cancelled by customer');
+
+  RETURN jsonb_build_object('success', true, 'message', 'Order cancelled successfully');
+EXCEPTION WHEN OTHERS THEN
+  RETURN jsonb_build_object('success', false, 'message', SQLERRM);
+END;
+$$;
+
+
+-- ============================================================
+-- 3. admin_cancel_order_atomic actualizado
+-- Igual: permite cancelar 'paid' (restaura stock) o
+-- 'awaiting_payment' (sin restaurar stock).
+-- ============================================================
+CREATE OR REPLACE FUNCTION admin_cancel_order_atomic(
+    p_order_id UUID,
+    p_admin_id UUID,
+    p_notes TEXT DEFAULT NULL
+)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_order RECORD;
+    v_order_item RECORD;
+BEGIN
+    SELECT * INTO v_order FROM orders WHERE id = p_order_id;
+
+    IF NOT FOUND THEN
+        RETURN json_build_object('success', false, 'error', 'Pedido no encontrado', 'code', 'ORDER_NOT_FOUND');
+    END IF;
+
+    IF v_order.status NOT IN ('paid', 'awaiting_payment') THEN
+        RETURN json_build_object(
+            'success', false,
+            'error', 'Solo se pueden cancelar pedidos pagados o pendientes de pago',
+            'current_status', v_order.status,
+            'code', 'INVALID_ORDER_STATUS'
+        );
+    END IF;
+
+    BEGIN
+        UPDATE orders SET status = 'cancelled', updated_at = NOW() WHERE id = p_order_id;
+
+        -- Solo restaurar stock si estaba 'paid'
+        IF v_order.status = 'paid' THEN
+            FOR v_order_item IN
+                SELECT oi.product_id, oi.quantity FROM order_items oi WHERE oi.order_id = p_order_id
+            LOOP
+                UPDATE products SET stock = stock + v_order_item.quantity WHERE id = v_order_item.product_id;
+            END LOOP;
+        END IF;
+
+        INSERT INTO order_status_history (order_id, from_status, to_status, changed_by, changed_by_type, notes, created_at)
+        VALUES (p_order_id, v_order.status, 'cancelled', p_admin_id, 'admin', p_notes, NOW());
+
+        RETURN json_build_object('success', true, 'message', 'Pedido cancelado correctamente');
+
+    EXCEPTION WHEN OTHERS THEN
+        RETURN json_build_object('success', false, 'error', SQLERRM, 'code', 'TRANSACTION_FAILED');
+    END;
 END;
 $$;

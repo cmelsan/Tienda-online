@@ -103,8 +103,8 @@ export default function OrderActions({ orderId, status, deliveredAt }: OrderActi
 
             {/* Actions */}
             <div className="flex gap-2">
-                {/* Cancel button - only for paid orders */}
-                {currentStatus === 'paid' && (
+                {/* Cancel button - for paid orders or orders awaiting payment */}
+                {(currentStatus === 'paid' || currentStatus === 'awaiting_payment') && (
                     <button
                         onClick={handleCancelOrder}
                         disabled={isCancelling}

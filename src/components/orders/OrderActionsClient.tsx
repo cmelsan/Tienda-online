@@ -60,8 +60,8 @@ export default function OrderActionsClient({
     const [currentStatus, setCurrentStatus] = useState(status);
     const [error, setError] = useState<string | null>(null);
 
-    // Check if order can be cancelled (only if status is 'paid')
-    const canCancel = currentStatus === 'paid';
+    // Check if order can be cancelled (paid or awaiting_payment)
+    const canCancel = currentStatus === 'paid' || currentStatus === 'awaiting_payment';
 
     // Check if order can request return (delivered or partially_returned with returnable items)
     const hasReturnableItems = items.some(i => !i.return_status || i.return_status === 'rejected');

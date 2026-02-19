@@ -3,13 +3,10 @@ export const prerender = false;
 import PublicLayout from '@/layouts/PublicLayout.astro';
 import { createServerSupabaseClient } from '@/lib/supabase';
 
-// Auth check
 const supabase = await createServerSupabaseClient(Astro);
 const { data: { session } } = await supabase.auth.getSession();
 
-if (!session) {
-  return Astro.redirect('/login');
-}
+if (!session) return Astro.redirect('/login');
 
 const user = session.user;
 const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Cliente';
@@ -18,6 +15,7 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
 <PublicLayout title="Detalles de la Cuenta | ÉCLAT">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-12">
+
       <!-- Sidebar -->
       <div class="lg:col-span-1 space-y-8">
         <div class="border-b border-black pb-4">
@@ -26,68 +24,116 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
           </h2>
           <p class="text-xs text-gray-500 mt-1">{user.email}</p>
         </div>
-
         <nav class="space-y-1">
-          <a href="/mi-cuenta" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">
-            Panel Principal
-          </a>
-          <a href="/mi-cuenta/pedidos" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">
-            Mis Pedidos
-          </a>
-          <a href="/mi-cuenta/direcciones" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">
-            Direcciones
-          </a>
-          <a href="/mi-cuenta/detalles" class="block py-2 text-sm font-bold text-black border-l-2 border-black pl-3 uppercase tracking-wide">
-            Detalles de la Cuenta
-          </a>
-          <button id="logout-btn" class="block w-full text-left py-2 text-sm text-rose-600 hover:text-rose-800 border-l-2 border-transparent hover:border-rose-200 pl-3 transition-colors uppercase tracking-wide mt-8">
-            Cerrar Sesión
-          </button>
+          <a href="/mi-cuenta" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">Panel Principal</a>
+          <a href="/mi-cuenta/pedidos" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">Mis Pedidos</a>
+          <a href="/mi-cuenta/direcciones" class="block py-2 text-sm text-gray-500 hover:text-black border-l-2 border-transparent hover:border-gray-300 pl-3 transition-colors uppercase tracking-wide">Direcciones</a>
+          <a href="/mi-cuenta/detalles" class="block py-2 text-sm font-bold text-black border-l-2 border-black pl-3 uppercase tracking-wide">Detalles de la Cuenta</a>
+          <button id="logout-btn" class="block w-full text-left py-2 text-sm text-rose-600 hover:text-rose-800 border-l-2 border-transparent hover:border-rose-200 pl-3 transition-colors uppercase tracking-wide mt-8">Cerrar Sesión</button>
         </nav>
       </div>
 
       <!-- Main Content -->
-      <div class="lg:col-span-3">
-        <h1 class="text-2xl font-sans font-medium text-black mb-8 uppercase tracking-wide">
-          Detalles de la Cuenta
-        </h1>
+      <div class="lg:col-span-3 space-y-8">
+        <h1 class="text-2xl font-sans font-medium text-black uppercase tracking-wide">Detalles de la Cuenta</h1>
 
-        <!-- Account Info -->
-        <div class="space-y-8">
-          <div class="border border-gray-200 p-6">
-            <h3 class="font-bold text-black uppercase tracking-wider mb-4 text-sm">Información Personal</h3>
-            <div class="space-y-3">
-              <div>
-                <label class="text-xs text-gray-500 uppercase tracking-wide">Nombre</label>
-                <p class="text-sm text-black mt-1">{userName}</p>
-              </div>
-              <div>
-                <label class="text-xs text-gray-500 uppercase tracking-wide">Email</label>
-                <p class="text-sm text-black mt-1">{user.email}</p>
-              </div>
+        <!-- ── Información Personal ── -->
+        <div class="border border-gray-200 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-black uppercase tracking-wider text-sm">Información Personal</h3>
+            <button id="btn-edit-info" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-black transition-colors">Editar</button>
+          </div>
+
+          <!-- Vista -->
+          <div id="info-view" class="space-y-3">
+            <div>
+              <p class="text-xs text-gray-500 uppercase tracking-wide">Nombre</p>
+              <p id="display-name" class="text-sm text-black mt-1">{userName}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 uppercase tracking-wide">Email</p>
+              <p class="text-sm text-black mt-1">{user.email}</p>
             </div>
           </div>
 
-          <div class="border border-gray-200 p-6">
-            <h3 class="font-bold text-black uppercase tracking-wider mb-4 text-sm">Cambiar Contraseña</h3>
-            <p class="text-sm text-gray-600 mb-6">
-              Próximamente podrás actualizar tu contraseña desde aquí.
-            </p>
-            <button disabled class="bg-gray-300 text-gray-500 px-6 py-2 text-xs font-bold uppercase tracking-widest cursor-not-allowed">
-              Próximamente
-            </button>
+          <!-- Formulario editar nombre -->
+          <form id="form-info" class="hidden space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Nombre completo *</label>
+              <input id="input-name" type="text" value={userName} required
+                class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors" />
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 uppercase tracking-wide">Email</p>
+              <p class="text-sm text-gray-400 mt-1">{user.email}</p>
+            </div>
+            <div id="info-msg" class="hidden text-sm"></div>
+            <div class="flex gap-3 pt-1">
+              <button type="submit" id="btn-info-save"
+                class="bg-black text-white px-6 py-2.5 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50">
+                Guardar cambios
+              </button>
+              <button type="button" id="btn-info-cancel"
+                class="border border-gray-300 text-gray-700 px-6 py-2.5 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ── Cambiar Contraseña ── -->
+        <div class="border border-gray-200 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-black uppercase tracking-wider text-sm">Cambiar Contraseña</h3>
+            <button id="btn-edit-pwd" class="text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-black transition-colors">Editar</button>
           </div>
 
-          <div class="border border-gray-200 p-6 bg-rose-50 border-rose-200">
-            <h3 class="font-bold text-rose-900 uppercase tracking-wider mb-4 text-sm">Zona de Peligro</h3>
-            <p class="text-sm text-gray-600 mb-4">
-              Eliminar tu cuenta es permanente y no se puede deshacer.
-            </p>
-            <button disabled class="bg-rose-600 text-white px-6 py-2 text-xs font-bold uppercase tracking-widest opacity-50 cursor-not-allowed">
-              Eliminar Cuenta
-            </button>
+          <!-- Vista -->
+          <div id="pwd-view">
+            <p class="text-sm text-gray-500">••••••••</p>
           </div>
+
+          <!-- Formulario contraseña -->
+          <form id="form-pwd" class="hidden space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Contraseña actual *</label>
+              <input id="input-current-pwd" type="password" required autocomplete="current-password"
+                class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Nueva contraseña *</label>
+              <input id="input-new-pwd" type="password" required minlength="8" autocomplete="new-password"
+                class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors" />
+              <p class="text-xs text-gray-400 mt-1">Mínimo 8 caracteres.</p>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Confirmar nueva contraseña *</label>
+              <input id="input-confirm-pwd" type="password" required minlength="8" autocomplete="new-password"
+                class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors" />
+            </div>
+            <div id="pwd-msg" class="hidden text-sm"></div>
+            <div class="flex gap-3 pt-1">
+              <button type="submit" id="btn-pwd-save"
+                class="bg-black text-white px-6 py-2.5 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50">
+                Actualizar contraseña
+              </button>
+              <button type="button" id="btn-pwd-cancel"
+                class="border border-gray-300 text-gray-700 px-6 py-2.5 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors">
+                Cancelar
+              </button>
+            </div>
+          </form>
         </div>
+
+        <!-- ── Zona de Peligro ── -->
+        <div class="border border-rose-200 p-6 bg-rose-50">
+          <h3 class="font-bold text-rose-900 uppercase tracking-wider mb-2 text-sm">Zona de Peligro</h3>
+          <p class="text-sm text-gray-600 mb-4">Eliminar tu cuenta es permanente y no se puede deshacer.</p>
+          <button disabled class="bg-rose-600 text-white px-6 py-2 text-xs font-bold uppercase tracking-widest opacity-50 cursor-not-allowed">
+            Eliminar Cuenta
+          </button>
+        </div>
+
       </div>
     </div>
   </div>
@@ -96,10 +142,143 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
 <script>
   import { supabase } from '@/lib/supabase';
 
+  // ── Helpers ──────────────────────────────────────────────
+  function showMsg(id: string, text: string, ok: boolean) {
+    const el = document.getElementById(id)!;
+    el.textContent = text;
+    el.className = `text-sm ${ok ? 'text-green-600' : 'text-rose-600'}`;
+    el.classList.remove('hidden');
+  }
+  function hideMsg(id: string) { document.getElementById(id)!.classList.add('hidden'); }
+
+  // ── Información Personal ─────────────────────────────────
+  const btnEditInfo   = document.getElementById('btn-edit-info')!;
+  const infoView      = document.getElementById('info-view')!;
+  const formInfo      = document.getElementById('form-info')!;
+  const btnInfoCancel = document.getElementById('btn-info-cancel')!;
+  const inputName     = document.getElementById('input-name') as HTMLInputElement;
+  const displayName   = document.getElementById('display-name')!;
+
+  btnEditInfo.addEventListener('click', () => {
+    infoView.classList.add('hidden');
+    formInfo.classList.remove('hidden');
+    btnEditInfo.classList.add('hidden');
+    hideMsg('info-msg');
+  });
+
+  btnInfoCancel.addEventListener('click', () => {
+    formInfo.classList.add('hidden');
+    infoView.classList.remove('hidden');
+    btnEditInfo.classList.remove('hidden');
+  });
+
+  formInfo.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-info-save') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+    hideMsg('info-msg');
+
+    const newName = inputName.value.trim();
+    const { error } = await supabase.auth.updateUser({ data: { full_name: newName } });
+
+    btn.disabled = false;
+    btn.textContent = 'Guardar cambios';
+
+    if (error) {
+      showMsg('info-msg', 'Error al actualizar el nombre. Inténtalo de nuevo.', false);
+      return;
+    }
+
+    displayName.textContent = newName;
+    showMsg('info-msg', 'Nombre actualizado correctamente.', true);
+    setTimeout(() => {
+      formInfo.classList.add('hidden');
+      infoView.classList.remove('hidden');
+      btnEditInfo.classList.remove('hidden');
+      hideMsg('info-msg');
+    }, 1800);
+  });
+
+  // ── Cambiar Contraseña ───────────────────────────────────
+  const btnEditPwd   = document.getElementById('btn-edit-pwd')!;
+  const pwdView      = document.getElementById('pwd-view')!;
+  const formPwd      = document.getElementById('form-pwd')!;
+  const btnPwdCancel = document.getElementById('btn-pwd-cancel')!;
+
+  btnEditPwd.addEventListener('click', () => {
+    pwdView.classList.add('hidden');
+    formPwd.classList.remove('hidden');
+    btnEditPwd.classList.add('hidden');
+    hideMsg('pwd-msg');
+  });
+
+  btnPwdCancel.addEventListener('click', () => {
+    formPwd.classList.add('hidden');
+    pwdView.classList.remove('hidden');
+    btnEditPwd.classList.remove('hidden');
+    (formPwd as HTMLFormElement).reset();
+  });
+
+  formPwd.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn       = document.getElementById('btn-pwd-save') as HTMLButtonElement;
+    const currentPwd = (document.getElementById('input-current-pwd') as HTMLInputElement).value;
+    const newPwd     = (document.getElementById('input-new-pwd') as HTMLInputElement).value;
+    const confirmPwd = (document.getElementById('input-confirm-pwd') as HTMLInputElement).value;
+
+    hideMsg('pwd-msg');
+
+    if (newPwd !== confirmPwd) {
+      showMsg('pwd-msg', 'Las contraseñas nuevas no coinciden.', false);
+      return;
+    }
+    if (newPwd.length < 8) {
+      showMsg('pwd-msg', 'La contraseña debe tener al menos 8 caracteres.', false);
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Verificando...';
+
+    // Verificar contraseña actual
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error: signInErr } = await supabase.auth.signInWithPassword({
+      email: user!.email!,
+      password: currentPwd,
+    });
+
+    if (signInErr) {
+      btn.disabled = false;
+      btn.textContent = 'Actualizar contraseña';
+      showMsg('pwd-msg', 'La contraseña actual es incorrecta.', false);
+      return;
+    }
+
+    btn.textContent = 'Actualizando...';
+    const { error } = await supabase.auth.updateUser({ password: newPwd });
+
+    btn.disabled = false;
+    btn.textContent = 'Actualizar contraseña';
+
+    if (error) {
+      showMsg('pwd-msg', 'Error al actualizar la contraseña. Inténtalo de nuevo.', false);
+      return;
+    }
+
+    showMsg('pwd-msg', 'Contraseña actualizada correctamente.', true);
+    (formPwd as HTMLFormElement).reset();
+    setTimeout(() => {
+      formPwd.classList.add('hidden');
+      pwdView.classList.remove('hidden');
+      btnEditPwd.classList.remove('hidden');
+      hideMsg('pwd-msg');
+    }, 2000);
+  });
+
+  // ── Logout ───────────────────────────────────────────────
   document.getElementById('logout-btn')?.addEventListener('click', async () => {
     const { error } = await supabase.auth.signOut();
-    if (!error) {
-       window.location.href = '/login';
-    }
+    if (!error) window.location.href = '/login';
   });
 </script>

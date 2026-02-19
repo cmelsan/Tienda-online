@@ -4,59 +4,78 @@ import AdminLayout from '@/layouts/AdminLayout.astro';
 import { supabase } from '@/lib/supabase';
 
 // Fetch brands
-const { data: brands, error } = await supabase
+const { data: brands } = await supabase
   .from('brands')
   .select('*')
   .order('name');
+
+const totalBrands = brands?.length || 0;
+const withDesc = brands?.filter((b: any) => b.description)?.length || 0;
 ---
 
 <AdminLayout title="Gestión de Marcas">
-  <div class="mb-8 flex justify-between items-center">
-    <div>
-      <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest">Catálogo</h3>
-      <p class="text-xs text-gray-400 mt-1">Administra las marcas y proveedores</p>
+  <!-- Stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+    <div class="bg-black text-white p-5">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Total marcas</p>
+      <p class="text-3xl font-bold mt-1">{totalBrands}</p>
     </div>
+    <div class="bg-white border border-gray-200 p-5">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Con descripción</p>
+      <p class="text-3xl font-bold text-black mt-1">{withDesc}</p>
+    </div>
+    <div class="bg-white border border-gray-200 p-5">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Sin descripción</p>
+      <p class="text-3xl font-bold text-black mt-1">{totalBrands - withDesc}</p>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="mb-6 flex justify-between items-center">
+    <h3 class="text-sm font-bold uppercase tracking-widest text-black">Marcas registradas</h3>
     <a
       href="/admin/marcas/nueva"
-      class="bg-black text-white px-6 py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors"
+      class="bg-black text-white px-6 py-3 text-xs font-bold uppercase tracking-widest hover:bg-pink-500 transition-colors"
     >
-      Nueva Marca
+      + Nueva marca
     </a>
   </div>
 
+  <!-- Table -->
   <div class="bg-white border border-gray-200">
     <div class="overflow-x-auto">
       <table class="w-full">
-        <thead class="bg-gray-50 border-b border-gray-100">
+        <thead class="bg-black">
           <tr>
-            <th class="text-left py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Nombre</th>
-            <th class="text-left py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Slug</th>
-            <th class="text-left py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Descripción</th>
-            <th class="text-right py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
+            <th class="text-left py-4 px-6 text-[10px] font-bold text-white uppercase tracking-wider">Nombre</th>
+            <th class="text-left py-4 px-6 text-[10px] font-bold text-white uppercase tracking-wider">Slug</th>
+            <th class="text-left py-4 px-6 text-[10px] font-bold text-white uppercase tracking-wider">Descripción</th>
+            <th class="text-right py-4 px-6 text-[10px] font-bold text-white uppercase tracking-wider">Acciones</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-          {brands?.map((brand) => (
+          {brands?.map((brand: any) => (
             <tr class="hover:bg-gray-50 transition-colors">
               <td class="py-4 px-6">
                 <span class="text-sm font-bold text-black">{brand.name}</span>
               </td>
               <td class="py-4 px-6 text-sm font-mono text-gray-500">{brand.slug}</td>
-              <td class="py-4 px-6 text-sm text-gray-600 max-w-xs truncate">{brand.description}</td>
-              <td class="py-4 px-6 text-right space-x-2">
+              <td class="py-4 px-6 text-sm text-gray-600 max-w-xs truncate">
+                {brand.description ? brand.description : '—'}
+              </td>
+              <td class="py-4 px-6 text-right">
                 <a
                   href={`/admin/marcas/editar/${brand.id}`}
-                  class="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider"
+                  class="inline-block text-[10px] font-bold uppercase tracking-widest bg-black text-white px-4 py-2 hover:bg-pink-500 transition-colors"
                 >
                   Editar
                 </a>
-                {/* Delete is handled usually via form or API, for now basic link or we can implement client-side delete */}
               </td>
             </tr>
           ))}
           {(!brands || brands.length === 0) && (
             <tr>
-              <td colspan="4" class="py-8 text-center text-gray-500 text-sm">
+              <td colspan="4" class="py-12 text-center text-gray-400 text-sm">
                 No hay marcas registradas.
               </td>
             </tr>

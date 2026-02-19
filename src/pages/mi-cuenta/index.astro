@@ -1,20 +1,16 @@
 ---
 import PublicLayout from '@/layouts/PublicLayout.astro';
-import { supabase } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase';
 
-// Server-side auth check
-const {
-  data: { session },
-} = await supabase.auth.getSession();
+const supabase = await createServerSupabaseClient(Astro);
+const { data: { session } } = await supabase.auth.getSession();
 
-if (!session) {
-  return Astro.redirect('/login');
-}
+if (!session) return Astro.redirect('/login');
 
 const user = session.user;
 const userName = user.user_metadata?.full_name || 'Cliente';
 
-// Fetch recent orders (limit 3)
+// Pedidos recientes
 const { data: recentOrders } = await supabase
     .from('orders')
     .select(`
@@ -28,6 +24,17 @@ const { data: recentOrders } = await supabase
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(3);
+
+// Dirección predeterminada de envío
+const { data: defaultAddress } = await supabase
+    .from('user_addresses')
+    .select('address_data')
+    .eq('user_id', user.id)
+    .eq('address_type', 'shipping')
+    .eq('is_default', true)
+    .maybeSingle();
+
+const addr = defaultAddress?.address_data as any;
 
 const formatDate = (dateUnformated: string) => {
     return new Date(dateUnformated).toLocaleDateString('es-ES', {
@@ -137,8 +144,18 @@ const formatPrice = (amount: number) => {
         <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="border border-gray-200 p-6">
             <h3 class="font-bold text-black uppercase tracking-wider mb-4 text-sm">Dirección de Envío</h3>
-            <p class="text-sm text-gray-600 mb-4 italic">No has establecido una dirección predeterminada.</p>
-            <a href="/mi-cuenta/direcciones" class="text-xs font-bold underline uppercase tracking-wider hover:text-beauty-red">Editar</a>
+            {addr ? (
+              <div class="text-sm text-gray-700 leading-relaxed space-y-0.5 mb-4">
+                <p class="font-semibold text-black">{addr.name}</p>
+                <p>{addr.address}{addr.address2 ? `, ${addr.address2}` : ''}</p>
+                <p>{addr.postal_code} {addr.city}{addr.province ? `, ${addr.province}` : ''}</p>
+                <p>{addr.country || 'España'}</p>
+                {addr.phone && <p class="text-gray-500">{addr.phone}</p>}
+              </div>
+            ) : (
+              <p class="text-sm text-gray-500 mb-4 italic">No has establecido una dirección predeterminada.</p>
+            )}
+            <a href="/mi-cuenta/direcciones" class="text-xs font-bold underline uppercase tracking-wider hover:text-beauty-red">{addr ? 'Editar' : 'Añadir'}</a>
           </div>
           <div class="border border-gray-200 p-6">
             <h3 class="font-bold text-black uppercase tracking-wider mb-4 text-sm">Detalles Personales</h3>

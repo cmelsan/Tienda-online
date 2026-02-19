@@ -150,18 +150,25 @@ export default function CartSlideOver() {
                                         </div>
 
                                         <p className="text-base font-bold text-black mb-3">
-                                            {item.product?.discount ? (
-                                                <div className="flex gap-2 items-center">
-                                                    <span className="line-through text-gray-400 text-sm">
-                                                        {formatPrice(item.product?.price || 0)}
-                                                    </span>
-                                                    <span className="text-beauty-red">
-                                                        {formatPrice(item.product?.discountedPrice || item.product?.price || 0)}
-                                                    </span>
-                                                </div>
-                                            ) : (
-                                                formatPrice(item.product?.price || 0)
-                                            )}
+                                            {(() => {
+                                                const hasDiscount = item.product?.discount || item.product?.is_flash_sale;
+                                                const originalPrice = item.product?.price || 0;
+                                                const displayPrice = item.product?.discountedPrice || originalPrice;
+                                                
+                                                if (hasDiscount && displayPrice < originalPrice) {
+                                                    return (
+                                                        <div className="flex gap-2 items-center">
+                                                            <span className="line-through text-gray-400 text-sm">
+                                                                {formatPrice(originalPrice)}
+                                                            </span>
+                                                            <span className="text-beauty-red">
+                                                                {formatPrice(displayPrice)}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                }
+                                                return formatPrice(displayPrice);
+                                            })()}
                                         </p>
 
                                         {/* Quantity Controls - Mejorados */}

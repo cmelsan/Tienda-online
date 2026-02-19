@@ -20,7 +20,7 @@ const ACTION_ENDPOINTS: Record<ActionType, string> = {
     ship: '/api/admin/mark-shipped',
     deliver: '/api/admin/mark-delivered',
     process_return: '/api/admin/process-return',
-    refund: '/api/admin/process-return'
+    refund: '/api/admin/process-refund'
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -42,6 +42,7 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
     const [modalAction, setModalAction] = useState<ActionType | null>(null);
     const [notes, setNotes] = useState('');
     const [restoreStock, setRestoreStock] = useState(false);
+    const [refundAmount, setRefundAmount] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     // Determine available actions based on status
@@ -122,6 +123,7 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
             setError(null);
             setNotes('');
             setRestoreStock(false);
+            setRefundAmount(null);
         } else {
             executeAction(action);
         }
@@ -146,8 +148,9 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                     payload.restoreStock = restoreStock;
                     break;
                 case 'refund':
-                    payload.newStatus = 'refunded';
-                    payload.restoreStock = false;
+                    if (refundAmount !== null) {
+                        payload.refundAmount = refundAmount;
+                    }
                     break;
             }
 
@@ -190,6 +193,7 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
         setModalAction(null);
         setNotes('');
         setRestoreStock(false);
+        setRefundAmount(null);
         setError(null);
     };
 
@@ -237,6 +241,35 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                             </div>
                         )}
 
+                        {/* Refund Amount Input - Only for refund action */}
+                        {modalAction === 'refund' && (
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Monto de Reembolso (opcional - dejar vacío para reembolso total)
+                                </label>
+                                <div className="flex gap-2">
+                                    <span className="text-gray-600 py-2">$</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        max={order.total_amount}
+                                        value={refundAmount === null ? '' : refundAmount}
+                                        onChange={(e) => setRefundAmount(e.target.value ? parseFloat(e.target.value) : null)}
+                                        placeholder="Dejar vacío para reembolso total"
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-gray-400"
+                                    />
+                                </div>
+                                {refundAmount !== null && (
+                                    <p className="text-xs text-gray-600 mt-1">
+                                        {refundAmount === order.total_amount 
+                                            ? 'Reembolso completo' 
+                                            : `Reembolso parcial de $${refundAmount.toFixed(2)} de $${order.total_amount.toFixed(2)}`}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
                         {/* Restore Stock Checkbox */}
                         {currentAction.showRestoreStock && (
                             <div className="mb-4 flex items-center">
@@ -266,7 +299,13 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                             {modalAction === 'deliver' && 'Marcar este pedido como entregado. Se calculará el plazo de devolución (14 días).'}
                             {modalAction === 'cancel' && 'Cancelar este pedido y restaurar stock. Esta acción no se puede deshacer.'}
                             {modalAction === 'process_return' && 'Aceptar esta devolución del cliente.'}
-                            {modalAction === 'refund' && 'Procesar el reembolso. El dinero se enviará al método de pago original.'}
+                            {modalAction === 'refund' && (
+                                <>
+                                    {refundAmount === null || refundAmount === order.total_amount 
+                                        ? 'Procesar reembolso completo. El dinero ($' + order.total_amount.toFixed(2) + ') se enviará al método de pago original.'
+                                        : 'Procesar reembolso parcial de $' + refundAmount.toFixed(2) + ' de $' + order.total_amount.toFixed(2) + '. El dinero se enviará al método de pago original.'}
+                                </>
+                            )}
                         </div>
 
                         {/* Buttons */}

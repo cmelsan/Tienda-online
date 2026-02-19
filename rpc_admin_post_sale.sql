@@ -297,7 +297,7 @@ DECLARE
     v_order RECORD;
     v_order_item RECORD;
     v_allowed_from_status TEXT[] := ARRAY['return_requested', 'returned'];
-    v_allowed_to_status TEXT[] := ARRAY['returned', 'refunded'];
+    v_allowed_to_status TEXT[] := ARRAY['returned', 'refunded', 'partially_refunded'];
 BEGIN
     -- Validar
     SELECT * INTO v_order FROM orders WHERE id = p_order_id;
@@ -324,7 +324,7 @@ BEGIN
     IF NOT p_new_status = ANY(v_allowed_to_status) THEN
         RETURN json_build_object(
             'success', false,
-            'error', 'Estado nuevo inválido. Debe ser devuelto o reembolsado',
+            'error', 'Estado nuevo inválido. Debe ser devuelto, reembolsado o reembolsado parcialmente',
             'provided_status', p_new_status,
             'code', 'INVALID_NEW_STATUS'
         );

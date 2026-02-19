@@ -4,27 +4,36 @@ interface ProductAddToCartProps {
     productId: string;
     productName: string;
     price: number;
+    discountedPrice?: number;
+    discount?: number;
     image?: string;
     slug: string;
 }
 
-export default function ProductAddToCart({ productId, productName, price, image, slug }: ProductAddToCartProps) {
+export default function ProductAddToCart({ productId, productName, price, discountedPrice, discount, image, slug }: ProductAddToCartProps) {
     const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
         try {
+            // Use discounted price if available (from ofertas/rebajas)
+            const finalPrice = discountedPrice || price;
+            
             console.log('[ProductAddToCart] Adding product:', {
                 id: productId,
                 name: productName,
-                price,
+                originalPrice: price,
+                finalPrice: finalPrice,
+                discount: discount || 0,
             });
 
             addToCart(
                 {
                     id: productId,
                     name: productName,
-                    price,
+                    price: finalPrice,  // Use the discounted price
+                    discountedPrice: finalPrice,
+                    discount: discount || 0,
                     images: image ? [image] : [],
                     slug,
                     stock: 999,

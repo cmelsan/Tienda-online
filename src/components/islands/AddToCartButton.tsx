@@ -38,16 +38,34 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
         setError('');
 
         try {
+            // Calcular el precio correcto con descuentos
+            let finalPrice = product.price;
+            
+            // Si tiene discountedPrice (ofertas destacadas), usar ese
+            if (product.discountedPrice) {
+                finalPrice = product.discountedPrice;
+            }
+            // Si es flash sale, calcular el descuento
+            else if (product.is_flash_sale && product.flash_sale_discount) {
+                finalPrice = Math.round(product.price * (1 - product.flash_sale_discount / 100));
+            }
+
             console.log('[AddToCart] Adding product:', {
                 id: product.id,
                 name: product.name,
-                price: product.price,
-                discount: product.discount || 0,
-                discountedPrice: product.discountedPrice || product.price,
+                originalPrice: product.price,
+                finalPrice: finalPrice,
+                discount: product.discount || product.flash_sale_discount || 0,
+                discountedPrice: finalPrice,
                 quantity
             });
 
-            addToCart(product, quantity);
+            // Agregar al carrito manteniendo todos los datos del producto
+            addToCart({
+                ...product,
+                discountedPrice: finalPrice  // Guardar el precio con descuento
+                // NO modificar product.price para mantener el precio original
+            }, quantity);
 
             // Show success feedback
             setShowSuccess(true);

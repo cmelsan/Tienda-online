@@ -9,7 +9,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
-        const { orderId, notes } = await request.json();
+        const { orderId, notes, refundAmount } = await request.json();
 
         if (!orderId) {
             return new Response(
@@ -67,14 +67,43 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             );
         }
 
-        // Procesar reembolso en Stripe
-        let refundAmount = Math.round(order.total_amount * 100); // Convertir a centavos
+        // Determinar monto a reembolsar
+        let finalRefundAmount = order.total_amount;
+        
+        // Si se especifica un monto parcial, validarlo
+        if (refundAmount !== undefined && refundAmount !== null) {
+            if (refundAmount <= 0) {
+                return new Response(
+                    JSON.stringify({ 
+                        success: false, 
+                        message: 'El monto de reembolso debe ser mayor a 0' 
+                    }),
+                    { status: 400 }
+                );
+            }
+
+            if (refundAmount > order.total_amount) {
+                return new Response(
+                    JSON.stringify({ 
+                        success: false, 
+                        message: `El monto de reembolso (${refundAmount}) no puede exceder el total del pedido (${order.total_amount})` 
+                    }),
+                    { status: 400 }
+                );
+            }
+
+            finalRefundAmount = refundAmount;
+        }
+
+        // Determinar si es reembolso total o parcial
+        const isPartialRefund = finalRefundAmount < order.total_amount;
+        const newStatus = isPartialRefund ? 'partially_refunded' : 'refunded';
 
         let stripeRefund;
         try {
             stripeRefund = await stripe.refunds.create({
                 payment_intent: order.stripe_payment_intent_id,
-                amount: refundAmount,
+                amount: Math.round(finalRefundAmount * 100),
                 metadata: {
                     order_id: orderId,
                     admin_id: session.user.id,
@@ -110,7 +139,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             {
                 p_order_id: orderId,
                 p_admin_id: session.user.id,
-                p_new_status: 'refunded',
+                p_new_status: newStatus,
                 p_restore_stock: false,
                 p_notes: notes || `Reembolsado por Stripe: ${stripeRefund.id}`
             }

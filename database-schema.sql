@@ -415,7 +415,7 @@ CREATE TABLE IF NOT EXISTS orders (
   user_id UUID REFERENCES auth.users(id), -- Nullable for guests
   guest_email VARCHAR(255),               -- Required if user_id is null
   customer_name VARCHAR(255),             -- Customer name for email
-  status VARCHAR(20) NOT NULL DEFAULT 'awaiting_payment' CHECK (status IN ('awaiting_payment', 'paid', 'shipped', 'delivered', 'cancelled', 'return_requested', 'returned', 'refunded')),
+  status VARCHAR(20) NOT NULL DEFAULT 'awaiting_payment' CHECK (status IN ('awaiting_payment', 'paid', 'shipped', 'delivered', 'cancelled', 'return_requested', 'returned', 'refunded', 'partially_refunded')),
   delivered_at TIMESTAMP WITH TIME ZONE, -- Set when status changes to 'delivered'
   return_initiated_at TIMESTAMP WITH TIME ZONE, -- Set when customer requests return
   return_deadline_at TIMESTAMP WITH TIME ZONE, -- Deadline to physically return the item (14 days from return_initiated_at)

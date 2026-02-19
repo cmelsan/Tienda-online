@@ -13,6 +13,8 @@ export interface CartItem {
     product: Product & {
         discount?: number;
         discountedPrice?: number;
+        is_flash_sale?: boolean;
+        flash_sale_discount?: number;
     };
     quantity: number;
 }
@@ -118,8 +120,17 @@ export const cartCount = computed(cartItems, (items) => {
 export const cartSubtotal = computed(cartItems, (items) => {
     return Object.values(items).reduce(
         (total, item) => {
-            // Use discounted price if available, otherwise use regular price
-            const price = item.product.discountedPrice || item.product.price;
+            let price = item.product.price;
+            
+            // Use discountedPrice if available (from featured offers)
+            if (item.product.discountedPrice) {
+                price = item.product.discountedPrice;
+            }
+            // Otherwise calculate from flash_sale_discount if available
+            else if (item.product.is_flash_sale && item.product.flash_sale_discount) {
+                price = Math.round(item.product.price * (1 - item.product.flash_sale_discount / 100));
+            }
+            
             return total + price * item.quantity;
         },
         0

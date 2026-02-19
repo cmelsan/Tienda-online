@@ -32,9 +32,9 @@ function getTimeStatus(endTime: string | null, isActive: boolean): {
     return { label: `${m}m restantes`, color: 'text-red-500 font-bold', isExpired: false };
   }
   if (hoursLeft < 24) {
-    return { label: `${h}h ${m}m restantes`, color: 'text-orange-500 font-bold', isExpired: false };
+    return { label: `${h}h ${m}m restantes`, color: 'text-gray-600 font-semibold', isExpired: false };
   }
-  return { label: `${h}h restantes`, color: 'text-emerald-600 font-semibold', isExpired: false };
+  return { label: `${h}h restantes`, color: 'text-gray-400 font-medium', isExpired: false };
 }
 
 export default function FlashSaleManager() {
@@ -140,56 +140,56 @@ export default function FlashSaleManager() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600 mr-3"></div>
-        <span className="text-gray-600">Cargando productos...</span>
+        <div className="animate-spin h-8 w-8 border-b-2 border-black mr-3"></div>
+        <span className="text-xs text-gray-400 uppercase tracking-widest">Cargando productos...</span>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Info banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-bold text-blue-900 mb-2">Como funcionan las Flash Sales</h3>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>- Activa productos para la seccion Flash Sale de la pagina de inicio</li>
-          <li>- Establece el descuento (%) y la hora de finalizacion que quieras</li>
-          <li>- Puedes cambiar la fecha en cualquier momento sin perder la configuracion</li>
-          <li>- La seccion se oculta en la tienda cuando el tiempo llega a cero</li>
+      {/* Info */}
+      <div className="bg-gray-50 border border-gray-200 p-4">
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-black mb-2">Cómo funcionan las Flash Sales</h3>
+        <ul className="text-xs text-gray-500 space-y-1">
+          <li>- Activa productos para la sección Flash Sale de la home</li>
+          <li>- Establece el descuento (%) y la hora de finalización</li>
+          <li>- Puedes cambiar la fecha sin perder la configuración</li>
+          <li>- La sección se oculta en la tienda cuando el tiempo llega a cero</li>
         </ul>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-          <div className="text-2xl font-black text-gray-900">{products.length}</div>
-          <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">Total productos</div>
+        <div className="bg-black text-white p-5">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Total productos</p>
+          <p className="text-3xl font-bold mt-1">{products.length}</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-          <div className="text-2xl font-black text-rose-600">{activeProducts.length}</div>
-          <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">En Flash Sale</div>
+        <div className="bg-white border border-gray-200 p-5">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">En Flash Sale</p>
+          <p className="text-3xl font-bold text-black mt-1">{activeProducts.length}</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-          <div className="text-2xl font-black text-emerald-600">{vigentesCount}</div>
-          <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">Activas y vigentes</div>
+        <div className="bg-white border border-gray-200 p-5">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Activas y vigentes</p>
+          <p className="text-3xl font-bold text-black mt-1">{vigentesCount}</p>
         </div>
       </div>
 
       {/* Expired warning - solo si hay expiradas, no desactiva automaticamente */}
       {expiredActive.length > 0 && (
-        <div className="flex items-center justify-between bg-red-50 border border-red-300 rounded-lg px-5 py-4">
+        <div className="flex items-center justify-between bg-red-50 border border-red-300 px-5 py-4">
           <div>
-            <div className="font-bold text-red-700">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-red-700">
               {expiredActive.length} oferta{expiredActive.length > 1 ? 's' : ''} con tiempo expirado
             </div>
-            <div className="text-sm text-red-600">
-              Siguen marcadas como activas. Cambia la fecha o desactivalas.
+            <div className="text-xs text-red-500 mt-1">
+              Siguen marcadas como activas. Cambia la fecha o desáctivalas.
             </div>
           </div>
           <button
             onClick={deactivateAllExpired}
             disabled={deactivatingAll}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold text-sm transition disabled:opacity-50 whitespace-nowrap ml-4"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 font-bold text-[10px] uppercase tracking-widest transition disabled:opacity-50 whitespace-nowrap ml-4"
           >
             {deactivatingAll ? 'Desactivando...' : 'Desactivar expiradas'}
           </button>
@@ -197,16 +197,16 @@ export default function FlashSaleManager() {
       )}
 
       {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-white border border-gray-200 overflow-hidden">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-50 border-b-2 border-gray-200">
-              <th className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wider text-gray-600">Producto</th>
-              <th className="text-right px-4 py-3 font-bold text-xs uppercase tracking-wider text-gray-600">Precio</th>
-              <th className="text-center px-4 py-3 font-bold text-xs uppercase tracking-wider text-gray-600">Estado</th>
-              <th className="text-center px-4 py-3 font-bold text-xs uppercase tracking-wider text-gray-600">Descuento</th>
-              <th className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wider text-gray-600">Finaliza</th>
-              <th className="text-center px-4 py-3 font-bold text-xs uppercase tracking-wider text-gray-600">Tiempo restante</th>
+            <tr className="bg-black">
+              <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-white">Producto</th>
+              <th className="text-right px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-white">Precio</th>
+              <th className="text-center px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-white">Estado</th>
+              <th className="text-center px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-white">Descuento</th>
+              <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-white">Finaliza</th>
+              <th className="text-center px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-white">Tiempo restante</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -231,7 +231,7 @@ export default function FlashSaleManager() {
                   <td className="px-4 py-3 text-right">
                     <div className="font-bold text-gray-800">{(product.price / 100).toFixed(2)} &euro;</div>
                     {product.is_flash_sale && product.flash_sale_discount > 0 && (
-                      <div className="text-xs text-rose-600 font-semibold">
+                      <div className="text-xs text-rose-500 font-semibold">
                         con dto: {((product.price * (1 - product.flash_sale_discount / 100)) / 100).toFixed(2)} &euro;
                       </div>
                     )}
@@ -242,12 +242,12 @@ export default function FlashSaleManager() {
                     <button
                       onClick={() => toggleFlashSale(product)}
                       disabled={isUpdating}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition ${
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition ${
                         product.is_flash_sale
                           ? timeStatus.isExpired
-                            ? 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-300'
-                            : 'bg-rose-600 text-white hover:bg-rose-700'
-                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                            ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-300'
+                            : 'bg-black text-white hover:bg-pink-500'
+                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                       } disabled:opacity-50`}
                     >
                       {isUpdating ? (
@@ -277,7 +277,7 @@ export default function FlashSaleManager() {
                           }}
                           onBlur={(e) => updateDiscount(product.id, parseInt(e.target.value))}
                           disabled={isUpdating}
-                          className="w-16 px-2 py-1 border border-gray-300 rounded text-center font-bold text-sm focus:border-rose-400 focus:outline-none disabled:opacity-50"
+                          className="w-16 px-2 py-1 border border-gray-300 text-center font-bold text-sm focus:border-black focus:outline-none disabled:opacity-50"
                         />
                         <span className="text-gray-500 text-xs">%</span>
                       </div>
@@ -298,7 +298,7 @@ export default function FlashSaleManager() {
                         }
                         onChange={(e) => updateEndTime(product.id, e.target.value)}
                         disabled={isUpdating}
-                        className="px-2 py-1 border border-gray-300 rounded text-xs focus:border-rose-400 focus:outline-none disabled:opacity-50 w-full max-w-[180px]"
+                        className="px-2 py-1 border border-gray-300 text-xs focus:border-black focus:outline-none disabled:opacity-50 w-full max-w-[180px]"
                       />
                     ) : (
                       <span className="text-gray-300 text-sm">-</span>
@@ -316,7 +316,7 @@ export default function FlashSaleManager() {
         </table>
 
         {products.length === 0 && (
-          <div className="text-center py-16 text-gray-400">
+          <div className="text-center py-16 text-xs text-gray-400 uppercase tracking-widest">
             No hay productos disponibles
           </div>
         )}

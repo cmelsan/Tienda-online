@@ -40,8 +40,8 @@ export default function ProductAddToCart({ productId, productName, price, discou
                 {
                     id: productId,
                     name: productName,
-                    price: finalPrice,  // Use the discounted price
-                    discountedPrice: finalPrice,
+                    price: price,  // Keep original price
+                    discountedPrice: finalPrice,  // Store the discounted price separately
                     discount: discount || 0,
                     is_flash_sale: is_flash_sale || false,
                     flash_sale_discount: flash_sale_discount || 0,

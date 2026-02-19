@@ -129,9 +129,32 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
         <div class="border border-rose-200 p-6 bg-rose-50">
           <h3 class="font-bold text-rose-900 uppercase tracking-wider mb-2 text-sm">Zona de Peligro</h3>
           <p class="text-sm text-gray-600 mb-4">Eliminar tu cuenta es permanente y no se puede deshacer.</p>
-          <button disabled class="bg-rose-600 text-white px-6 py-2 text-xs font-bold uppercase tracking-widest opacity-50 cursor-not-allowed">
+          <button id="btn-delete-account" class="bg-rose-600 text-white px-6 py-2 text-xs font-bold uppercase tracking-widest hover:bg-rose-700 transition-colors">
             Eliminar Cuenta
           </button>
+        </div>
+
+        <!-- Modal eliminar cuenta -->
+        <div id="modal-delete" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div class="bg-white w-full max-w-md p-8">
+            <h2 class="text-sm font-bold uppercase tracking-widest mb-2">¿Eliminar tu cuenta?</h2>
+            <p class="text-sm text-gray-500 mb-6">Esta acción es permanente e irreversible. Se eliminarán todos tus datos. Introduce tu contraseña para confirmar.</p>
+            <form id="form-delete">
+              <input id="input-delete-pwd" type="password" required placeholder="Tu contraseña actual"
+                class="w-full border-b border-gray-300 py-2 text-sm focus:border-black focus:outline-none transition-colors mb-4" />
+              <div id="delete-msg" class="hidden text-rose-600 text-sm mb-4"></div>
+              <div class="flex gap-3">
+                <button type="submit" id="btn-delete-confirm"
+                  class="flex-1 bg-rose-600 text-white py-3 text-xs font-bold uppercase tracking-widest hover:bg-rose-700 transition-colors disabled:opacity-50">
+                  Sí, eliminar mi cuenta
+                </button>
+                <button type="button" id="btn-delete-cancel"
+                  class="flex-1 border border-gray-300 text-gray-700 py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
 
       </div>
@@ -274,6 +297,47 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
       btnEditPwd.classList.remove('hidden');
       hideMsg('pwd-msg');
     }, 2000);
+  });
+
+  // ── Eliminar Cuenta ─────────────────────────────────────
+  const modalDelete  = document.getElementById('modal-delete')!;
+  const formDelete   = document.getElementById('form-delete') as HTMLFormElement;
+
+  document.getElementById('btn-delete-account')!.addEventListener('click', () => {
+    formDelete.reset();
+    document.getElementById('delete-msg')!.classList.add('hidden');
+    modalDelete.classList.remove('hidden');
+  });
+
+  document.getElementById('btn-delete-cancel')!.addEventListener('click', () => modalDelete.classList.add('hidden'));
+  modalDelete.addEventListener('click', (e) => { if (e.target === modalDelete) modalDelete.classList.add('hidden'); });
+
+  formDelete.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-delete-confirm') as HTMLButtonElement;
+    const pwd = (document.getElementById('input-delete-pwd') as HTMLInputElement).value;
+    const msgEl = document.getElementById('delete-msg')!;
+    msgEl.classList.add('hidden');
+    btn.disabled = true;
+    btn.textContent = 'Eliminando...';
+
+    const res = await fetch('/api/auth/delete-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      msgEl.textContent = data.error || 'Error al eliminar la cuenta.';
+      msgEl.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Sí, eliminar mi cuenta';
+      return;
+    }
+
+    await supabase.auth.signOut();
+    window.location.href = '/?cuenta=eliminada';
   });
 
   // ── Logout ───────────────────────────────────────────────

@@ -3,92 +3,134 @@ export const prerender = false;
 import AdminLayout from '@/layouts/AdminLayout.astro';
 import { supabase } from '@/lib/supabase';
 
-// Fetch all coupons
 const { data: coupons } = await supabase
   .from('coupons')
   .select('*')
   .order('created_at', { ascending: false });
+
+const couponList = coupons || [];
+const totalCoupons = couponList.length;
+const activeCoupons = couponList.filter(c => c.is_active).length;
+const inactiveCoupons = couponList.filter(c => !c.is_active).length;
+const percentCoupons = couponList.filter(c => c.discount_type === 'percentage').length;
+
+function formatValue(coupon: any) {
+  return coupon.discount_type === 'percentage'
+    ? `${coupon.discount_value}%`
+    : `€${(coupon.discount_value / 100).toFixed(2)}`;
+}
+
+function formatUso(coupon: any) {
+  return coupon.max_uses ? `${coupon.current_uses} / ${coupon.max_uses}` : 'Ilimitado';
+}
+
+function formatFecha(coupon: any) {
+  return new Date(coupon.valid_until || '2099-12-31').toLocaleDateString('es-ES');
+}
 ---
 
 <AdminLayout title="Gestión de Cupones">
-  <div class="mb-8 flex justify-between items-center">
-    <div>
-      <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest">Ventas</h3>
-      <p class="text-xs text-gray-400 mt-1">Gestiona códigos de descuento</p>
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-end justify-between mb-6">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Promociones</p>
+        <p class="text-xs text-gray-400">Gestiona codigos de descuento</p>
+      </div>
+      <a
+        href="/admin/cupones/nuevo"
+        class="bg-black text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-pink-500 transition-colors"
+      >
+        Nuevo Cupon
+      </a>
     </div>
-    <a
-      href="/admin/cupones/nuevo"
-      class="bg-black text-white px-6 py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors"
-    >
-      Nuevo Cupón
-    </a>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="bg-black text-white p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Total</p>
+        <p class="text-3xl font-black">{totalCoupons}</p>
+        <div class="w-6 h-0.5 bg-pink-500 mt-2"></div>
+      </div>
+      <div class="bg-white border border-gray-200 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Activos</p>
+        <p class="text-2xl font-black text-black">{activeCoupons}</p>
+      </div>
+      <div class="bg-white border border-gray-200 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Inactivos</p>
+        <p class="text-2xl font-black text-black">{inactiveCoupons}</p>
+      </div>
+      <div class="bg-white border border-gray-200 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Por porcentaje</p>
+        <p class="text-2xl font-black text-black">{percentCoupons}</p>
+      </div>
+    </div>
   </div>
 
-  <div id="message" class="hidden mb-4 p-4 bg-green-50 border border-green-200 text-green-800 text-sm rounded">
-    <span id="messageText">✓ Cupón eliminado correctamente</span>
+  <!-- Mensajes -->
+  <div id="message" class="hidden mb-4 p-3 bg-black text-white text-[10px] font-bold uppercase tracking-widest">
+    <span id="messageText">Cupon eliminado correctamente</span>
+  </div>
+  <div id="error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-[10px] font-bold uppercase tracking-widest">
+    <span id="errorText">Error</span>
   </div>
 
-  <div id="error" class="hidden mb-4 p-4 bg-red-50 border border-red-200 text-red-800 text-sm rounded">
-    <span id="errorText">✗ Error</span>
-  </div>
-
-  {coupons && coupons.length > 0 ? (
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+  <!-- Tabla -->
+  {couponList.length > 0 ? (
+    <div class="bg-white border border-gray-200 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full">
-          <thead class="bg-gray-50 border-b border-gray-200">
+          <thead class="bg-black text-white">
             <tr>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Código</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Descripción</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Tipo</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Valor</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Uso</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Vigencia</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Estado</th>
-              <th class="text-left py-3 px-4 text-xs font-bold text-gray-700 uppercase tracking-wider">Acciones</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Codigo</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Descripcion</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Tipo</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Valor</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Uso</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Vigencia</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Estado</th>
+              <th class="text-left py-3 px-4 text-[10px] font-bold uppercase tracking-widest">Acciones</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
-            {coupons.map((coupon) => (
-              <tr class="hover:bg-gray-50 transition-colors">
-                <td class="py-3 px-4 text-xs font-bold text-black">{coupon.code}</td>
-                <td class="py-3 px-4 text-xs text-gray-600">{coupon.description || '-'}</td>
-                <td class="py-3 px-4 text-xs text-gray-600">
-                  {coupon.discount_type === 'percentage' ? '%' : '€'}
+          <tbody>
+            {couponList.map((coupon) => (
+              <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                  <span class="text-xs font-black text-black tracking-tight">{coupon.code}</span>
                 </td>
-                <td class="py-3 px-4 text-xs font-medium text-black">
-                  {coupon.discount_type === 'percentage' 
-                    ? `${coupon.discount_value}%` 
-                    : `€${(coupon.discount_value / 100).toFixed(2)}`}
+                <td class="py-4 px-4 text-xs text-gray-500 max-w-[200px] truncate">
+                  {coupon.description || <span class="text-gray-300">—</span>}
                 </td>
-                <td class="py-3 px-4 text-xs text-gray-600">
-                  {coupon.max_uses ? `${coupon.current_uses} / ${coupon.max_uses}` : 'Ilimitado'}
+                <td class="py-4 px-4">
+                  <span class="text-[10px] font-bold uppercase tracking-wide text-gray-500 border border-gray-200 px-2 py-1">
+                    {coupon.discount_type === 'percentage' ? '%' : 'EUR'}
+                  </span>
                 </td>
-                <td class="py-3 px-4 text-xs text-gray-600">
-                  {new Date(coupon.valid_until || '2099-12-31').toLocaleDateString('es-ES')}
+                <td class="py-4 px-4">
+                  <span class="text-xs font-black text-black">{formatValue(coupon)}</span>
                 </td>
-                <td class="py-3 px-4">
-                  <span class={`inline-block text-xs font-semibold ${
-                    coupon.is_active 
-                      ? 'text-green-700' 
-                      : 'text-gray-400'
-                  }`}>
+                <td class="py-4 px-4 text-xs text-gray-500">{formatUso(coupon)}</td>
+                <td class="py-4 px-4 text-xs text-gray-500">{formatFecha(coupon)}</td>
+                <td class="py-4 px-4">
+                  <span class={`text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 ${coupon.is_active ? 'bg-black text-white' : 'bg-gray-100 text-gray-400 border border-gray-200'}`}>
                     {coupon.is_active ? 'Activo' : 'Inactivo'}
                   </span>
                 </td>
-                <td class="py-3 px-4 text-xs space-x-2 flex gap-2">
-                  <a
-                    href={`/admin/cupones/editar/${coupon.id}`}
-                    class="text-blue-600 hover:text-blue-800 font-semibold"
-                  >
-                    Editar
-                  </a>
-                  <button
-                    class="delete-coupon text-red-600 hover:text-red-800 font-semibold"
-                    data-id={coupon.id}
-                  >
-                    Eliminar
-                  </button>
+                <td class="py-4 px-4">
+                  <div class="flex items-center gap-4">
+                    <a
+                      href={`/admin/cupones/editar/${coupon.id}`}
+                      class="text-[11px] font-bold text-black hover:text-pink-500 transition-colors uppercase tracking-wide"
+                    >
+                      Editar
+                    </a>
+                    <button
+                      class="delete-coupon text-[11px] font-bold text-gray-400 hover:text-red-500 transition-colors uppercase tracking-wide"
+                      data-id={coupon.id}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -97,13 +139,14 @@ const { data: coupons } = await supabase
       </div>
     </div>
   ) : (
-    <div class="bg-white border border-gray-200 p-12 text-center">
-      <p class="text-gray-500">No hay cupones creados</p>
+    <div class="bg-white border border-gray-200 p-16 text-center">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Sin cupones</p>
+      <p class="text-xs text-gray-400 mt-1 mb-6">Crea tu primer codigo de descuento</p>
       <a
         href="/admin/cupones/nuevo"
-        class="mt-4 inline-block text-blue-600 hover:text-blue-800 font-semibold"
+        class="inline-block bg-black text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-pink-500 transition-colors"
       >
-        Crear el primer cupón
+        Crear Cupon
       </a>
     </div>
   )}
@@ -119,10 +162,8 @@ const { data: coupons } = await supabase
   deleteButtons.forEach((btn) => {
     btn.addEventListener('click', async (e) => {
       e.preventDefault();
-      
-      if (!confirm('¿Estás seguro de que deseas eliminar este cupón? Esta acción no se puede deshacer.')) {
-        return;
-      }
+
+      if (!confirm('Eliminar este cupon?')) return;
 
       const couponId = btn.getAttribute('data-id');
       if (!couponId) return;
@@ -139,18 +180,15 @@ const { data: coupons } = await supabase
         const result = await response.json();
 
         if (response.ok) {
-          messageText.textContent = '✓ Cupón eliminado correctamente';
+          messageText.textContent = 'Cupon eliminado correctamente';
           messageDiv.classList.remove('hidden');
-          
-          setTimeout(() => {
-            window.location.href = '/admin/cupones';
-          }, 1500);
+          setTimeout(() => { window.location.href = '/admin/cupones'; }, 1500);
         } else {
-          errorText.textContent = `✗ ${result.error || 'Error al eliminar el cupón'}`;
+          errorText.textContent = result.error || 'Error al eliminar el cupon';
           errorDiv.classList.remove('hidden');
         }
       } catch (error) {
-        errorText.textContent = '✗ Error de conexión';
+        errorText.textContent = 'Error de conexion';
         errorDiv.classList.remove('hidden');
       }
     });

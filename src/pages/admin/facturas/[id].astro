@@ -50,140 +50,158 @@ const docTitle = isCreditNote
   <title>{invoice.invoice_number} — ÉCLAT Beauty</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; color: #111; background: #fff; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; color: #111; background: #f5f5f5; }
 
-    .page { max-width: 800px; margin: 40px auto; padding: 48px; }
+    .page { max-width: 820px; margin: 40px auto; background: #fff; padding: 56px 64px; box-shadow: 0 2px 24px rgba(0,0,0,.08); }
 
-    /* Cabecera */
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; border-bottom: 3px solid #000; padding-bottom: 24px; }
-    .brand { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase; }
-    .brand-sub { font-size: 10px; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
-    .doc-info { text-align: right; }
-    .doc-type { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #888; }
-    .doc-number { font-size: 20px; font-weight: 900; font-family: monospace; margin-top: 4px; }
-    .doc-date { font-size: 11px; color: #888; margin-top: 4px; }
+    /* ── Cabecera ── */
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; padding-bottom: 32px; border-bottom: 2px solid #000; }
+    .brand-name { font-size: 26px; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; color: #000; }
+    .brand-sub  { font-size: 9px; color: #999; letter-spacing: 3px; text-transform: uppercase; margin-top: 5px; }
+    .doc-meta   { text-align: right; }
+    .doc-type   { font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #999; }
+    .doc-number { font-size: 22px; font-weight: 900; font-family: 'Courier New', monospace; color: #000; margin-top: 6px; }
+    .doc-date   { font-size: 11px; color: #777; margin-top: 6px; }
 
-    /* Abono — banda de aviso */
-    .credit-banner { background: #000; color: #fff; padding: 10px 16px; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 32px; display: flex; justify-content: space-between; align-items: center; }
-    .credit-banner .ref { color: #aaa; font-weight: 400; }
+    /* ── Banner abono ── */
+    .credit-banner { background: #000; color: #fff; padding: 12px 20px; font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; margin-bottom: 36px; display: flex; justify-content: space-between; align-items: center; }
+    .credit-banner .ref { color: #bbb; font-weight: 400; letter-spacing: 1px; }
 
-    /* Partes: emisor / receptor */
-    .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 40px; }
-    .party-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 8px; }
-    .party-name  { font-size: 14px; font-weight: 700; }
-    .party-info  { font-size: 12px; color: #444; line-height: 1.6; margin-top: 4px; }
+    /* ── Datos emisor / receptor ── */
+    .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 40px; border: 1px solid #e8e8e8; }
+    .party   { padding: 20px 24px; }
+    .party:first-child { border-right: 1px solid #e8e8e8; }
+    .party-label { font-size: 8px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #bbb; margin-bottom: 10px; }
+    .party-name  { font-size: 15px; font-weight: 800; color: #000; margin-bottom: 6px; }
+    .party-info  { font-size: 11.5px; color: #555; line-height: 1.7; }
 
-    /* Tabla de líneas */
-    table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
-    thead tr { background: #000; color: #fff; }
-    thead th { padding: 10px 12px; font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; text-align: left; }
-    thead th:last-child { text-align: right; }
-    tbody tr { border-bottom: 1px solid #e5e7eb; }
+    /* ── Ref pedido ── */
+    .order-ref { font-size: 11px; color: #888; margin-bottom: 20px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+    .order-ref strong { color: #000; font-family: 'Courier New', monospace; }
+
+    /* ── Tabla líneas ── */
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: #000; color: #fff;
+      padding: 11px 14px;
+      font-size: 8px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      text-align: left;
+      white-space: nowrap;
+    }
+    thead th.r { text-align: right; }
+    thead th.c { text-align: center; }
+    tbody tr { border-bottom: 1px solid #f0f0f0; }
     tbody tr:last-child { border-bottom: none; }
-    tbody td { padding: 12px 12px; font-size: 12px; vertical-align: top; }
-    tbody td:last-child { text-align: right; font-weight: 700; }
-    .qty { color: #888; }
+    tbody td { padding: 13px 14px; font-size: 12px; vertical-align: middle; color: #222; }
+    tbody td.r { text-align: right; }
+    tbody td.c { text-align: center; color: #777; }
+    tbody td.bold { font-weight: 700; }
+    tbody td.neg { color: #dc2626; font-weight: 700; }
 
-    /* Totales */
-    .totals { margin-top: 0; border-top: 2px solid #000; }
-    .totals-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
-    .totals-row:last-child { border-bottom: none; padding-top: 12px; font-size: 15px; font-weight: 900; }
-    .totals-row.total-final { background: #000; color: #fff; padding: 12px 16px; margin: 0 -0px; }
-    .totals-label { color: inherit; }
+    /* ── Totales ── */
+    .totals-wrap { display: flex; justify-content: flex-end; margin-top: 0; border-top: 2px solid #000; }
+    .totals { width: 320px; }
+    .totals-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; font-size: 12px; border-bottom: 1px solid #f0f0f0; color: #444; }
+    .totals-row:last-child { border-bottom: none; }
+    .totals-row.discount { color: #777; font-style: italic; }
+    .totals-total { display: flex; justify-content: space-between; align-items: center; background: #000; color: #fff; padding: 14px 16px; font-size: 15px; font-weight: 900; letter-spacing: .5px; margin-top: 4px; }
+    .totals-total.credit { background: #dc2626; }
 
-    /* Notas */
-    .notes { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 11px; color: #888; }
+    /* ── Notas ── */
+    .notes { margin-top: 36px; padding: 16px 20px; background: #f9f9f9; border-left: 3px solid #000; font-size: 11px; color: #666; line-height: 1.7; }
+    .notes strong { color: #000; display: block; margin-bottom: 4px; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; }
 
-    /* Pie de página */
-    .footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; font-size: 10px; color: #aaa; letter-spacing: 1px; }
+    /* ── Pie ── */
+    .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #e8e8e8; display: flex; justify-content: space-between; font-size: 9.5px; color: #bbb; letter-spacing: .5px; }
 
-    /* Print */
+    /* ── Print ── */
     @media print {
       body { background: #fff; }
-      .page { margin: 0; padding: 32px; max-width: 100%; }
+      .page { margin: 0; padding: 32px 40px; max-width: 100%; box-shadow: none; }
       .no-print { display: none !important; }
-      @page { margin: 1cm; }
+      @page { margin: 1cm; size: A4; }
     }
 
-    /* Botón imprimir */
-    .print-btn { position: fixed; top: 24px; right: 24px; background: #000; color: #fff; border: none; padding: 12px 24px; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; }
-    .print-btn:hover { background: #ec4899; }
-    .back-btn { position: fixed; top: 24px; right: 170px; background: #f3f4f6; color: #111; border: none; padding: 12px 24px; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; text-decoration: none; }
+    /* ── Botones ── */
+    .btn-bar { position: fixed; top: 20px; right: 20px; display: flex; gap: 8px; z-index: 100; }
+    .btn { border: none; padding: 11px 22px; font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn-back  { background: #f0f0f0; color: #111; }
+    .btn-back:hover { background: #e0e0e0; }
+    .btn-print { background: #000; color: #fff; }
+    .btn-print:hover { background: #ec4899; }
   </style>
 </head>
 <body>
-  <a href="/admin/facturas" class="back-btn no-print">← Volver</a>
-  <button onclick="window.print()" class="print-btn no-print">Imprimir / PDF</button>
+  <div class="btn-bar no-print">
+    <a href="/admin/facturas" class="btn btn-back">← Volver</a>
+    <button onclick="window.print()" class="btn btn-print">Imprimir / PDF</button>
+  </div>
 
   <div class="page">
     <!-- Cabecera -->
     <div class="header">
       <div>
-        <div class="brand">Éclat Beauty</div>
+        <div class="brand-name">Éclat Beauty</div>
         <div class="brand-sub">Tienda online de cosmética</div>
       </div>
-      <div class="doc-info">
+      <div class="doc-meta">
         <div class="doc-type">{docTitle}</div>
         <div class="doc-number">{invoice.invoice_number}</div>
         <div class="doc-date">{formatDate(invoice.issued_at)}</div>
       </div>
     </div>
 
-    <!-- Banner especial para abonos -->
+    <!-- Banner abono -->
     {isCreditNote && (
       <div class="credit-banner">
-        <span>
-          Factura de abono —
-          {invoice.credit_note_scope === 'partial' ? ' devolución parcial' : ' devolución total'}
-        </span>
+        <span>Factura de abono — {invoice.credit_note_scope === 'partial' ? 'devolución parcial' : 'devolución total'}</span>
         {referenceInvoiceNumber && (
-          <span class="ref">
-            Ref. factura original: {referenceInvoiceNumber}
-          </span>
+          <span class="ref">Factura original: {referenceInvoiceNumber}</span>
         )}
       </div>
     )}
 
     <!-- Emisor / Receptor -->
     <div class="parties">
-      <div>
+      <div class="party">
         <div class="party-label">Emisor</div>
         <div class="party-name">Éclat Beauty S.L.</div>
         <div class="party-info">
           CIF: B-XXXXXXXX<br />
-          Calle Ejemplo, 1<br />
-          28001 Madrid, España<br />
+          Calle Ejemplo, 1 — 28001 Madrid<br />
           hola@eclatbeauty.com
         </div>
       </div>
-      <div>
-        <div class="party-label">Cliente</div>
+      <div class="party">
+        <div class="party-label">Facturado a</div>
         <div class="party-name">{invoice.customer_name || 'Cliente'}</div>
         <div class="party-info">
           {invoice.customer_email && <>{invoice.customer_email}<br /></>}
           {invoice.customer_nif && <>NIF/CIF: {invoice.customer_nif}<br /></>}
           {address.address && <>{address.address}<br /></>}
-          {address.city && <>{address.city}{address.province ? `, ${address.province}` : ''}<br /></>}
-          {address.postal_code && <>{address.postal_code} {address.country || 'España'}</>}
+          {(address.city || address.postal_code) && (
+            <>{address.postal_code} {address.city}{address.province ? `, ${address.province}` : ''}<br /></>
+          )}
+          {address.country && address.country !== 'España' && <>{address.country}</>}
         </div>
       </div>
     </div>
 
-    <!-- Pedido referencia -->
-    <div style="margin-bottom: 24px; font-size: 11px; color: #888;">
-      Pedido: <strong style="color:#111;">#{(invoice as any).orders?.order_number || invoice.order_id.slice(0,8)}</strong>
+    <!-- Ref pedido -->
+    <div class="order-ref">
+      Pedido <strong>#{(invoice as any).orders?.order_number || invoice.order_id.slice(0,8)}</strong>
     </div>
 
-    <!-- Líneas -->
+    <!-- Tabla líneas -->
     <table>
       <thead>
         <tr>
-          <th style="width:50%">Descripción</th>
-          <th class="qty" style="text-align:center">Cant.</th>
-          <th style="text-align:right">P. unitario</th>
-          <th style="text-align:right">Base imp.</th>
-          <th style="text-align:right">IVA {invoice.tax_rate}%</th>
-          <th style="text-align:right">Total</th>
+          <th style="width:44%">Descripción</th>
+          <th class="c">Cant.</th>
+          <th class="r">P. unitario</th>
+          <th class="r">Base imp.</th>
+          <th class="r">IVA {invoice.tax_rate}%</th>
+          <th class="r">Total</th>
         </tr>
       </thead>
       <tbody>
@@ -195,14 +213,13 @@ const docTitle = isCreditNote
           const total = Math.abs(item.line_total);
           return (
             <tr>
-              <td>{item.name}</td>
-              <td style="text-align:center; color:#888;">{qty}</td>
-              <td style="text-align:right">{formatCents(gross)}</td>
-              <td style="text-align:right">{formatCents(net * qty)}</td>
-              <td style="text-align:right">{formatCents(tax * qty)}</td>
-              <td>
-                {isCreditNote && <span style="color:#dc2626">-</span>}
-                {formatCents(total)}
+              <td class="bold">{item.name}</td>
+              <td class="c">{qty}</td>
+              <td class="r">{formatCents(gross)}</td>
+              <td class="r">{formatCents(net * qty)}</td>
+              <td class="r">{formatCents(tax * qty)}</td>
+              <td class={isCreditNote ? 'r neg' : 'r bold'}>
+                {isCreditNote && '-'}{formatCents(total)}
               </td>
             </tr>
           );
@@ -211,42 +228,36 @@ const docTitle = isCreditNote
     </table>
 
     <!-- Totales -->
-    <div class="totals" style="max-width: 340px; margin-left: auto; margin-top: 0;">
-      <div class="totals-row">
-        <span class="totals-label">Base imponible</span>
-        <span>
-          {isCreditNote && '-'}
-          {formatCents(Math.abs(invoice.subtotal))}
-        </span>
-      </div>
-      {invoice.discount_amount > 0 && (
+    <div class="totals-wrap">
+      <div class="totals">
         <div class="totals-row">
-          <span class="totals-label">Descuento (cupón)</span>
-          <span>-{formatCents(invoice.discount_amount)}</span>
+          <span>Base imponible</span>
+          <span>{isCreditNote && '-'}{formatCents(Math.abs(invoice.subtotal))}</span>
         </div>
-      )}
-      <div class="totals-row">
-        <span class="totals-label">IVA ({invoice.tax_rate}%)</span>
-        <span>
-          {isCreditNote && '-'}
-          {formatCents(Math.abs(invoice.tax_amount))}
-        </span>
-      </div>
-      <div class={`totals-row total-final`}>
-        <span class="totals-label">TOTAL</span>
-        <span>
-          {isCreditNote && '-'}
-          {formatCents(Math.abs(invoice.total_amount))}
-        </span>
+        {invoice.discount_amount > 0 && (
+          <div class="totals-row discount">
+            <span>Descuento aplicado</span>
+            <span>-{formatCents(invoice.discount_amount)}</span>
+          </div>
+        )}
+        <div class="totals-row">
+          <span>IVA ({invoice.tax_rate}%)</span>
+          <span>{isCreditNote && '-'}{formatCents(Math.abs(invoice.tax_amount))}</span>
+        </div>
+        <div class={`totals-total${isCreditNote ? ' credit' : ''}`}>
+          <span>TOTAL</span>
+          <span>{isCreditNote && '-'}{formatCents(Math.abs(invoice.total_amount))}</span>
+        </div>
       </div>
     </div>
 
     <!-- Notas -->
     {(invoice.notes || invoice.stripe_refund_id) && (
       <div class="notes">
-        {invoice.notes && <p>Nota: {invoice.notes}</p>}
+        <strong>Notas</strong>
+        {invoice.notes && <span>{invoice.notes}</span>}
         {invoice.stripe_refund_id && (
-          <p style="margin-top:4px;">ID reembolso Stripe: {invoice.stripe_refund_id}</p>
+          <span style="display:block;margin-top:4px;font-size:10px;">Ref. reembolso Stripe: {invoice.stripe_refund_id}</span>
         )}
       </div>
     )}

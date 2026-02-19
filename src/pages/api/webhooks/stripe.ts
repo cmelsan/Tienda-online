@@ -102,57 +102,49 @@ export const POST: APIRoute = async ({ request }) => {
                             console.warn('[Stripe Webhook] Could not create invoice:', invoiceResult.error);
                         }
                     } catch (invoiceErr: any) {
-                        // No fallamos el webhook si la factura falla
                         console.error('[Stripe Webhook] Invoice creation error:', invoiceErr.message);
                     }
                 }
 
-                // 3. Send confirmation email if we have customer email
+                // 3. Deduct stock — always runs after payment confirmed, regardless of email
+                const { data: itemsData, error: itemsError } = await supabase
+                    .from('order_items')
+                    .select('*, products(name)')
+                    .eq('order_id', orderId);
+
+                if (itemsError) {
+                    console.error('[Stripe Webhook] Error fetching order items for stock:', itemsError);
+                } else if (itemsData && itemsData.length > 0) {
+                    for (const item of itemsData) {
+                        const { error: rpcStockError } = await supabase.rpc('decrease_product_stock_atomic', {
+                            p_product_id: item.product_id,
+                            p_quantity: item.quantity
+                        });
+                        if (rpcStockError) {
+                            console.error('[Stripe Webhook] Stock deduction failed for product:', item.product_id, rpcStockError.message);
+                        } else {
+                            console.log('[Stripe Webhook] Stock deducted for product:', item.product_id, 'qty:', item.quantity);
+                        }
+                    }
+                }
+
+                // 4. Send confirmation email if we have customer email
                 if (customerEmail && orderData) {
                     try {
                         if (DEBUG) {
                             console.log('[Stripe Webhook] Preparing to send confirmation email');
                         }
-                        
-                        // Get order items WITH product names
-                        const { data: itemsData, error: itemsError } = await supabase
-                            .from('order_items')
-                            .select('*, products(name)')
-                            .eq('order_id', orderId);
 
-                        if (itemsError) {
-                            console.error('[Stripe Webhook] Error fetching order items:', itemsError);
-                        } else {
-                            console.log('[Stripe Webhook] Order items fetched:', itemsData?.length || 0);
-
-                            // Deduct stock now that payment is confirmed (not before)
-                            if (itemsData && itemsData.length > 0) {
-                                for (const item of itemsData) {
-                                    const { error: rpcStockError } = await supabase.rpc('decrease_product_stock_atomic', {
-                                        p_product_id: item.product_id,
-                                        p_quantity: item.quantity
-                                    });
-                                    if (rpcStockError) {
-                                        console.error('[Stripe Webhook] Stock deduction failed for product:', item.product_id, rpcStockError.message);
-                                    } else {
-                                        console.log('[Stripe Webhook] Stock deducted for product:', item.product_id, 'qty:', item.quantity);
-                                    }
-                                }
-                            }
-                        }
-
-                        // Prepare items for email template
+                        // Prepare items for email template (reuse itemsData already fetched)
                         const emailItems = itemsData?.map((item: any) => ({
                             product_id: item.product_id,
                             name: item.products?.name || 'Producto',
                             quantity: item.quantity,
-                            price: item.price_at_purchase // asegurarse que sea centavos para el email
+                            price: item.price_at_purchase
                         })) || [];
 
-                        // El total también debe estar en centavos
                         const totalInCents = orderData.total_amount;
 
-                        // Generate email template with correct price formatting
                         const htmlContent = getOrderConfirmationTemplate(
                             orderData.order_number,
                             customerName,
@@ -160,7 +152,6 @@ export const POST: APIRoute = async ({ request }) => {
                             totalInCents
                         );
 
-                        // Send email
                         const emailResult = await sendEmail({
                             to: customerEmail,
                             subject: `📦 Pedido confirmado #${orderData.order_number}`,
@@ -174,7 +165,6 @@ export const POST: APIRoute = async ({ request }) => {
                         }
                     } catch (emailErr: any) {
                         console.error('[Stripe Webhook] Exception sending email:', emailErr.message);
-                        // Don't fail the webhook if email fails
                     }
                 } else {
                     console.warn('[Stripe Webhook] No customer email found or order data missing');

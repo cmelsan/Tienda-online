@@ -44,6 +44,7 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
     const [restoreStock, setRestoreStock] = useState(false);
     const [refundAmount, setRefundAmount] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // Determine available actions based on status
     const availableActions = useMemo(() => {
@@ -199,9 +200,6 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
 
     const currentAction = availableActions.find(a => a.type === modalAction);
 
-    // State for inline delete confirmation modal
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
     const handleDeletePending = async () => {
         setIsLoading(true);
         setShowDeleteConfirm(false);
@@ -225,7 +223,7 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
     if (availableActions.length === 0) {
         if (order.status === 'awaiting_payment') {
             return (
-                <>
+                <span className="relative">
                     <button
                         onClick={() => setShowDeleteConfirm(true)}
                         disabled={isLoading}
@@ -265,7 +263,7 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
                             </div>
                         </div>
                     )}
-                </>
+                </span>
             );
         }
         return <span className="text-[10px] text-gray-300 uppercase tracking-widest">—</span>;

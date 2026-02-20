@@ -1,0 +1,107 @@
+---
+import PublicLayout from '@/layouts/PublicLayout.astro';
+import ProductCard from '@/components/product/ProductCard.astro';
+import CountdownTimer from '@/components/islands/CountdownTimer';
+import { supabase } from '@/lib/supabase';
+
+// Check Flash Sales enabled
+const { data: flashSaleSettings } = await supabase
+  .from('app_settings')
+  .select('value')
+  .eq('key', 'flash_sale_enabled')
+  .single();
+
+if (flashSaleSettings?.value === false) {
+  return Astro.redirect('/');
+}
+
+// Fetch all active flash sale products
+const now = new Date().toISOString();
+const { data: flashProducts } = await supabase
+  .from('products')
+  .select('*, brand:brands(name), category:categories(name, slug)')
+  .eq('is_flash_sale', true)
+  .or(`flash_sale_end_time.is.null,flash_sale_end_time.gt.${now}`)
+  .order('flash_sale_discount', { ascending: false });
+
+const products = (flashProducts || []).map((p: any) => ({
+  ...p,
+  discount: p.flash_sale_discount || 0,
+  discountedPrice: Math.round(p.price * (1 - (p.flash_sale_discount || 0) / 100)),
+  brand: p.brand?.name || 'Marca',
+}));
+
+// Countdown: earliest expiry
+const endTime = products.reduce((earliest: string, p: any) => {
+  if (!p.flash_sale_end_time) return earliest;
+  if (!earliest) return p.flash_sale_end_time;
+  return new Date(p.flash_sale_end_time) < new Date(earliest) ? p.flash_sale_end_time : earliest;
+}, '');
+---
+
+<PublicLayout title="Flash Sales - ÉCLAT Beauty" description="Ofertas flash con descuentos increíbles por tiempo limitado.">
+  <div class="min-h-screen bg-white">
+
+    {/* Header */}
+    <div class="bg-black py-14 md:py-20 relative overflow-hidden">
+      <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-pink-900/30 via-transparent to-transparent"></div>
+      <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <span class="inline-block text-pink-400 text-[10px] uppercase tracking-[0.35em] mb-4 font-bold">Tiempo Limitado</span>
+        <h1 class="text-5xl md:text-6xl font-black text-white uppercase tracking-tight mb-4">
+          ⚡ Flash Sales
+        </h1>
+        <p class="text-gray-400 text-base mb-8">Descuentos exclusivos que no durarán para siempre</p>
+
+        {/* Countdown */}
+        {endTime && (
+          <div class="flex justify-center" id="flash-page-section">
+            <CountdownTimer client:only="react" endTime={endTime} sectionId="flash-page-section" />
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/* Products Grid */}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+      {products.length > 0 ? (
+        <>
+          <p class="text-xs text-gray-500 uppercase tracking-widest mb-8 font-medium">
+            {products.length} producto{products.length !== 1 ? 's' : ''} en oferta flash
+          </p>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
+            {products.map((product: any) => (
+              <div class="group bg-white border border-gray-200 hover:border-pink-400 hover:shadow-lg transition-all duration-300">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div class="text-center py-24">
+          <div class="text-6xl mb-6">⚡</div>
+          <h2 class="text-2xl font-bold text-black mb-3 uppercase tracking-wide">No hay ofertas activas</h2>
+          <p class="text-gray-500 text-sm mb-8">En este momento no hay productos en oferta flash. ¡Vuelve pronto!</p>
+          <a
+            href="/productos"
+            class="inline-block bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-pink-500 transition-colors"
+          >
+            Ver todos los productos
+          </a>
+        </div>
+      )}
+    </div>
+
+    {/* Back link */}
+    {products.length > 0 && (
+      <div class="text-center pb-16">
+        <a
+          href="/productos"
+          class="text-xs font-bold uppercase tracking-widest text-black border-b-2 border-pink-500 pb-1 hover:text-pink-500 transition-colors"
+        >
+          Ver todos los productos
+        </a>
+      </div>
+    )}
+  </div>
+</PublicLayout>

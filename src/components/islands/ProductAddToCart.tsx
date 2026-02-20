@@ -18,14 +18,12 @@ export default function ProductAddToCart({ productId, productName, price, discou
         e.stopPropagation();
 
         try {
-            // price arriving here is the ORIGINAL price from ProductCard
-            // discountedPrice is optional - might be pre-calculated
-            // Calculate final discounted price if not provided
+            // PRIORIDAD: flash sale > discountedPrice (oferta destacada) > discount > precio base
             let finalPrice = price;
-            if (discountedPrice && discountedPrice > 0 && discountedPrice !== price) {
-                finalPrice = discountedPrice;
-            } else if (is_flash_sale && flash_sale_discount && flash_sale_discount > 0) {
+            if (is_flash_sale && flash_sale_discount && flash_sale_discount > 0) {
                 finalPrice = Math.round(price * (1 - flash_sale_discount / 100));
+            } else if (discountedPrice && discountedPrice > 0 && discountedPrice !== price) {
+                finalPrice = discountedPrice;
             } else if (discount && discount > 0) {
                 finalPrice = Math.round(price * (1 - discount / 100));
             }

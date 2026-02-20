@@ -44,8 +44,21 @@ const offersEnabled = offersSettingData?.value === true;
 let productDiscount = 0;
 let productDiscountedPrice = product.price;
 
-// Check for featured offers (rebajas)
-if (offersEnabled) {
+// PRIORIDAD: flash sale > ofertas destacadas > precio base
+// (igual que en create-checkout-session.ts)
+
+// 1. Verificar flash sale primero (máximo descuento)
+const now = new Date();
+if (product.is_flash_sale && product.flash_sale_discount) {
+  const endTime = product.flash_sale_end_time ? new Date(product.flash_sale_end_time) : null;
+  if (!endTime || endTime > now) {
+    productDiscount = product.flash_sale_discount;
+    productDiscountedPrice = Math.round(product.price * (1 - productDiscount / 100));
+  }
+}
+
+// 2. Solo si NO hay flash sale activa, comprobar ofertas destacadas (rebajas)
+if (productDiscount === 0 && offersEnabled) {
   const { data: offersData } = await supabase
     .from('app_settings')
     .select('value')
@@ -62,11 +75,7 @@ if (offersEnabled) {
   }
 }
 
-// If no featured offer, check for flash sale
-if (productDiscount === 0 && product.is_flash_sale && product.flash_sale_discount) {
-  productDiscount = product.flash_sale_discount;
-  productDiscountedPrice = Math.round(product.price * (1 - productDiscount / 100));
-}
+// (sin segundo bloque de flash sale — ya está gestionado arriba con prioridad)
 
 // Map category slug to fallback image for related products
 const getFallbackImage = (categorySlug: string) => {

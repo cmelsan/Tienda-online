@@ -38,16 +38,16 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
         setError('');
 
         try {
-            // Calcular el precio correcto con descuentos
+            // PRIORIDAD: flash sale > discountedPrice (oferta destacada) > precio base
+            // (igual que en create-checkout-session.ts y [slug].astro)
             let finalPrice = product.price;
-            
-            // Si tiene discountedPrice (ofertas destacadas), usar ese
-            if (product.discountedPrice) {
-                finalPrice = product.discountedPrice;
-            }
-            // Si es flash sale, calcular el descuento
-            else if (product.is_flash_sale && product.flash_sale_discount) {
+
+            if (product.is_flash_sale && product.flash_sale_discount) {
+                // Flash sale tiene prioridad máxima
                 finalPrice = Math.round(product.price * (1 - product.flash_sale_discount / 100));
+            } else if (product.discountedPrice) {
+                // Oferta destacada (rebajas)
+                finalPrice = product.discountedPrice;
             }
 
             console.log('[AddToCart] Adding product:', {

@@ -367,9 +367,7 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
 
           {/* Countdown Timer */}
           {flashSaleEndTime && (
-            <div client:load>
-              <CountdownTimer client:only="react" endTime={flashSaleEndTime} sectionId="flash-sale-section" />
-            </div>
+            <CountdownTimer client:only="react" endTime={flashSaleEndTime} sectionId="flash-sale-section" />
           )}
         </div>
 

@@ -19,7 +19,7 @@ const { data: offersSettings } = await supabase
   .eq('key', 'offers_enabled')
   .single();
 
-const offersEnabled = offersSettings?.value === true;
+const offersEnabled = offersSettings !== null && (offersSettings as any).value === true;
 ---
 
 <BaseLayout title={title} description={description}>

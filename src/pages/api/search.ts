@@ -54,7 +54,7 @@ export const GET: APIRoute = async ({ url }) => {
       slug: p.slug,
       image: Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : null,
       price: p.price,
-      brand: (p.brand as { name: string } | null)?.name ?? null,
+      brand: (Array.isArray(p.brand) ? p.brand[0]?.name : (p.brand as any)?.name) ?? null,
     }));
 
     const brands = (brandsData ?? []).map((b) => ({
@@ -74,7 +74,7 @@ export const GET: APIRoute = async ({ url }) => {
       id: s.id,
       name: s.name,
       slug: s.slug,
-      category: (s.category as { name: string } | null)?.name ?? null,
+      category: (Array.isArray(s.category) ? s.category[0]?.name : (s.category as any)?.name) ?? null,
     }));
 
     return new Response(

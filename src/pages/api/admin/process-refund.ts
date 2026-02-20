@@ -220,7 +220,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
         if (!customerEmail && order.user_id) {
             try {
-                const { data: { user }, error: userError } = await userClient.auth.admin.getUser(order.user_id);
+                const { data: { user }, error: userError } = await (userClient.auth.admin as any).getUserById(order.user_id);
                 if (user && !userError) {
                     customerEmail = user.email;
                     customerName = user.user_metadata?.full_name || customerName;

@@ -12,9 +12,9 @@ import { formatPrice, getStockLabel } from '@/lib/utils';
 export async function getStaticPaths() {
   const { data: products } = await supabase
     .from('products')
-    .select('slug');
+    .select('slug') as any;
 
-  return products?.map((product) => ({
+  return products?.map((product: { slug: string }) => ({
     params: { slug: product.slug },
   })) || [];
 }
@@ -24,9 +24,9 @@ const { slug } = Astro.params;
 // Fetch product data
 const { data: product } = await supabase
   .from('products')
-  .select('*, category:categories(*)')
+  .select('*, category:categories(*), brand:brands(*)')
   .eq('slug', slug)
-  .single();
+  .single() as any;
 
 if (!product) {
   return Astro.redirect('/404');
@@ -39,7 +39,7 @@ const { data: offersSettingData } = await supabase
   .eq('key', 'offers_enabled')
   .single();
 
-const offersEnabled = offersSettingData?.value === true;
+const offersEnabled = offersSettingData !== null && (offersSettingData as unknown as { value: boolean }).value === true;
 
 let productDiscount = 0;
 let productDiscountedPrice = product.price;
@@ -65,8 +65,8 @@ if (productDiscount === 0 && offersEnabled) {
     .eq('key', 'featured_offers')
     .single();
   
-  if (offersData?.value) {
-    const featuredOffers = offersData.value;
+  if (offersData && (offersData as any).value) {
+    const featuredOffers = (offersData as any).value;
     const offer = featuredOffers.find((o: any) => o.id === product.id);
     if (offer) {
       productDiscount = offer.discount || 0;
@@ -94,7 +94,7 @@ const { data: relatedProducts } = await supabase
   .select('*')
   .eq('category_id', product.category_id)
   .neq('id', product.id)
-  .limit(4);
+  .limit(4) as any;
 ---
 
 <PublicLayout

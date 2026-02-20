@@ -94,10 +94,10 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
   };
 
   return (
-    <div class="max-w-2xl">
-      <div class="mb-8">
-        <h1 class="text-2xl font-bold text-black uppercase tracking-wider mb-2">Configuración de la Tienda</h1>
-        <p class="text-xs text-gray-500 uppercase tracking-wide">Gestiona la visibilidad de secciones y parámetros globales.</p>
+    <div className="max-w-2xl">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-black uppercase tracking-wider mb-2">Configuración de la Tienda</h1>
+        <p className="text-xs text-gray-500 uppercase tracking-wide">Gestiona la visibilidad de secciones y parámetros globales.</p>
       </div>
 
       {message && (
@@ -106,61 +106,61 @@ export default function SettingsForm({ token: initialToken, offersEnabled: initi
         </div>
       )}
 
-      <div class="bg-white border border-gray-200 shadow-sm">
+      <div className="bg-white border border-gray-200 shadow-sm">
         {/* Ofertas Setting */}
-        <div class="flex items-center justify-between p-8 border-b border-gray-100">
+        <div className="flex items-center justify-between p-8 border-b border-gray-100">
           <div>
-            <h3 class="text-sm font-bold text-black uppercase">Sección de Ofertas</h3>
-            <p class="text-xs text-gray-500 mt-1 max-w-sm">Si se desactiva, la página de ofertas mostrará un error 404 y el enlace desaparecerá del menú principal.</p>
+            <h3 className="text-sm font-bold text-black uppercase">Sección de Ofertas</h3>
+            <p className="text-xs text-gray-500 mt-1 max-w-sm">Si se desactiva, la página de ofertas mostrará un error 404 y el enlace desaparecerá del menú principal.</p>
           </div>
 
-          <label class="relative inline-flex items-center cursor-pointer">
+          <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
               checked={offersEnabled}
               onChange={handleToggleOffers}
               disabled={loading}
-              class="sr-only peer"
+              className="sr-only peer"
             />
-            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
           </label>
         </div>
 
         {/* Flash Sale Setting */}
-        <div class="flex items-center justify-between p-8 border-b border-gray-100">
+        <div className="flex items-center justify-between p-8 border-b border-gray-100">
           <div>
-            <h3 class="text-sm font-bold text-black uppercase">Flash Sales en Inicio</h3>
-            <p class="text-xs text-gray-500 mt-1 max-w-sm">Muestra la sección de Flash Sales en la página de inicio. Los productos se configuran en el Gestor de Flash Sales.</p>
+            <h3 className="text-sm font-bold text-black uppercase">Flash Sales en Inicio</h3>
+            <p className="text-xs text-gray-500 mt-1 max-w-sm">Muestra la sección de Flash Sales en la página de inicio. Los productos se configuran en el Gestor de Flash Sales.</p>
           </div>
 
-          <label class="relative inline-flex items-center cursor-pointer">
+          <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
               checked={flashSaleEnabled}
               onChange={handleToggleFlashSale}
               disabled={loading}
-              class="sr-only peer"
+              className="sr-only peer"
             />
-            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
           </label>
         </div>
 
         {/* Novedades Setting */}
-        <div class="flex items-center justify-between p-8">
+        <div className="flex items-center justify-between p-8">
           <div>
-            <h3 class="text-sm font-bold text-black uppercase">Seccion Novedades en Inicio</h3>
-            <p class="text-xs text-gray-500 mt-1 max-w-sm">Muestra los banners de Nuevas Llegadas y Best Sellers en la pagina de inicio.</p>
+            <h3 className="text-sm font-bold text-black uppercase">Seccion Novedades en Inicio</h3>
+            <p className="text-xs text-gray-500 mt-1 max-w-sm">Muestra los banners de Nuevas Llegadas y Best Sellers en la pagina de inicio.</p>
           </div>
 
-          <label class="relative inline-flex items-center cursor-pointer">
+          <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
               checked={novedadesEnabled}
               onChange={handleToggleNovedades}
               disabled={loading}
-              class="sr-only peer"
+              className="sr-only peer"
             />
-            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
           </label>
         </div>
       </div>

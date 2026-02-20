@@ -92,5 +92,5 @@ const totalRevenue = orderList
   </div>
 
   <!-- Tabla -->
-  <AdminOrdersTable client:load orders={orderList} />
+  <AdminOrdersTable client:load orders={orderList as any} />
 </AdminLayout>

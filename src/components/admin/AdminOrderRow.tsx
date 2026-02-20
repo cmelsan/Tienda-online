@@ -44,7 +44,7 @@ interface Order {
     user_id: string | null;
     guest_email: string | null;
     order_items: OrderItem[];
-    shipping_address: any;
+    shipping_address?: any;
 }
 
 interface AdminOrderRowProps {

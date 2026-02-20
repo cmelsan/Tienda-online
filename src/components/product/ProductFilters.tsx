@@ -9,6 +9,7 @@ interface ProductFiltersProps {
     selectedCategories?: string[];
     currentMinPrice: number;
     currentMaxPrice: number;
+    [key: string]: any; // allow Astro client directives (client:load, client:only, etc.)
 }
 
 export default function ProductFilters({

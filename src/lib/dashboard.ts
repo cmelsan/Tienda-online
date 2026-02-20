@@ -56,7 +56,7 @@ export async function getTopSellingProduct(): Promise<{ name: string; quantity: 
   }
 
   const item = data[0];
-  const productName = item.products?.name || 'Unknown';
+  const productName = (item.products as any)?.[0]?.name || (item.products as any)?.name || 'Unknown';
   const quantity = item.quantity || 0;
 
   return { name: productName, quantity };
@@ -152,7 +152,7 @@ export async function getTopProducts(): Promise<Array<{ name: string; quantity: 
   }
 
   return data.map((item) => ({
-    name: item.products?.name || 'Unknown',
+    name: (item.products as any)?.[0]?.name || (item.products as any)?.name || 'Unknown',
     quantity: item.quantity || 0,
   }));
 }

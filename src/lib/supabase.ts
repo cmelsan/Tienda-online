@@ -41,6 +41,10 @@ export interface Database {
                     category_id: string;
                     images: string[];
                     created_at: string;
+                    brand_id: string | null;
+                    is_flash_sale: boolean;
+                    flash_sale_discount: number | null;
+                    flash_sale_end_time: string | null;
                 };
                 Insert: {
                     id?: string;
@@ -52,6 +56,10 @@ export interface Database {
                     category_id: string;
                     images?: string[];
                     created_at?: string;
+                    brand_id?: string | null;
+                    is_flash_sale?: boolean;
+                    flash_sale_discount?: number | null;
+                    flash_sale_end_time?: string | null;
                 };
                 Update: {
                     id?: string;
@@ -63,6 +71,10 @@ export interface Database {
                     category_id?: string;
                     images?: string[];
                     created_at?: string;
+                    brand_id?: string | null;
+                    is_flash_sale?: boolean;
+                    flash_sale_discount?: number | null;
+                    flash_sale_end_time?: string | null;
                 };
             };
             carts: {
@@ -176,6 +188,199 @@ export interface Database {
                     updated_at?: string;
                 };
             };
+            orders: {
+                Row: {
+                    id: string;
+                    order_number: string | null;
+                    user_id: string | null;
+                    guest_email: string | null;
+                    status: string;
+                    total_amount: number;
+                    items: any;
+                    shipping_address: any;
+                    billing_address: any | null;
+                    stripe_checkout_session_id: string | null;
+                    stripe_payment_intent_id: string | null;
+                    coupon_code: string | null;
+                    coupon_discount: number | null;
+                    delivered_at: string | null;
+                    return_deadline: string | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    order_number?: string | null;
+                    user_id?: string | null;
+                    guest_email?: string | null;
+                    status?: string;
+                    total_amount: number;
+                    items?: any;
+                    shipping_address?: any;
+                    billing_address?: any | null;
+                    stripe_checkout_session_id?: string | null;
+                    stripe_payment_intent_id?: string | null;
+                    coupon_code?: string | null;
+                    coupon_discount?: number | null;
+                    delivered_at?: string | null;
+                    return_deadline?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    order_number?: string | null;
+                    user_id?: string | null;
+                    guest_email?: string | null;
+                    status?: string;
+                    total_amount?: number;
+                    items?: any;
+                    shipping_address?: any;
+                    billing_address?: any | null;
+                    stripe_checkout_session_id?: string | null;
+                    stripe_payment_intent_id?: string | null;
+                    coupon_code?: string | null;
+                    coupon_discount?: number | null;
+                    delivered_at?: string | null;
+                    return_deadline?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
+            app_settings: {
+                Row: { key: string; value: any };
+                Insert: { key: string; value?: any };
+                Update: { key?: string; value?: any };
+            };
+            brands: {
+                Row: {
+                    id: string;
+                    name: string;
+                    slug: string;
+                    logo_url: string | null;
+                    description: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    name: string;
+                    slug: string;
+                    logo_url?: string | null;
+                    description?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    name?: string;
+                    slug?: string;
+                    logo_url?: string | null;
+                    description?: string | null;
+                    created_at?: string;
+                };
+            };
+            subcategories: {
+                Row: {
+                    id: string;
+                    name: string;
+                    slug: string;
+                    category_id: string;
+                    description: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    name: string;
+                    slug: string;
+                    category_id: string;
+                    description?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    name?: string;
+                    slug?: string;
+                    category_id?: string;
+                    description?: string | null;
+                    created_at?: string;
+                };
+            };
+            invoices: {
+                Row: {
+                    id: string;
+                    invoice_number: string;
+                    order_id: string;
+                    type: string;
+                    amount: number;
+                    pdf_url: string | null;
+                    created_at: string;
+                    [key: string]: any;
+                };
+                Insert: { [key: string]: any };
+                Update: { [key: string]: any };
+            };
+            reviews: {
+                Row: {
+                    id: string;
+                    product_id: string;
+                    user_id: string | null;
+                    rating: number;
+                    comment: string | null;
+                    created_at: string;
+                    [key: string]: any;
+                };
+                Insert: { [key: string]: any };
+                Update: { [key: string]: any };
+            };
+            wishlists: {
+                Row: {
+                    id: string;
+                    user_id: string;
+                    product_id: string;
+                    created_at: string;
+                };
+                Insert: { id?: string; user_id: string; product_id: string; created_at?: string };
+                Update: { id?: string; user_id?: string; product_id?: string; created_at?: string };
+            };
+            profiles: {
+                Row: {
+                    id: string;
+                    email: string | null;
+                    full_name: string | null;
+                    avatar_url: string | null;
+                    created_at: string;
+                    updated_at: string;
+                    [key: string]: any;
+                };
+                Insert: { [key: string]: any };
+                Update: { [key: string]: any };
+            };
+            item_returns: {
+                Row: { id: string; order_id: string; [key: string]: any };
+                Insert: { [key: string]: any };
+                Update: { [key: string]: any };
+            };
+            refunds_log: {
+                Row: { id: string; order_id: string; [key: string]: any };
+                Insert: { [key: string]: any };
+                Update: { [key: string]: any };
+            };
+            newsletter_subscribers: {
+                Row: { id: string; email: string; [key: string]: any };
+                Insert: { [key: string]: any };
+                Update: { [key: string]: any };
+            };
+            // Catch-all for any other tables not explicitly typed
+            [tableName: string]: {
+                Row: Record<string, any>;
+                Insert: Record<string, any>;
+                Update: Record<string, any>;
+            };
+        };
+        Functions: {
+            [functionName: string]: {
+                Args: Record<string, any>;
+                Returns: any;
+            };
         };
     };
 }
@@ -192,7 +397,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Client-side Supabase client
-export const supabase: SupabaseClient<Database> = createClient<Database>(
+export const supabase: SupabaseClient<any> = createClient<any>(
     supabaseUrl,
     supabaseAnonKey
 );
@@ -201,7 +406,7 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
 export async function createServerSupabaseClient(
     context: any,
     isAdmin: boolean = false
-): Promise<SupabaseClient<Database>> {
+): Promise<SupabaseClient<any>> {
     // Extract cookies object - handle both Astro context and request context
     const cookies = context.cookies;
     
@@ -224,7 +429,7 @@ export async function createServerSupabaseClient(
         console.log(`[Supabase] Auth check (${isAdmin ? 'admin' : 'user'}) - Access token present:`, !!accessToken, 'Refresh token present:', !!refreshToken);
     }
 
-    const client = createClient<Database>(
+    const client = createClient<any>(
         supabaseUrl,
         supabaseAnonKey,
         {
@@ -275,7 +480,7 @@ export async function requestReturn(orderId: string, reason: string) {
  * 
  * @deprecated Use admin API endpoints with proper auth validation instead
  */
-export function getAdminSupabaseClient(): SupabaseClient<Database> | null {
+export function getAdminSupabaseClient(): SupabaseClient<any> | null {
     const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
     
     if (!serviceRoleKey) {
@@ -285,7 +490,7 @@ export function getAdminSupabaseClient(): SupabaseClient<Database> | null {
 
     // WARNING: This client bypasses ALL RLS policies
     // Caller MUST validate admin authorization before using
-    return createClient<Database>(
+    return createClient<any>(
         supabaseUrl,
         serviceRoleKey,
         {

@@ -203,7 +203,7 @@ const dateStr = now.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric
           <div class="bg-black text-white p-6">
             <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Producto mas vendido</p>
             <p class="text-lg font-black leading-tight">{topProduct.name}</p>
-            <p class="text-pink-400 text-sm font-bold mt-2">{topProduct.totalSold || topProduct.total_sold || 0} unidades</p>
+            <p class="text-pink-400 text-sm font-bold mt-2">{topProduct.quantity || 0} unidades</p>
             <div class="w-8 h-0.5 bg-pink-500 mt-4"></div>
           </div>
         )}

@@ -46,7 +46,7 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
         <div id="loading" class="text-center py-16 text-gray-400 text-sm">Cargando...</div>
 
         <!-- Lista de direcciones -->
-        <div id="address-list" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        <div id="address-list" style="display:none" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 
         <!-- Estado vacío -->
         <div id="empty-state" class="hidden bg-gray-50 text-center py-16 border border-gray-100">
@@ -67,7 +67,7 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
   </div>
 
   <!-- Modal formulario -->
-  <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+  <div id="modal" style="display:none" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
     <div class="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
         <h2 id="modal-title" class="text-sm font-bold uppercase tracking-widest">Nueva dirección</h2>

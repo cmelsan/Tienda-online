@@ -135,7 +135,7 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
         </div>
 
         <!-- Modal eliminar cuenta -->
-        <div id="modal-delete" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+        <div id="modal-delete" style="display:none" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div class="bg-white w-full max-w-md p-8">
             <h2 class="text-sm font-bold uppercase tracking-widest mb-2">¿Eliminar tu cuenta?</h2>
             <p class="text-sm text-gray-500 mb-6">Esta acción es permanente e irreversible. Se eliminarán todos tus datos. Introduce tu contraseña para confirmar.</p>

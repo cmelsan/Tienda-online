@@ -48,11 +48,11 @@ function useDebounce<T>(value: T, delay: number): T {
 
 // ─── Price formatter ─────────────────────────────────────────────────────────
 function formatPrice(price: number) {
-    return new Intl.NumberFormat('es-MX', {
+    return new Intl.NumberFormat('es-ES', {
         style: 'currency',
-        currency: 'MXN',
-        minimumFractionDigits: 0,
-    }).format(price);
+        currency: 'EUR',
+        minimumFractionDigits: 2,
+    }).format(price / 100);
 }
 
 export default function SearchBar() {
@@ -148,7 +148,7 @@ export default function SearchBar() {
 
             {/* ── Full-screen overlay ─────────────────────────────────────── */}
             {isOpen && (
-                <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-start pt-24 md:pt-32 animate-fadeIn">
+                <div className="fixed inset-0 z-[999] bg-black flex flex-col items-center justify-start pt-24 md:pt-32 animate-fadeIn">
 
                     {/* Close */}
                     <button

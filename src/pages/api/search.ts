@@ -20,9 +20,9 @@ export const GET: APIRoute = async ({ url }) => {
       .from('products')
       .select('id, name, slug, images, price, brand:brands(name)')
       .or(`name.ilike.%${q}%,description.ilike.%${q}%`)
-      .eq('is_active', true)
+      .gt('stock', 0)
       .order('name', { ascending: true })
-      .limit(4);
+      .limit(6);
 
     // Buscar marcas
     const { data: brandsData } = await supabase

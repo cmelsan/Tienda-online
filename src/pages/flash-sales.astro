@@ -76,19 +76,6 @@ const endTime = products.reduce((earliest: string, p: any) => {
               <svg id="fs-toggle-icon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
             </div>
             <div id="fs-sidebar-content">
-              {/* Categoría */}
-              <div class="mb-6">
-                <h3 id="fs-toggle-cat" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
-                  Categoría
-                  <svg id="fs-cat-arrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                </h3>
-                <div id="fs-cat-section" class="pl-2 space-y-2">
-                  <button class="fs-cat-btn block text-sm text-left font-bold text-beauty-red hover:text-black" data-cat-id="all">Ver todos</button>
-                  {fsCategories?.map((cat: any) => (
-                    <button class="fs-cat-btn block text-sm text-left text-gray-600 hover:text-black capitalize" data-cat-id={cat.id}>{cat.name}</button>
-                  ))}
-                </div>
-              </div>
               {/* Marcas */}
               <div class="mb-6">
                 <h3 id="fs-toggle-brand" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
@@ -140,6 +127,13 @@ const endTime = products.reduce((earliest: string, p: any) => {
 
           {/* Grid */}
           <div class="flex-1">
+            {/* Barra horizontal de categorías */}
+            <div class="flex flex-wrap gap-2 mb-8">
+              <button class="fs-cat-btn px-4 py-2 text-xs font-bold uppercase tracking-widest border border-black bg-black text-white hover:bg-white hover:text-black transition-colors" data-cat-id="all">Ver todos</button>
+              {fsCategories?.map((cat: any) => (
+                <button class="fs-cat-btn px-4 py-2 text-xs font-bold uppercase tracking-widest border border-black bg-white text-black hover:bg-black hover:text-white transition-colors" data-cat-id={cat.id}>{cat.name}</button>
+              ))}
+            </div>
             <p class="text-xs text-gray-500 uppercase tracking-widest mb-6 font-medium" id="fs-count">
               {products.length} producto{products.length !== 1 ? 's' : ''} en oferta flash
             </p>
@@ -174,106 +168,118 @@ const endTime = products.reduce((earliest: string, p: any) => {
 
 <style>
   .fs-card.hidden { display: none; }
-  .fs-cat-btn.fs-active-cat { color: #e11d48; font-weight: 700; }
+  .fs-cat-btn.fs-active-cat { background-color: #000 !important; color: #fff !important; }
 </style>
 
 <script define:vars={{ fsPriceMin, fsPriceMax }}>
-  let fsSelectedCategory = 'all';
-  let fsSelectedBrands: string[] = [];
-  let fsCurrentMin = fsPriceMin;
-  let fsCurrentMax = fsPriceMax;
+  var fsSelectedCategory = 'all';
+  var fsSelectedBrands = [];
+  var fsCurrentMin = fsPriceMin;
+  var fsCurrentMax = fsPriceMax;
 
-  const cards = document.querySelectorAll('.fs-card');
-  const countEl = document.getElementById('fs-count');
-  const emptyEl = document.getElementById('fs-empty');
-  const gridEl = document.getElementById('fs-grid');
+  var cards = document.querySelectorAll('.fs-card');
+  var countEl = document.getElementById('fs-count');
+  var emptyEl = document.getElementById('fs-empty');
+  var gridEl = document.getElementById('fs-grid');
 
   function applyFilters() {
-    let visible = 0;
-    cards.forEach(card => {
-      const brand = (card as HTMLElement).dataset.brandSlug || '';
-      const cat = String((card as HTMLElement).dataset.categoryId || '');
-      const price = parseInt((card as HTMLElement).dataset.price || '0');
-      const show =
+    var visible = 0;
+    cards.forEach(function(card) {
+      var brand = card.dataset.brandSlug || '';
+      var cat = String(card.dataset.categoryId || '');
+      var price = parseInt(card.dataset.price || '0');
+      var show =
         (fsSelectedBrands.length === 0 || fsSelectedBrands.includes(brand)) &&
         (fsSelectedCategory === 'all' || fsSelectedCategory === cat) &&
         price >= fsCurrentMin && price <= fsCurrentMax;
       card.classList.toggle('hidden', !show);
       if (show) visible++;
     });
-    if (countEl) countEl.textContent = `${visible} producto${visible !== 1 ? 's' : ''} en oferta flash`;
+    if (countEl) countEl.textContent = visible + ' producto' + (visible !== 1 ? 's' : '') + ' en oferta flash';
     if (emptyEl) emptyEl.classList.toggle('hidden', visible > 0);
     if (gridEl) gridEl.classList.toggle('hidden', visible === 0);
   }
 
   // Toggle sidebar
-  let fsSidebarOpen = true;
-  const fsSidebarContent = document.getElementById('fs-sidebar-content');
-  const fsToggleBtn = document.getElementById('fs-toggle-btn');
-  const fsToggleLabel = document.getElementById('fs-toggle-label');
-  const fsToggleIcon = document.getElementById('fs-toggle-icon');
+  var fsSidebarOpen = true;
+  var fsSidebarContent = document.getElementById('fs-sidebar-content');
+  var fsToggleBtn = document.getElementById('fs-toggle-btn');
+  var fsToggleLabel = document.getElementById('fs-toggle-label');
+  var fsToggleIcon = document.getElementById('fs-toggle-icon');
   if (fsToggleBtn) {
-    fsToggleBtn.addEventListener('click', () => {
+    fsToggleBtn.addEventListener('click', function() {
       fsSidebarOpen = !fsSidebarOpen;
-      fsSidebarContent?.classList.toggle('hidden', !fsSidebarOpen);
+      if (fsSidebarContent) fsSidebarContent.classList.toggle('hidden', !fsSidebarOpen);
       if (fsToggleLabel) fsToggleLabel.textContent = fsSidebarOpen ? 'Ocultar Filtros' : 'Mostrar Filtros';
       if (fsToggleIcon) fsToggleIcon.style.transform = fsSidebarOpen ? '' : 'rotate(180deg)';
     });
   }
 
   // Collapsible sections
-  [['fs-toggle-cat','fs-cat-section','fs-cat-arrow'],
-   ['fs-toggle-brand','fs-brand-section','fs-brand-arrow'],
-   ['fs-toggle-price','fs-price-section','fs-price-arrow']].forEach(([b,s,a]) => {
-    const btn = document.getElementById(b), sec = document.getElementById(s), arr = document.getElementById(a);
-    let open = true;
-    btn?.addEventListener('click', () => { open = !open; sec?.classList.toggle('hidden', !open); if(arr) arr.style.transform = open ? '' : 'rotate(-90deg)'; });
+  [['fs-toggle-brand','fs-brand-section','fs-brand-arrow'],
+   ['fs-toggle-price','fs-price-section','fs-price-arrow']].forEach(function(ids) {
+    var btn = document.getElementById(ids[0]);
+    var sec = document.getElementById(ids[1]);
+    var arr = document.getElementById(ids[2]);
+    var open = true;
+    if (btn) btn.addEventListener('click', function() {
+      open = !open;
+      if (sec) sec.classList.toggle('hidden', !open);
+      if (arr) arr.style.transform = open ? '' : 'rotate(-90deg)';
+    });
   });
 
-  // Category
-  document.querySelectorAll('.fs-cat-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      fsSelectedCategory = (btn as HTMLElement).dataset.catId || 'all';
-      document.querySelectorAll('.fs-cat-btn').forEach(b => b.classList.toggle('fs-active-cat', (b as HTMLElement).dataset.catId === fsSelectedCategory));
+  // Category (horizontal bar)
+  document.querySelectorAll('.fs-cat-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      fsSelectedCategory = btn.dataset.catId || 'all';
+      document.querySelectorAll('.fs-cat-btn').forEach(function(b) {
+        b.classList.toggle('fs-active-cat', b.dataset.catId === fsSelectedCategory);
+      });
       applyFilters();
     });
   });
 
   // Brands
-  document.querySelectorAll('.fs-brand-cb').forEach(cb => {
-    cb.addEventListener('change', () => {
-      const slug = (cb as HTMLInputElement).dataset.brandSlug || '';
-      if ((cb as HTMLInputElement).checked) { if (!fsSelectedBrands.includes(slug)) fsSelectedBrands.push(slug); }
-      else { fsSelectedBrands = fsSelectedBrands.filter(s => s !== slug); }
+  document.querySelectorAll('.fs-brand-cb').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+      var slug = cb.dataset.brandSlug || '';
+      if (cb.checked) { if (!fsSelectedBrands.includes(slug)) fsSelectedBrands.push(slug); }
+      else { fsSelectedBrands = fsSelectedBrands.filter(function(s) { return s !== slug; }); }
       applyFilters();
     });
   });
 
   // Brand search
-  document.getElementById('fs-brand-search')?.addEventListener('input', e => {
-    const q = (e.target as HTMLInputElement).value.toLowerCase();
-    document.querySelectorAll('.fs-brand-label').forEach(label => {
-      (label as HTMLElement).style.display = ((label as HTMLElement).dataset.brandName || '').includes(q) ? '' : 'none';
+  var fsBrandSearch = document.getElementById('fs-brand-search');
+  if (fsBrandSearch) fsBrandSearch.addEventListener('input', function(e) {
+    var q = e.target.value.toLowerCase();
+    document.querySelectorAll('.fs-brand-label').forEach(function(label) {
+      label.style.display = (label.dataset.brandName || '').includes(q) ? '' : 'none';
     });
   });
 
   // Price
   function updatePriceUI() {
-    const lMin = document.getElementById('fs-price-min-label');
-    const lMax = document.getElementById('fs-price-max-label');
-    const rMin = document.getElementById('fs-range-min') as HTMLInputElement;
-    const rMax = document.getElementById('fs-range-max') as HTMLInputElement;
-    const iMin = document.getElementById('fs-input-min') as HTMLInputElement;
-    const iMax = document.getElementById('fs-input-max') as HTMLInputElement;
-    if (lMin) lMin.textContent = `${fsCurrentMin}€`;
-    if (lMax) lMax.textContent = `${fsCurrentMax}€`;
+    var lMin = document.getElementById('fs-price-min-label');
+    var lMax = document.getElementById('fs-price-max-label');
+    var rMin = document.getElementById('fs-range-min');
+    var rMax = document.getElementById('fs-range-max');
+    var iMin = document.getElementById('fs-input-min');
+    var iMax = document.getElementById('fs-input-max');
+    if (lMin) lMin.textContent = fsCurrentMin + '€';
+    if (lMax) lMax.textContent = fsCurrentMax + '€';
     if (rMin) rMin.value = String(fsCurrentMin);
     if (rMax) rMax.value = String(fsCurrentMax);
     if (iMin) iMin.value = String(fsCurrentMin);
     if (iMax) iMax.value = String(fsCurrentMax);
   }
-  document.getElementById('fs-range-min')?.addEventListener('input', e => { fsCurrentMin = Math.min(parseInt((e.target as HTMLInputElement).value), fsCurrentMax - 1); updatePriceUI(); applyFilters(); });
-  document.getElementById('fs-range-max')?.addEventListener('input', e => { fsCurrentMax = Math.max(parseInt((e.target as HTMLInputElement).value), fsCurrentMin + 1); updatePriceUI(); applyFilters(); });
-  document.getElementById('fs-input-min')?.addEventListener('change', e => { fsCurrentMin = Math.max(fsPriceMin, Math.min(parseInt((e.target as HTMLInputElement).value)||fsPriceMin, fsCurrentMax-1)); updatePriceUI(); applyFilters(); });
-  document.getElementById('fs-input-max')?.addEventListener('change', e => { fsCurrentMax = Math.min(fsPriceMax, Math.max(parseInt((e.target as HTMLInputElement).value)||fsPriceMax, fsCurrentMin+1)); updatePriceUI(); applyFilters(); });
+  var fsRMin = document.getElementById('fs-range-min');
+  var fsRMax = document.getElementById('fs-range-max');
+  var fsIMin = document.getElementById('fs-input-min');
+  var fsIMax = document.getElementById('fs-input-max');
+  if (fsRMin) fsRMin.addEventListener('input', function(e) { fsCurrentMin = Math.min(parseInt(e.target.value), fsCurrentMax - 1); updatePriceUI(); applyFilters(); });
+  if (fsRMax) fsRMax.addEventListener('input', function(e) { fsCurrentMax = Math.max(parseInt(e.target.value), fsCurrentMin + 1); updatePriceUI(); applyFilters(); });
+  if (fsIMin) fsIMin.addEventListener('change', function(e) { fsCurrentMin = Math.max(fsPriceMin, Math.min(parseInt(e.target.value)||fsPriceMin, fsCurrentMax-1)); updatePriceUI(); applyFilters(); });
+  if (fsIMax) fsIMax.addEventListener('change', function(e) { fsCurrentMax = Math.min(fsPriceMax, Math.max(parseInt(e.target.value)||fsPriceMax, fsCurrentMin+1)); updatePriceUI(); applyFilters(); });
 </script>

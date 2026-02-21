@@ -96,19 +96,6 @@ const rbPriceMax = rbPrices.length ? Math.ceil(Math.max(...rbPrices)) : 1000;
               <svg id="rb-toggle-icon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
             </div>
             <div id="rb-sidebar-content">
-              {/* Categoría */}
-              <div class="mb-6">
-                <h3 id="rb-toggle-cat" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
-                  Categoría
-                  <svg id="rb-cat-arrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                </h3>
-                <div id="rb-cat-section" class="pl-2 space-y-2">
-                  <button class="rb-cat-btn block text-sm text-left font-bold text-beauty-red hover:text-black" data-cat-id="all">Ver todos</button>
-                  {rbCategories?.map((cat: any) => (
-                    <button class="rb-cat-btn block text-sm text-left text-gray-600 hover:text-black capitalize" data-cat-id={cat.id}>{cat.name}</button>
-                  ))}
-                </div>
-              </div>
               {/* Marcas */}
               <div class="mb-6">
                 <h3 id="rb-toggle-brand" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
@@ -160,6 +147,13 @@ const rbPriceMax = rbPrices.length ? Math.ceil(Math.max(...rbPrices)) : 1000;
 
           {/* Grid */}
           <div class="flex-1">
+            {/* Barra horizontal de categorías */}
+            <div class="flex flex-wrap gap-2 mb-8">
+              <button class="rb-cat-btn px-4 py-2 text-xs font-bold uppercase tracking-widest border border-black bg-black text-white hover:bg-white hover:text-black transition-colors" data-cat-id="all">Ver todos</button>
+              {rbCategories?.map((cat: any) => (
+                <button class="rb-cat-btn px-4 py-2 text-xs font-bold uppercase tracking-widest border border-black bg-white text-black hover:bg-black hover:text-white transition-colors" data-cat-id={cat.id}>{cat.name}</button>
+              ))}
+            </div>
             <p class="text-xs text-gray-500 uppercase tracking-widest mb-6 font-medium" id="rb-count">
               {(rebajasProducts as any[]).length} producto{(rebajasProducts as any[]).length !== 1 ? 's' : ''} en rebajas
             </p>
@@ -194,106 +188,118 @@ const rbPriceMax = rbPrices.length ? Math.ceil(Math.max(...rbPrices)) : 1000;
 
 <style>
   .rb-card.hidden { display: none; }
-  .rb-cat-btn.rb-active-cat { color: #e11d48; font-weight: 700; }
+  .rb-cat-btn.rb-active-cat { background-color: #000 !important; color: #fff !important; }
 </style>
 
 <script define:vars={{ rbPriceMin, rbPriceMax }}>
-  let rbSelectedCategory = 'all';
-  let rbSelectedBrands: string[] = [];
-  let rbCurrentMin = rbPriceMin;
-  let rbCurrentMax = rbPriceMax;
+  var rbSelectedCategory = 'all';
+  var rbSelectedBrands = [];
+  var rbCurrentMin = rbPriceMin;
+  var rbCurrentMax = rbPriceMax;
 
-  const cards = document.querySelectorAll('.rb-card');
-  const countEl = document.getElementById('rb-count');
-  const emptyEl = document.getElementById('rb-empty');
-  const gridEl = document.getElementById('rb-grid');
+  var cards = document.querySelectorAll('.rb-card');
+  var countEl = document.getElementById('rb-count');
+  var emptyEl = document.getElementById('rb-empty');
+  var gridEl = document.getElementById('rb-grid');
 
   function applyFilters() {
-    let visible = 0;
-    cards.forEach(card => {
-      const brand = (card as HTMLElement).dataset.brandSlug || '';
-      const cat = String((card as HTMLElement).dataset.categoryId || '');
-      const price = parseInt((card as HTMLElement).dataset.price || '0');
-      const show =
+    var visible = 0;
+    cards.forEach(function(card) {
+      var brand = card.dataset.brandSlug || '';
+      var cat = String(card.dataset.categoryId || '');
+      var price = parseInt(card.dataset.price || '0');
+      var show =
         (rbSelectedBrands.length === 0 || rbSelectedBrands.includes(brand)) &&
         (rbSelectedCategory === 'all' || rbSelectedCategory === cat) &&
         price >= rbCurrentMin && price <= rbCurrentMax;
       card.classList.toggle('hidden', !show);
       if (show) visible++;
     });
-    if (countEl) countEl.textContent = `${visible} producto${visible !== 1 ? 's' : ''} en rebajas`;
+    if (countEl) countEl.textContent = visible + ' producto' + (visible !== 1 ? 's' : '') + ' en rebajas';
     if (emptyEl) emptyEl.classList.toggle('hidden', visible > 0);
     if (gridEl) gridEl.classList.toggle('hidden', visible === 0);
   }
 
   // Toggle sidebar
-  let rbSidebarOpen = true;
-  const rbSidebarContent = document.getElementById('rb-sidebar-content');
-  const rbToggleBtn = document.getElementById('rb-toggle-btn');
-  const rbToggleLabel = document.getElementById('rb-toggle-label');
-  const rbToggleIcon = document.getElementById('rb-toggle-icon');
+  var rbSidebarOpen = true;
+  var rbSidebarContent = document.getElementById('rb-sidebar-content');
+  var rbToggleBtn = document.getElementById('rb-toggle-btn');
+  var rbToggleLabel = document.getElementById('rb-toggle-label');
+  var rbToggleIcon = document.getElementById('rb-toggle-icon');
   if (rbToggleBtn) {
-    rbToggleBtn.addEventListener('click', () => {
+    rbToggleBtn.addEventListener('click', function() {
       rbSidebarOpen = !rbSidebarOpen;
-      rbSidebarContent?.classList.toggle('hidden', !rbSidebarOpen);
+      if (rbSidebarContent) rbSidebarContent.classList.toggle('hidden', !rbSidebarOpen);
       if (rbToggleLabel) rbToggleLabel.textContent = rbSidebarOpen ? 'Ocultar Filtros' : 'Mostrar Filtros';
       if (rbToggleIcon) rbToggleIcon.style.transform = rbSidebarOpen ? '' : 'rotate(180deg)';
     });
   }
 
   // Collapsible sections
-  [['rb-toggle-cat','rb-cat-section','rb-cat-arrow'],
-   ['rb-toggle-brand','rb-brand-section','rb-brand-arrow'],
-   ['rb-toggle-price','rb-price-section','rb-price-arrow']].forEach(([b,s,a]) => {
-    const btn = document.getElementById(b), sec = document.getElementById(s), arr = document.getElementById(a);
-    let open = true;
-    btn?.addEventListener('click', () => { open = !open; sec?.classList.toggle('hidden', !open); if(arr) arr.style.transform = open ? '' : 'rotate(-90deg)'; });
+  [['rb-toggle-brand','rb-brand-section','rb-brand-arrow'],
+   ['rb-toggle-price','rb-price-section','rb-price-arrow']].forEach(function(ids) {
+    var btn = document.getElementById(ids[0]);
+    var sec = document.getElementById(ids[1]);
+    var arr = document.getElementById(ids[2]);
+    var open = true;
+    if (btn) btn.addEventListener('click', function() {
+      open = !open;
+      if (sec) sec.classList.toggle('hidden', !open);
+      if (arr) arr.style.transform = open ? '' : 'rotate(-90deg)';
+    });
   });
 
-  // Category
-  document.querySelectorAll('.rb-cat-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      rbSelectedCategory = (btn as HTMLElement).dataset.catId || 'all';
-      document.querySelectorAll('.rb-cat-btn').forEach(b => b.classList.toggle('rb-active-cat', (b as HTMLElement).dataset.catId === rbSelectedCategory));
+  // Category (horizontal bar)
+  document.querySelectorAll('.rb-cat-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      rbSelectedCategory = btn.dataset.catId || 'all';
+      document.querySelectorAll('.rb-cat-btn').forEach(function(b) {
+        b.classList.toggle('rb-active-cat', b.dataset.catId === rbSelectedCategory);
+      });
       applyFilters();
     });
   });
 
   // Brands
-  document.querySelectorAll('.rb-brand-cb').forEach(cb => {
-    cb.addEventListener('change', () => {
-      const slug = (cb as HTMLInputElement).dataset.brandSlug || '';
-      if ((cb as HTMLInputElement).checked) { if (!rbSelectedBrands.includes(slug)) rbSelectedBrands.push(slug); }
-      else { rbSelectedBrands = rbSelectedBrands.filter(s => s !== slug); }
+  document.querySelectorAll('.rb-brand-cb').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+      var slug = cb.dataset.brandSlug || '';
+      if (cb.checked) { if (!rbSelectedBrands.includes(slug)) rbSelectedBrands.push(slug); }
+      else { rbSelectedBrands = rbSelectedBrands.filter(function(s) { return s !== slug; }); }
       applyFilters();
     });
   });
 
   // Brand search
-  document.getElementById('rb-brand-search')?.addEventListener('input', e => {
-    const q = (e.target as HTMLInputElement).value.toLowerCase();
-    document.querySelectorAll('.rb-brand-label').forEach(label => {
-      (label as HTMLElement).style.display = ((label as HTMLElement).dataset.brandName || '').includes(q) ? '' : 'none';
+  var rbBrandSearch = document.getElementById('rb-brand-search');
+  if (rbBrandSearch) rbBrandSearch.addEventListener('input', function(e) {
+    var q = e.target.value.toLowerCase();
+    document.querySelectorAll('.rb-brand-label').forEach(function(label) {
+      label.style.display = (label.dataset.brandName || '').includes(q) ? '' : 'none';
     });
   });
 
   // Price
   function updatePriceUI() {
-    const lMin = document.getElementById('rb-price-min-label');
-    const lMax = document.getElementById('rb-price-max-label');
-    const rMin = document.getElementById('rb-range-min') as HTMLInputElement;
-    const rMax = document.getElementById('rb-range-max') as HTMLInputElement;
-    const iMin = document.getElementById('rb-input-min') as HTMLInputElement;
-    const iMax = document.getElementById('rb-input-max') as HTMLInputElement;
-    if (lMin) lMin.textContent = `${rbCurrentMin}€`;
-    if (lMax) lMax.textContent = `${rbCurrentMax}€`;
+    var lMin = document.getElementById('rb-price-min-label');
+    var lMax = document.getElementById('rb-price-max-label');
+    var rMin = document.getElementById('rb-range-min');
+    var rMax = document.getElementById('rb-range-max');
+    var iMin = document.getElementById('rb-input-min');
+    var iMax = document.getElementById('rb-input-max');
+    if (lMin) lMin.textContent = rbCurrentMin + '€';
+    if (lMax) lMax.textContent = rbCurrentMax + '€';
     if (rMin) rMin.value = String(rbCurrentMin);
     if (rMax) rMax.value = String(rbCurrentMax);
     if (iMin) iMin.value = String(rbCurrentMin);
     if (iMax) iMax.value = String(rbCurrentMax);
   }
-  document.getElementById('rb-range-min')?.addEventListener('input', e => { rbCurrentMin = Math.min(parseInt((e.target as HTMLInputElement).value), rbCurrentMax - 1); updatePriceUI(); applyFilters(); });
-  document.getElementById('rb-range-max')?.addEventListener('input', e => { rbCurrentMax = Math.max(parseInt((e.target as HTMLInputElement).value), rbCurrentMin + 1); updatePriceUI(); applyFilters(); });
-  document.getElementById('rb-input-min')?.addEventListener('change', e => { rbCurrentMin = Math.max(rbPriceMin, Math.min(parseInt((e.target as HTMLInputElement).value)||rbPriceMin, rbCurrentMax-1)); updatePriceUI(); applyFilters(); });
-  document.getElementById('rb-input-max')?.addEventListener('change', e => { rbCurrentMax = Math.min(rbPriceMax, Math.max(parseInt((e.target as HTMLInputElement).value)||rbPriceMax, rbCurrentMin+1)); updatePriceUI(); applyFilters(); });
+  var rbRMin = document.getElementById('rb-range-min');
+  var rbRMax = document.getElementById('rb-range-max');
+  var rbIMin = document.getElementById('rb-input-min');
+  var rbIMax = document.getElementById('rb-input-max');
+  if (rbRMin) rbRMin.addEventListener('input', function(e) { rbCurrentMin = Math.min(parseInt(e.target.value), rbCurrentMax - 1); updatePriceUI(); applyFilters(); });
+  if (rbRMax) rbRMax.addEventListener('input', function(e) { rbCurrentMax = Math.max(parseInt(e.target.value), rbCurrentMin + 1); updatePriceUI(); applyFilters(); });
+  if (rbIMin) rbIMin.addEventListener('change', function(e) { rbCurrentMin = Math.max(rbPriceMin, Math.min(parseInt(e.target.value)||rbPriceMin, rbCurrentMax-1)); updatePriceUI(); applyFilters(); });
+  if (rbIMax) rbIMax.addEventListener('change', function(e) { rbCurrentMax = Math.min(rbPriceMax, Math.max(parseInt(e.target.value)||rbPriceMax, rbCurrentMin+1)); updatePriceUI(); applyFilters(); });
 </script>

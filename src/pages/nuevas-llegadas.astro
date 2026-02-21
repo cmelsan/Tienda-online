@@ -1,0 +1,280 @@
+---
+import PublicLayout from '@/layouts/PublicLayout.astro';
+import ProductCard from '@/components/product/ProductCard.astro';
+import { supabase } from '@/lib/supabase';
+import { formatPrice } from '@/lib/utils';
+
+// Fetch newest products (ordered by created_at DESC)
+const { data: dbProducts } = await supabase
+  .from('products')
+  .select('*, brand:brands(name, slug), category:categories(id, name, slug)')
+  .order('created_at', { ascending: false });
+
+const { data: categories } = await supabase.from('categories').select('*').order('name');
+const { data: brandsList } = await supabase.from('brands').select('*').order('name');
+
+const products = (dbProducts || []).map((p: any) => ({
+  ...p,
+  brandName: p.brand?.name || 'Genérico',
+  brandSlug: p.brand?.slug || '',
+  categoryId: String(p.category_id || ''),
+  categoryName: p.category?.name || '',
+  isPromo: !!(p.is_flash_sale),
+  originalPrice: p.is_flash_sale && p.flash_sale_discount
+    ? Math.round(p.price / (1 - p.flash_sale_discount / 100))
+    : null,
+}));
+
+const allPrices = products.map((p: any) => p.price).filter(Boolean);
+const nlPriceMin = allPrices.length ? Math.floor(Math.min(...allPrices)) : 0;
+const nlPriceMax = allPrices.length ? Math.ceil(Math.max(...allPrices)) : 1000;
+---
+
+<PublicLayout title="Nuevas Llegadas - ÉCLAT Beauty" description="Descubre las últimas novedades en belleza premium. Nuevas colecciones con fórmulas innovadoras.">
+  <div class="min-h-screen bg-white">
+
+    {/* Header */}
+    <div class="bg-gradient-to-r from-rose-100 to-pink-100 py-12 md:py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <span class="inline-block text-pink-500 text-[10px] uppercase tracking-[0.3em] mb-3 font-medium">Colecciones</span>
+        <h1 class="text-4xl md:text-5xl font-sans font-bold text-black mb-4 uppercase">Nuevas Llegadas</h1>
+        <p class="text-gray-600 text-lg">Descubre nuestras últimas colecciones con fórmulas innovadoras y colores exclusivos.</p>
+      </div>
+    </div>
+
+    {/* Content */}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+      {/* Category bar */}
+      <div class="flex flex-wrap gap-2 mb-10 border-b border-gray-100 pb-8">
+        <button class="nl-cat-btn px-4 py-2 text-xs font-bold uppercase tracking-widest border border-black bg-black text-white hover:bg-white hover:text-black transition-colors" data-cat-id="all">Ver todos</button>
+        {categories?.map((cat: any) => (
+          <button class="nl-cat-btn px-4 py-2 text-xs font-bold uppercase tracking-widest border border-black bg-white text-black hover:bg-black hover:text-white transition-colors" data-cat-id={cat.id}>{cat.name}</button>
+        ))}
+      </div>
+
+      <div class="flex flex-col lg:flex-row gap-10">
+
+        {/* Sidebar */}
+        <aside class="w-full lg:w-64 shrink-0 hidden md:block">
+          <div id="nl-toggle-btn" class="border-b border-gray-200 pb-4 mb-6 flex justify-between items-center cursor-pointer group">
+            <span id="nl-toggle-label" class="font-bold text-sm uppercase tracking-widest group-hover:text-gray-600">Ocultar Filtros</span>
+            <svg id="nl-toggle-icon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+          </div>
+          <div id="nl-sidebar-content">
+            {/* Marcas */}
+            <div class="mb-6">
+              <h3 id="nl-toggle-brand" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
+                Marcas
+                <svg id="nl-brand-arrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+              </h3>
+              <div id="nl-brand-section">
+                <div class="relative mb-4">
+                  <input type="text" id="nl-brand-search" placeholder="Buscar una marca" class="w-full border-b border-black py-2 pl-0 pr-8 text-sm focus:outline-none placeholder-gray-400 italic" />
+                  <svg class="w-4 h-4 absolute right-0 top-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </div>
+                <div class="space-y-2 max-h-64 overflow-y-auto">
+                  {brandsList?.map((brand: any) => (
+                    <label class="nl-brand-label flex items-center space-x-3 cursor-pointer group" data-brand-name={brand.name.toLowerCase()}>
+                      <input type="checkbox" class="nl-brand-cb w-5 h-5 border-2 border-gray-300 rounded-none checked:bg-black checked:border-black focus:ring-0" data-brand-slug={brand.slug} />
+                      <span class="text-sm text-black group-hover:underline">{brand.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {/* Precio */}
+            <div class="mb-6">
+              <h3 id="nl-toggle-price" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
+                Precio
+                <svg id="nl-price-arrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+              </h3>
+              <div id="nl-price-section" class="space-y-4">
+                <div class="flex justify-between text-xs font-bold text-gray-600">
+                  <span id="nl-price-min-label">{nlPriceMin}€</span>
+                  <span id="nl-price-max-label">{nlPriceMax}€</span>
+                </div>
+                <input type="range" id="nl-range-min" min={nlPriceMin} max={nlPriceMax} value={nlPriceMin} class="w-full accent-black h-0.5 cursor-pointer" />
+                <input type="range" id="nl-range-max" min={nlPriceMin} max={nlPriceMax} value={nlPriceMax} class="w-full accent-black h-0.5 cursor-pointer" />
+                <div class="flex gap-2">
+                  <div class="flex-1 border border-gray-300 px-2 py-1 flex items-center gap-1">
+                    <span class="text-xs text-gray-400">€</span>
+                    <input type="number" id="nl-input-min" value={nlPriceMin} min={nlPriceMin} max={nlPriceMax} class="w-full text-xs focus:outline-none" />
+                  </div>
+                  <div class="flex-1 border border-gray-300 px-2 py-1 flex items-center gap-1">
+                    <span class="text-xs text-gray-400">€</span>
+                    <input type="number" id="nl-input-max" value={nlPriceMax} min={nlPriceMin} max={nlPriceMax} class="w-full text-xs focus:outline-none" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Grid */}
+        <div class="flex-1">
+          <div class="mb-6 flex justify-between items-center">
+            <p class="text-xs text-gray-500 uppercase tracking-widest font-medium" id="nl-count">
+              {products.length} producto{products.length !== 1 ? 's' : ''}
+            </p>
+            <div class="flex items-center gap-2 text-sm">
+              <span class="text-gray-500 text-xs">Ordenar:</span>
+              <select id="nl-sort" class="border-none bg-transparent font-bold text-xs focus:ring-0 cursor-pointer uppercase tracking-widest">
+                <option value="newest">Más nuevos</option>
+                <option value="price-asc">Precio: menor</option>
+                <option value="price-desc">Precio: mayor</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5" id="nl-grid">
+            {products.map((product: any) => (
+              <div class="nl-card" data-brand-slug={product.brandSlug} data-category-id={product.categoryId} data-price={product.price} data-created={product.created_at}>
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+          <div id="nl-empty" class="hidden text-center py-16">
+            <p class="text-gray-400 text-sm uppercase tracking-widest font-bold">Sin productos para los filtros seleccionados</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="w-full h-px bg-black"></div>
+    </div>
+  </div>
+</PublicLayout>
+
+<style>
+  .nl-card.hidden { display: none; }
+  .nl-cat-btn.nl-active { background-color: #000 !important; color: #fff !important; }
+</style>
+
+<script define:vars={{ nlPriceMin, nlPriceMax }}>
+  var nlSelectedCategory = 'all';
+  var nlSelectedBrands = [];
+  var nlCurrentMin = nlPriceMin;
+  var nlCurrentMax = nlPriceMax;
+
+  var cards = document.querySelectorAll('.nl-card');
+  var countEl = document.getElementById('nl-count');
+  var emptyEl = document.getElementById('nl-empty');
+  var gridEl = document.getElementById('nl-grid');
+
+  function applyFilters() {
+    var visible = 0;
+    cards.forEach(function(card) {
+      var brand = card.dataset.brandSlug || '';
+      var cat = String(card.dataset.categoryId || '');
+      var price = parseInt(card.dataset.price || '0');
+      var show =
+        (nlSelectedBrands.length === 0 || nlSelectedBrands.includes(brand)) &&
+        (nlSelectedCategory === 'all' || nlSelectedCategory === cat) &&
+        price >= nlCurrentMin && price <= nlCurrentMax;
+      card.classList.toggle('hidden', !show);
+      if (show) visible++;
+    });
+    if (countEl) countEl.textContent = visible + ' producto' + (visible !== 1 ? 's' : '');
+    if (emptyEl) emptyEl.classList.toggle('hidden', visible > 0);
+    if (gridEl) gridEl.classList.toggle('hidden', visible === 0);
+  }
+
+  // Toggle sidebar
+  var nlOpen = true;
+  var nlContent = document.getElementById('nl-sidebar-content');
+  var nlBtn = document.getElementById('nl-toggle-btn');
+  var nlLabel = document.getElementById('nl-toggle-label');
+  var nlIcon = document.getElementById('nl-toggle-icon');
+  if (nlBtn) nlBtn.addEventListener('click', function() {
+    nlOpen = !nlOpen;
+    if (nlContent) nlContent.classList.toggle('hidden', !nlOpen);
+    if (nlLabel) nlLabel.textContent = nlOpen ? 'Ocultar Filtros' : 'Mostrar Filtros';
+    if (nlIcon) nlIcon.style.transform = nlOpen ? '' : 'rotate(180deg)';
+  });
+
+  // Collapsibles
+  [['nl-toggle-brand','nl-brand-section','nl-brand-arrow'],
+   ['nl-toggle-price','nl-price-section','nl-price-arrow']].forEach(function(ids) {
+    var btn = document.getElementById(ids[0]), sec = document.getElementById(ids[1]), arr = document.getElementById(ids[2]);
+    var open = true;
+    if (btn) btn.addEventListener('click', function() {
+      open = !open;
+      if (sec) sec.classList.toggle('hidden', !open);
+      if (arr) arr.style.transform = open ? '' : 'rotate(-90deg)';
+    });
+  });
+
+  // Category bar
+  document.querySelectorAll('.nl-cat-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      nlSelectedCategory = btn.dataset.catId || 'all';
+      document.querySelectorAll('.nl-cat-btn').forEach(function(b) {
+        b.classList.toggle('nl-active', b.dataset.catId === nlSelectedCategory);
+      });
+      applyFilters();
+    });
+  });
+
+  // Brands
+  document.querySelectorAll('.nl-brand-cb').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+      var slug = cb.dataset.brandSlug || '';
+      if (cb.checked) { if (!nlSelectedBrands.includes(slug)) nlSelectedBrands.push(slug); }
+      else { nlSelectedBrands = nlSelectedBrands.filter(function(s) { return s !== slug; }); }
+      applyFilters();
+    });
+  });
+
+  // Brand search
+  var nlSearch = document.getElementById('nl-brand-search');
+  if (nlSearch) nlSearch.addEventListener('input', function(e) {
+    var q = e.target.value.toLowerCase();
+    document.querySelectorAll('.nl-brand-label').forEach(function(l) {
+      l.style.display = (l.dataset.brandName || '').includes(q) ? '' : 'none';
+    });
+  });
+
+  // Price
+  function updatePriceUI() {
+    var lMin = document.getElementById('nl-price-min-label');
+    var lMax = document.getElementById('nl-price-max-label');
+    var rMin = document.getElementById('nl-range-min');
+    var rMax = document.getElementById('nl-range-max');
+    var iMin = document.getElementById('nl-input-min');
+    var iMax = document.getElementById('nl-input-max');
+    if (lMin) lMin.textContent = nlCurrentMin + '€';
+    if (lMax) lMax.textContent = nlCurrentMax + '€';
+    if (rMin) rMin.value = String(nlCurrentMin);
+    if (rMax) rMax.value = String(nlCurrentMax);
+    if (iMin) iMin.value = String(nlCurrentMin);
+    if (iMax) iMax.value = String(nlCurrentMax);
+  }
+  var nlRMin = document.getElementById('nl-range-min');
+  var nlRMax = document.getElementById('nl-range-max');
+  var nlIMin = document.getElementById('nl-input-min');
+  var nlIMax = document.getElementById('nl-input-max');
+  if (nlRMin) nlRMin.addEventListener('input', function(e) { nlCurrentMin = Math.min(parseInt(e.target.value), nlCurrentMax - 1); updatePriceUI(); applyFilters(); });
+  if (nlRMax) nlRMax.addEventListener('input', function(e) { nlCurrentMax = Math.max(parseInt(e.target.value), nlCurrentMin + 1); updatePriceUI(); applyFilters(); });
+  if (nlIMin) nlIMin.addEventListener('change', function(e) { nlCurrentMin = Math.max(nlPriceMin, Math.min(parseInt(e.target.value)||nlPriceMin, nlCurrentMax-1)); updatePriceUI(); applyFilters(); });
+  if (nlIMax) nlIMax.addEventListener('change', function(e) { nlCurrentMax = Math.min(nlPriceMax, Math.max(parseInt(e.target.value)||nlPriceMax, nlCurrentMin+1)); updatePriceUI(); applyFilters(); });
+
+  // Sort
+  var nlSort = document.getElementById('nl-sort');
+  if (nlSort) nlSort.addEventListener('change', function(e) {
+    var val = e.target.value;
+    var grid = document.getElementById('nl-grid');
+    if (!grid) return;
+    var arr = Array.from(grid.querySelectorAll('.nl-card'));
+    arr.sort(function(a, b) {
+      var pa = parseInt(a.dataset.price || '0');
+      var pb = parseInt(b.dataset.price || '0');
+      var da = a.dataset.created || '';
+      var db = b.dataset.created || '';
+      if (val === 'price-asc') return pa - pb;
+      if (val === 'price-desc') return pb - pa;
+      return db.localeCompare(da); // newest first (default)
+    });
+    arr.forEach(function(c) { grid.appendChild(c); });
+  });
+</script>

@@ -1,0 +1,277 @@
+---
+import PublicLayout from '@/layouts/PublicLayout.astro';
+import ProductCard from '@/components/product/ProductCard.astro';
+import { supabase } from '@/lib/supabase';
+import { formatPrice } from '@/lib/utils';
+
+const { data: categories } = await supabase.from('categories').select('*').order('name');
+const { data: brandsList } = await supabase.from('brands').select('*').order('name');
+
+// Try to get manually-marked bestsellers first; fallback to price DESC (most premium)
+let dbProducts: any[] = [];
+let usingFallback = false;
+
+const { data: bsData, error: bsError } = await supabase
+  .from('products')
+  .select('*, brand:brands(name, slug), category:categories(id, name, slug)')
+  .eq('is_bestseller', true)
+  .order('name');
+
+if (!bsError && bsData && bsData.length > 0) {
+  dbProducts = bsData;
+} else {
+  // Fallback: all products sorted by price desc (most premium = most desired)
+  usingFallback = true;
+  const { data } = await supabase
+    .from('products')
+    .select('*, brand:brands(name, slug), category:categories(id, name, slug)')
+    .order('price', { ascending: false });
+  dbProducts = data || [];
+}
+
+const products = dbProducts.map((p: any) => ({
+  ...p,
+  brandName: p.brand?.name || 'Genérico',
+  brandSlug: p.brand?.slug || '',
+  categoryId: String(p.category_id || ''),
+  categoryName: p.category?.name || '',
+  isPromo: !!(p.is_flash_sale),
+  originalPrice: p.is_flash_sale && p.flash_sale_discount
+    ? Math.round(p.price / (1 - p.flash_sale_discount / 100))
+    : null,
+}));
+
+const allPrices = products.map((p: any) => p.price).filter(Boolean);
+const bsPriceMin = allPrices.length ? Math.floor(Math.min(...allPrices)) : 0;
+const bsPriceMax = allPrices.length ? Math.ceil(Math.max(...allPrices)) : 1000;
+---
+
+<PublicLayout title="Best Sellers - ÉCLAT Beauty" description="Los productos más amados por nuestras clientes. Calidad y resultados garantizados.">
+  <div class="min-h-screen bg-white">
+
+    {/* Header */}
+    <div class="bg-black py-12 md:py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <span class="inline-block text-pink-400 text-[10px] uppercase tracking-[0.3em] mb-3 font-medium">Top Productos</span>
+        <h1 class="text-4xl md:text-5xl font-sans font-bold text-white mb-4 uppercase">Best Sellers</h1>
+        <p class="text-gray-400 text-lg">Los productos más amados por nuestras clientes. Calidad y resultados garantizados.</p>
+      </div>
+    </div>
+
+    {/* Admin tip (only shown if using fallback) */}
+    {usingFallback && (
+      <div class="bg-amber-50 border-b border-amber-200 py-3 px-4 text-center">
+        <p class="text-xs text-amber-800">
+          <strong>Admin:</strong> Actualmente se muestran todos los productos. Para mostrar solo los best sellers, 
+          <a href="/admin/productos" class="underline font-bold">marca productos como "Best Seller"</a> desde el panel de administración.
+        </p>
+      </div>
+    )}
+
+    {/* Content */}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+      {/* Category bar */}
+      <div class="flex flex-wrap gap-2 mb-10 border-b border-gray-100 pb-8">
+        <button class="bs-cat-btn px-4 py-2 text-xs font-bold uppercase tracking-widest border border-black bg-black text-white hover:bg-white hover:text-black transition-colors" data-cat-id="all">Ver todos</button>
+        {categories?.map((cat: any) => (
+          <button class="bs-cat-btn px-4 py-2 text-xs font-bold uppercase tracking-widest border border-black bg-white text-black hover:bg-black hover:text-white transition-colors" data-cat-id={cat.id}>{cat.name}</button>
+        ))}
+      </div>
+
+      <div class="flex flex-col lg:flex-row gap-10">
+
+        {/* Sidebar */}
+        <aside class="w-full lg:w-64 shrink-0 hidden md:block">
+          <div id="bs-toggle-btn" class="border-b border-gray-200 pb-4 mb-6 flex justify-between items-center cursor-pointer group">
+            <span id="bs-toggle-label" class="font-bold text-sm uppercase tracking-widest group-hover:text-gray-600">Ocultar Filtros</span>
+            <svg id="bs-toggle-icon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+          </div>
+          <div id="bs-sidebar-content">
+            {/* Marcas */}
+            <div class="mb-6">
+              <h3 id="bs-toggle-brand" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
+                Marcas
+                <svg id="bs-brand-arrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+              </h3>
+              <div id="bs-brand-section">
+                <div class="relative mb-4">
+                  <input type="text" id="bs-brand-search" placeholder="Buscar una marca" class="w-full border-b border-black py-2 pl-0 pr-8 text-sm focus:outline-none placeholder-gray-400 italic" />
+                  <svg class="w-4 h-4 absolute right-0 top-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </div>
+                <div class="space-y-2 max-h-64 overflow-y-auto">
+                  {brandsList?.map((brand: any) => (
+                    <label class="bs-brand-label flex items-center space-x-3 cursor-pointer group" data-brand-name={brand.name.toLowerCase()}>
+                      <input type="checkbox" class="bs-brand-cb w-5 h-5 border-2 border-gray-300 rounded-none checked:bg-black checked:border-black focus:ring-0" data-brand-slug={brand.slug} />
+                      <span class="text-sm text-black group-hover:underline">{brand.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {/* Precio */}
+            <div class="mb-6">
+              <h3 id="bs-toggle-price" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
+                Precio
+                <svg id="bs-price-arrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+              </h3>
+              <div id="bs-price-section" class="space-y-4">
+                <div class="flex justify-between text-xs font-bold text-gray-600">
+                  <span id="bs-price-min-label">{bsPriceMin}€</span>
+                  <span id="bs-price-max-label">{bsPriceMax}€</span>
+                </div>
+                <input type="range" id="bs-range-min" min={bsPriceMin} max={bsPriceMax} value={bsPriceMin} class="w-full accent-black h-0.5 cursor-pointer" />
+                <input type="range" id="bs-range-max" min={bsPriceMin} max={bsPriceMax} value={bsPriceMax} class="w-full accent-black h-0.5 cursor-pointer" />
+                <div class="flex gap-2">
+                  <div class="flex-1 border border-gray-300 px-2 py-1 flex items-center gap-1">
+                    <span class="text-xs text-gray-400">€</span>
+                    <input type="number" id="bs-input-min" value={bsPriceMin} min={bsPriceMin} max={bsPriceMax} class="w-full text-xs focus:outline-none" />
+                  </div>
+                  <div class="flex-1 border border-gray-300 px-2 py-1 flex items-center gap-1">
+                    <span class="text-xs text-gray-400">€</span>
+                    <input type="number" id="bs-input-max" value={bsPriceMax} min={bsPriceMin} max={bsPriceMax} class="w-full text-xs focus:outline-none" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Grid */}
+        <div class="flex-1">
+          <p class="text-xs text-gray-500 uppercase tracking-widest mb-6 font-medium" id="bs-count">
+            {products.length} producto{products.length !== 1 ? 's' : ''}
+          </p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5" id="bs-grid">
+            {products.map((product: any) => (
+              <div class="bs-card" data-brand-slug={product.brandSlug} data-category-id={product.categoryId} data-price={product.price}>
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+          <div id="bs-empty" class="hidden text-center py-16">
+            <p class="text-gray-400 text-sm uppercase tracking-widest font-bold">Sin productos para los filtros seleccionados</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="w-full h-px bg-black"></div>
+    </div>
+  </div>
+</PublicLayout>
+
+<style>
+  .bs-card.hidden { display: none; }
+  .bs-cat-btn.bs-active { background-color: #000 !important; color: #fff !important; }
+</style>
+
+<script define:vars={{ bsPriceMin, bsPriceMax }}>
+  var bsSelectedCategory = 'all';
+  var bsSelectedBrands = [];
+  var bsCurrentMin = bsPriceMin;
+  var bsCurrentMax = bsPriceMax;
+
+  var cards = document.querySelectorAll('.bs-card');
+  var countEl = document.getElementById('bs-count');
+  var emptyEl = document.getElementById('bs-empty');
+  var gridEl = document.getElementById('bs-grid');
+
+  function applyFilters() {
+    var visible = 0;
+    cards.forEach(function(card) {
+      var brand = card.dataset.brandSlug || '';
+      var cat = String(card.dataset.categoryId || '');
+      var price = parseInt(card.dataset.price || '0');
+      var show =
+        (bsSelectedBrands.length === 0 || bsSelectedBrands.includes(brand)) &&
+        (bsSelectedCategory === 'all' || bsSelectedCategory === cat) &&
+        price >= bsCurrentMin && price <= bsCurrentMax;
+      card.classList.toggle('hidden', !show);
+      if (show) visible++;
+    });
+    if (countEl) countEl.textContent = visible + ' producto' + (visible !== 1 ? 's' : '');
+    if (emptyEl) emptyEl.classList.toggle('hidden', visible > 0);
+    if (gridEl) gridEl.classList.toggle('hidden', visible === 0);
+  }
+
+  // Toggle sidebar
+  var bsOpen = true;
+  var bsContent = document.getElementById('bs-sidebar-content');
+  var bsBtn = document.getElementById('bs-toggle-btn');
+  var bsLabel = document.getElementById('bs-toggle-label');
+  var bsIcon = document.getElementById('bs-toggle-icon');
+  if (bsBtn) bsBtn.addEventListener('click', function() {
+    bsOpen = !bsOpen;
+    if (bsContent) bsContent.classList.toggle('hidden', !bsOpen);
+    if (bsLabel) bsLabel.textContent = bsOpen ? 'Ocultar Filtros' : 'Mostrar Filtros';
+    if (bsIcon) bsIcon.style.transform = bsOpen ? '' : 'rotate(180deg)';
+  });
+
+  // Collapsibles
+  [['bs-toggle-brand','bs-brand-section','bs-brand-arrow'],
+   ['bs-toggle-price','bs-price-section','bs-price-arrow']].forEach(function(ids) {
+    var btn = document.getElementById(ids[0]), sec = document.getElementById(ids[1]), arr = document.getElementById(ids[2]);
+    var open = true;
+    if (btn) btn.addEventListener('click', function() {
+      open = !open;
+      if (sec) sec.classList.toggle('hidden', !open);
+      if (arr) arr.style.transform = open ? '' : 'rotate(-90deg)';
+    });
+  });
+
+  // Category bar
+  document.querySelectorAll('.bs-cat-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      bsSelectedCategory = btn.dataset.catId || 'all';
+      document.querySelectorAll('.bs-cat-btn').forEach(function(b) {
+        b.classList.toggle('bs-active', b.dataset.catId === bsSelectedCategory);
+      });
+      applyFilters();
+    });
+  });
+
+  // Brands
+  document.querySelectorAll('.bs-brand-cb').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+      var slug = cb.dataset.brandSlug || '';
+      if (cb.checked) { if (!bsSelectedBrands.includes(slug)) bsSelectedBrands.push(slug); }
+      else { bsSelectedBrands = bsSelectedBrands.filter(function(s) { return s !== slug; }); }
+      applyFilters();
+    });
+  });
+
+  // Brand search
+  var bsSearch = document.getElementById('bs-brand-search');
+  if (bsSearch) bsSearch.addEventListener('input', function(e) {
+    var q = e.target.value.toLowerCase();
+    document.querySelectorAll('.bs-brand-label').forEach(function(l) {
+      l.style.display = (l.dataset.brandName || '').includes(q) ? '' : 'none';
+    });
+  });
+
+  // Price
+  function updatePriceUI() {
+    var lMin = document.getElementById('bs-price-min-label');
+    var lMax = document.getElementById('bs-price-max-label');
+    var rMin = document.getElementById('bs-range-min');
+    var rMax = document.getElementById('bs-range-max');
+    var iMin = document.getElementById('bs-input-min');
+    var iMax = document.getElementById('bs-input-max');
+    if (lMin) lMin.textContent = bsCurrentMin + '€';
+    if (lMax) lMax.textContent = bsCurrentMax + '€';
+    if (rMin) rMin.value = String(bsCurrentMin);
+    if (rMax) rMax.value = String(bsCurrentMax);
+    if (iMin) iMin.value = String(bsCurrentMin);
+    if (iMax) iMax.value = String(bsCurrentMax);
+  }
+  var bsRMin = document.getElementById('bs-range-min');
+  var bsRMax = document.getElementById('bs-range-max');
+  var bsIMin = document.getElementById('bs-input-min');
+  var bsIMax = document.getElementById('bs-input-max');
+  if (bsRMin) bsRMin.addEventListener('input', function(e) { bsCurrentMin = Math.min(parseInt(e.target.value), bsCurrentMax - 1); updatePriceUI(); applyFilters(); });
+  if (bsRMax) bsRMax.addEventListener('input', function(e) { bsCurrentMax = Math.max(parseInt(e.target.value), bsCurrentMin + 1); updatePriceUI(); applyFilters(); });
+  if (bsIMin) bsIMin.addEventListener('change', function(e) { bsCurrentMin = Math.max(bsPriceMin, Math.min(parseInt(e.target.value)||bsPriceMin, bsCurrentMax-1)); updatePriceUI(); applyFilters(); });
+  if (bsIMax) bsIMax.addEventListener('change', function(e) { bsCurrentMax = Math.min(bsPriceMax, Math.max(parseInt(e.target.value)||bsPriceMax, bsCurrentMin+1)); updatePriceUI(); applyFilters(); });
+</script>

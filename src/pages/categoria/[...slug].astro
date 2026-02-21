@@ -105,14 +105,15 @@ if (activeSubCats.length > 0) {
     }
 }
 // Special Case: If we are on a Subcategory Page (e.g. /categoria/maquillaje/rostro)
+let currentSubPage: { id: string; name: string; description?: string } | null = null;
 if (subCategorySlug) {
-    const { data: currentSubPage } = await supabase
+    const { data: subPageData } = await supabase
         .from('subcategories')
-        .select('id')
+        .select('id, name, description')
         .eq('slug', subCategorySlug)
         .eq('category_id', category.id)
         .single();
-        
+    currentSubPage = subPageData;
     if (currentSubPage) {
         query = query.eq('subcategory_id', currentSubPage.id);
     }
@@ -190,7 +191,7 @@ const breadcrumbs = [
   { label: 'Productos', href: '/productos' }, // Added to match user expectation
   { label: category.name, href: `/categoria/${category.slug}` },
 ];
-if (subCategorySlug) breadcrumbs.push({ label: subCategorySlug.replace(/-/g, ' '), href: '#' });
+if (subCategorySlug) breadcrumbs.push({ label: currentSubPage?.name || subCategorySlug.replace(/-/g, ' '), href: '#' });
 ---
 
 <PublicLayout title={`${category.name} | ÉCLAT`} description={category.description}>
@@ -214,11 +215,11 @@ if (subCategorySlug) breadcrumbs.push({ label: subCategorySlug.replace(/-/g, ' '
                 </nav>
                 
                 <h1 class="text-5xl lg:text-7xl font-sans font-bold text-black uppercase tracking-tight leading-tight">
-                    {category.name}
+                    {currentSubPage ? currentSubPage.name : category.name}
                 </h1>
                 
                 <p class="text-gray-700 text-base font-light leading-relaxed max-w-2xl animate-slideUp">
-                    {category.description}
+                    {currentSubPage?.description || category.description}
                 </p>
 
                 {/* Animated Decoration Line */}

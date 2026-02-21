@@ -1,6 +1,6 @@
 
 import type { APIRoute } from 'astro';
-import { supabase, getAdminSupabaseClient, createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase';
 
 // Helper to slugify
 const slugify = (text: string) => {
@@ -31,12 +31,8 @@ export const POST: APIRoute = async (context) => {
 
         const user = session.user;
 
-        // If user is authenticated with a valid token, they've already been verified as admin during login
-        // No need to check is_admin again - the login endpoint already verified this
-
-        // Get admin client (bypasses RLS) - may be null if SUPABASE_SERVICE_ROLE_KEY not set
-        const adminClient = getAdminSupabaseClient();
-        const dbClient = adminClient || supabase; // Fallback to regular supabase if admin client not available
+        // Use the session-authenticated client for all DB operations (respects RLS correctly)
+        const dbClient = clientSupabase;
 
         const body = await request.json();
         const { action } = body;

@@ -471,6 +471,18 @@ export async function requestReturn(orderId: string, reason: string) {
     return data;
 }
 /**
+ * Creates a Supabase client authenticated with a specific JWT access token.
+ * Use this in API routes that receive the token via Authorization header.
+ * The client acts as that user, so RLS policies apply correctly.
+ */
+export function createTokenClient(accessToken: string): SupabaseClient<any> {
+    return createClient<any>(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: `Bearer ${accessToken}` } },
+        auth: { persistSession: false, autoRefreshToken: false },
+    });
+}
+
+/**
  * DEPRECATED: This function is unsafe and should not be used directly.
  * Use admin operations through validated API endpoints instead.
  * 

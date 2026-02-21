@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { supabase, getAdminSupabaseClient } from '@/lib/supabase';
+import { supabase, createTokenClient } from '@/lib/supabase';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -26,10 +26,8 @@ export const POST: APIRoute = async ({ request }) => {
 
     // If user is authenticated with a valid token, they've already been verified as admin during login
     // No need to check is_admin again - the login endpoint already verified this
-
-    // Get admin client (bypasses RLS) - may be null if SUPABASE_SERVICE_ROLE_KEY not set
-    const adminClient = getAdminSupabaseClient();
-    const dbClient = adminClient || supabase; // Fallback to regular supabase if admin client not available
+    // Use token-authenticated client so RLS sees this user as the authenticated admin
+    const dbClient = createTokenClient(token);
 
     const { name, slug, description, logo_url } = await request.json();
 
@@ -119,9 +117,7 @@ export const PUT: APIRoute = async ({ request }) => {
       });
     }
 
-    // Get admin client (bypasses RLS) - may be null if SUPABASE_SERVICE_ROLE_KEY not set
-    const adminClient = getAdminSupabaseClient();
-    const dbClient = adminClient || supabase; // Fallback to regular supabase if admin client not available
+    const dbClient = createTokenClient(token);
 
     // Update brand
     const { data: brand, error } = await dbClient
@@ -197,9 +193,7 @@ export const DELETE: APIRoute = async ({ request }) => {
       });
     }
 
-    // Get admin client (bypasses RLS) - may be null if SUPABASE_SERVICE_ROLE_KEY not set
-    const adminClient = getAdminSupabaseClient();
-    const dbClient = adminClient || supabase; // Fallback to regular supabase if admin client not available
+    const dbClient = createTokenClient(token);
 
     // Delete brand
     const { error } = await dbClient

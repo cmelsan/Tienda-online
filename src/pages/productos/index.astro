@@ -38,6 +38,10 @@ const { data: categories } = await supabase
   .from('categories')
   .select('*')
   .order('name');
+
+const allPrices = products.map(p => p.price).filter(Boolean);
+const priceMin = allPrices.length ? Math.floor(Math.min(...allPrices)) : 0;
+const priceMax = allPrices.length ? Math.ceil(Math.max(...allPrices)) : 1000;
 ---
 
 <PublicLayout
@@ -71,19 +75,20 @@ const { data: categories } = await supabase
 
     <div class="flex flex-col lg:flex-row">
       <!-- Sidebar Filters -->
-      <aside class="w-full lg:w-64 pr-0 lg:pr-8 mb-8 lg:mb-0 hidden md:block">
-         <div class="border-b border-gray-200 pb-4 mb-6 flex justify-between items-center cursor-pointer group">
-            <span class="font-bold text-sm uppercase tracking-widest group-hover:text-gray-600">Ocultar Filtros</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+      <aside id="sidebar-filters" class="w-full lg:w-64 pr-0 lg:pr-8 mb-8 lg:mb-0 hidden md:block">
+         <div id="toggle-sidebar-btn" class="border-b border-gray-200 pb-4 mb-6 flex justify-between items-center cursor-pointer group">
+            <span id="toggle-sidebar-label" class="font-bold text-sm uppercase tracking-widest group-hover:text-gray-600">Ocultar Filtros</span>
+            <svg id="toggle-sidebar-icon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
          </div>
 
+         <div id="sidebar-content">
          <!-- Categoría Filter -->
          <div class="mb-6">
-            <h3 class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
+            <h3 id="toggle-cat-btn" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
                 Categoría
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                <svg id="cat-arrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </h3>
-            <div class="pl-2 space-y-2 mt-2">
+            <div id="cat-section" class="pl-2 space-y-2 mt-2">
                 <button class="cat-btn block text-sm text-left font-bold text-beauty-red hover:text-black" data-cat-id="all">
                     Ver todos
                 </button>
@@ -100,11 +105,11 @@ const { data: categories } = await supabase
 
          <!-- Marcas Filter -->
          <div class="mb-6">
-            <h3 class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
+            <h3 id="toggle-brand-btn" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
                 Marcas
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                <svg id="brand-arrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </h3>
-            <div class="mt-2">
+            <div id="brand-section">
                 <div class="relative mb-4">
                     <input
                       type="text"
@@ -128,6 +133,47 @@ const { data: categories } = await supabase
                     ))}
                 </div>
             </div>
+         </div>
+
+         <!-- Precio Filter -->
+         <div class="mb-6">
+            <h3 id="toggle-price-btn" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
+                Precio
+                <svg id="price-arrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </h3>
+            <div id="price-section" class="space-y-4">
+                <div class="flex justify-between text-xs font-bold text-gray-600">
+                    <span id="price-min-label">{priceMin}€</span>
+                    <span id="price-max-label">{priceMax}€</span>
+                </div>
+                <input
+                  type="range"
+                  id="price-range-min"
+                  min={priceMin}
+                  max={priceMax}
+                  value={priceMin}
+                  class="w-full accent-black h-0.5 cursor-pointer"
+                />
+                <input
+                  type="range"
+                  id="price-range-max"
+                  min={priceMin}
+                  max={priceMax}
+                  value={priceMax}
+                  class="w-full accent-black h-0.5 cursor-pointer"
+                />
+                <div class="flex gap-2">
+                    <div class="flex-1 border border-gray-300 px-2 py-1 flex items-center gap-1">
+                        <span class="text-xs text-gray-400">€</span>
+                        <input type="number" id="price-input-min" value={priceMin} min={priceMin} max={priceMax} class="w-full text-xs focus:outline-none" />
+                    </div>
+                    <div class="flex-1 border border-gray-300 px-2 py-1 flex items-center gap-1">
+                        <span class="text-xs text-gray-400">€</span>
+                        <input type="number" id="price-input-max" value={priceMax} min={priceMin} max={priceMax} class="w-full text-xs focus:outline-none" />
+                    </div>
+                </div>
+            </div>
+         </div>
          </div>
       </aside>
 
@@ -234,9 +280,11 @@ const { data: categories } = await supabase
   .cat-top-btn.active-cat-top { background: black !important; color: white !important; }
 </style>
 
-<script define:vars={{ initialBrandSlug }}>
+<script define:vars={{ initialBrandSlug, priceMin, priceMax }}>
   let selectedCategory = 'all';
   let selectedBrands = initialBrandSlug ? [initialBrandSlug] : [];
+  let currentMinPrice = priceMin;
+  let currentMaxPrice = priceMax;
 
   const cards = document.querySelectorAll('.product-card');
   const countEl = document.getElementById('product-count');
@@ -248,11 +296,13 @@ const { data: categories } = await supabase
     cards.forEach(card => {
       const brandSlug = card.dataset.brandSlug || '';
       const catId = String(card.dataset.categoryId || '');
+      const price = parseInt(card.dataset.price || '0');
 
       const brandMatch = selectedBrands.length === 0 || selectedBrands.includes(brandSlug);
       const catMatch = selectedCategory === 'all' || selectedCategory === catId;
+      const priceMatch = price >= currentMinPrice && price <= currentMaxPrice;
 
-      if (brandMatch && catMatch) {
+      if (brandMatch && catMatch && priceMatch) {
         card.classList.remove('hidden');
         visible++;
       } else {
@@ -276,6 +326,39 @@ const { data: categories } = await supabase
       b.style.color = isActive ? 'white' : '';
     });
   }
+
+  // ── Toggle sidebar ──────────────────────────────────────────────
+  let sidebarOpen = true;
+  const sidebarContent = document.getElementById('sidebar-content');
+  const toggleBtn = document.getElementById('toggle-sidebar-btn');
+  const toggleLabel = document.getElementById('toggle-sidebar-label');
+  const toggleIcon = document.getElementById('toggle-sidebar-icon');
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      sidebarOpen = !sidebarOpen;
+      if (sidebarContent) sidebarContent.classList.toggle('hidden', !sidebarOpen);
+      if (toggleLabel) toggleLabel.textContent = sidebarOpen ? 'Ocultar Filtros' : 'Mostrar Filtros';
+      if (toggleIcon) toggleIcon.style.transform = sidebarOpen ? '' : 'rotate(180deg)';
+    });
+  }
+
+  // ── Collapsible sections ────────────────────────────────────────
+  [['toggle-cat-btn', 'cat-section', 'cat-arrow'],
+   ['toggle-brand-btn', 'brand-section', 'brand-arrow'],
+   ['toggle-price-btn', 'price-section', 'price-arrow']].forEach(([btnId, sectionId, arrowId]) => {
+    const btn = document.getElementById(btnId);
+    const section = document.getElementById(sectionId);
+    const arrow = document.getElementById(arrowId);
+    let open = true;
+    if (btn && section) {
+      btn.addEventListener('click', () => {
+        open = !open;
+        section.classList.toggle('hidden', !open);
+        if (arrow) arrow.style.transform = open ? '' : 'rotate(-90deg)';
+      });
+    }
+  });
 
   // ── Category buttons (sidebar) ──────────────────────────────────
   document.querySelectorAll('.cat-btn').forEach(btn => {
@@ -319,6 +402,40 @@ const { data: categories } = await supabase
       });
     });
   }
+
+  // ── Price range ─────────────────────────────────────────────────
+  const rangeMin = document.getElementById('price-range-min');
+  const rangeMax = document.getElementById('price-range-max');
+  const inputMin = document.getElementById('price-input-min');
+  const inputMax = document.getElementById('price-input-max');
+  const labelMin = document.getElementById('price-min-label');
+  const labelMax = document.getElementById('price-max-label');
+
+  function updatePriceUI() {
+    if (labelMin) labelMin.textContent = `${currentMinPrice}€`;
+    if (labelMax) labelMax.textContent = `${currentMaxPrice}€`;
+    if (rangeMin) rangeMin.value = currentMinPrice;
+    if (rangeMax) rangeMax.value = currentMaxPrice;
+    if (inputMin) inputMin.value = currentMinPrice;
+    if (inputMax) inputMax.value = currentMaxPrice;
+  }
+
+  if (rangeMin) rangeMin.addEventListener('input', e => {
+    currentMinPrice = Math.min(parseInt(e.target.value), currentMaxPrice - 1);
+    updatePriceUI(); applyFilters();
+  });
+  if (rangeMax) rangeMax.addEventListener('input', e => {
+    currentMaxPrice = Math.max(parseInt(e.target.value), currentMinPrice + 1);
+    updatePriceUI(); applyFilters();
+  });
+  if (inputMin) inputMin.addEventListener('change', e => {
+    currentMinPrice = Math.max(priceMin, Math.min(parseInt(e.target.value) || priceMin, currentMaxPrice - 1));
+    updatePriceUI(); applyFilters();
+  });
+  if (inputMax) inputMax.addEventListener('change', e => {
+    currentMaxPrice = Math.min(priceMax, Math.max(parseInt(e.target.value) || priceMax, currentMinPrice + 1));
+    updatePriceUI(); applyFilters();
+  });
 
   // ── Sort ────────────────────────────────────────────────────────
   const sortSelect = document.getElementById('sort-select');

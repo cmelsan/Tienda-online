@@ -1,0 +1,339 @@
+---
+export const prerender = false;
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { createServerSupabaseClient } from '@/lib/supabase';
+
+const supabase = await createServerSupabaseClient(Astro, true);
+
+const { data: subscribers } = await supabase
+  .from('newsletter_subscribers')
+  .select('*')
+  .order('subscribed_at', { ascending: false });
+
+const allSubs = (subscribers || []) as any[];
+const totalSubs = allSubs.length;
+const activeSubs = allSubs.filter(s => s.is_active).length;
+const inactiveSubs = allSubs.filter(s => !s.is_active).length;
+
+function formatDate(d: string) {
+  return new Date(d).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+---
+
+<AdminLayout title="Newsletter">
+  <!-- Stats -->
+  <div class="grid grid-cols-3 gap-4 mb-8">
+    <div class="bg-black text-white p-5">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Total suscriptores</p>
+      <p class="text-3xl font-black mt-1">{totalSubs}</p>
+      <div class="w-6 h-0.5 bg-pink-500 mt-2"></div>
+    </div>
+    <div class="bg-white border border-gray-200 p-5">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Activos</p>
+      <p class="text-3xl font-black text-black mt-1">{activeSubs}</p>
+    </div>
+    <div class="bg-white border border-gray-200 p-5">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Dados de baja</p>
+      <p class="text-3xl font-black text-gray-400 mt-1">{inactiveSubs}</p>
+    </div>
+  </div>
+
+  <!-- Campaign Composer -->
+  <div class="bg-white border border-gray-200 mb-8">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h3 class="text-sm font-bold uppercase tracking-widest text-black">Enviar campaña</h3>
+      <p class="text-xs text-gray-400 mt-1">
+        Se enviará a <span class="font-bold text-black">{activeSubs}</span> suscriptor{activeSubs !== 1 ? 'es' : ''} activo{activeSubs !== 1 ? 's' : ''} con un intervalo de 200ms entre emails
+      </p>
+    </div>
+
+    <div class="p-6 space-y-4">
+      <!-- Asunto -->
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">Asunto del email</label>
+        <input
+          id="nl-subject"
+          type="text"
+          placeholder="Ej: Novedades de primavera en ÉCLAT Beauty ✨"
+          class="w-full px-4 py-3 border border-gray-200 text-sm focus:outline-none focus:border-black transition-colors"
+        />
+      </div>
+
+      <!-- Contenido -->
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
+          Contenido del mensaje
+        </label>
+        <p class="text-[10px] text-gray-400 mb-2">Escribe en texto plano. Separa párrafos con una línea en blanco.</p>
+        <textarea
+          id="nl-content"
+          rows="10"
+          placeholder="Hola,
+
+Queremos contarte las últimas novedades de ÉCLAT Beauty...
+
+¡No te pierdas nuestros nuevos lanzamientos!"
+          class="w-full px-4 py-3 border border-gray-200 text-sm focus:outline-none focus:border-black transition-colors resize-y"
+        ></textarea>
+      </div>
+
+      <!-- Send button + progress -->
+      <div class="flex items-start gap-4 pt-2">
+        <button
+          id="nl-send-btn"
+          class="bg-black text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-pink-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+        >
+          Enviar campaña
+        </button>
+        <div id="nl-progress" class="hidden flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <div id="nl-spinner" class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+            <span id="nl-progress-text" class="text-xs font-bold text-black uppercase tracking-widest">Enviando...</span>
+          </div>
+          <p class="text-[10px] text-gray-400">No cierres esta página hasta que finalice el envío</p>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div id="nl-result" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- Subscriber List -->
+  <div class="bg-white border border-gray-200">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h3 class="text-sm font-bold uppercase tracking-widest text-black">Suscriptores</h3>
+    </div>
+
+    <!-- Buscador -->
+    <div class="px-6 pt-4 pb-2">
+      <div class="relative">
+        <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+        </svg>
+        <input
+          id="search-subscribers"
+          type="text"
+          placeholder="Buscar por email..."
+          class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 text-sm placeholder-gray-400 focus:outline-none focus:border-black transition-colors"
+        />
+      </div>
+      <p id="search-count-nl" class="text-[10px] text-gray-400 mt-2 hidden uppercase tracking-widest"></p>
+    </div>
+
+    {allSubs.length === 0 ? (
+      <div class="p-16 text-center">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Sin suscriptores aún</p>
+        <p class="text-xs text-gray-400 mt-1">Los emails aparecerán aquí cuando alguien se suscriba desde la tienda</p>
+      </div>
+    ) : (
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-black text-white">
+            <tr>
+              <th class="text-left py-3 px-6 text-[10px] font-bold uppercase tracking-widest">Email</th>
+              <th class="text-left py-3 px-6 text-[10px] font-bold uppercase tracking-widest">Fecha alta</th>
+              <th class="text-left py-3 px-6 text-[10px] font-bold uppercase tracking-widest">Estado</th>
+              <th class="text-right py-3 px-6 text-[10px] font-bold uppercase tracking-widest">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {allSubs.map((sub: any) => (
+              <tr
+                class="hover:bg-gray-50 transition-colors"
+                data-id={sub.id}
+                data-active={sub.is_active ? 'true' : 'false'}
+                data-search={sub.email.toLowerCase()}
+              >
+                <td class="py-4 px-6">
+                  <span class="text-sm font-medium text-black">{sub.email}</span>
+                </td>
+                <td class="py-4 px-6 text-sm text-gray-500">
+                  {formatDate(sub.subscribed_at)}
+                </td>
+                <td class="py-4 px-6">
+                  <span
+                    class={`status-badge text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 ${
+                      sub.is_active
+                        ? 'bg-black text-white'
+                        : 'bg-gray-100 text-gray-400 border border-gray-200'
+                    }`}
+                  >
+                    {sub.is_active ? 'Activo' : 'Baja'}
+                  </span>
+                </td>
+                <td class="py-4 px-6 text-right">
+                  <div class="flex items-center justify-end gap-4">
+                    <button
+                      class="toggle-btn text-[11px] font-bold uppercase tracking-wide text-black hover:text-pink-500 transition-colors"
+                    >
+                      {sub.is_active ? 'Desactivar' : 'Activar'}
+                    </button>
+                    <button
+                      class="delete-btn text-[11px] font-bold uppercase tracking-wide text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </div>
+</AdminLayout>
+
+<script>
+  // ── Campaign send ────────────────────────────────────────────────
+  const sendBtn = document.getElementById('nl-send-btn') as HTMLButtonElement;
+  const subjectInput = document.getElementById('nl-subject') as HTMLInputElement;
+  const contentInput = document.getElementById('nl-content') as HTMLTextAreaElement;
+  const progressDiv = document.getElementById('nl-progress') as HTMLDivElement;
+  const progressText = document.getElementById('nl-progress-text') as HTMLSpanElement;
+  const spinner = document.getElementById('nl-spinner') as HTMLDivElement;
+  const resultDiv = document.getElementById('nl-result') as HTMLDivElement;
+
+  sendBtn?.addEventListener('click', async () => {
+    const subject = subjectInput.value.trim();
+    const content = contentInput.value.trim();
+
+    if (!subject) { alert('Por favor escribe un asunto para el email.'); subjectInput.focus(); return; }
+    if (!content) { alert('Por favor escribe el contenido del email.'); contentInput.focus(); return; }
+    if (!confirm(`¿Confirmas el envío de la campaña a todos los suscriptores activos?\n\nAsunto: "${subject}"`)) return;
+
+    sendBtn.disabled = true;
+    progressDiv.classList.remove('hidden');
+    resultDiv.classList.add('hidden');
+    progressText.textContent = 'Enviando emails... esto puede tardar unos segundos';
+
+    try {
+      const res = await fetch('/api/admin/newsletter/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject, content }),
+      });
+
+      const data = await res.json();
+
+      spinner.classList.add('hidden');
+      progressDiv.classList.add('hidden');
+
+      if (res.ok && data.success) {
+        resultDiv.innerHTML = `
+          <div class="p-4 bg-black text-white">
+            <p class="text-[10px] font-bold uppercase tracking-widest">Campaña enviada</p>
+            <p class="text-xs text-gray-400 mt-1">
+              ✓ ${data.sent} enviados correctamente${data.failed > 0 ? ` · ✗ ${data.failed} fallidos` : ''} · ${data.total} total
+            </p>
+            ${data.failedEmails ? `<p class="text-[10px] text-red-300 mt-2">Fallidos: ${data.failedEmails.join(', ')}</p>` : ''}
+          </div>`;
+        resultDiv.classList.remove('hidden');
+        subjectInput.value = '';
+        contentInput.value = '';
+      } else {
+        resultDiv.innerHTML = `
+          <div class="p-4 bg-red-50 border border-red-200 text-red-700">
+            <p class="text-[10px] font-bold uppercase tracking-widest">Error al enviar</p>
+            <p class="text-xs mt-1">${data.error || 'Error desconocido'}</p>
+          </div>`;
+        resultDiv.classList.remove('hidden');
+      }
+    } catch (err: any) {
+      spinner.classList.add('hidden');
+      progressDiv.classList.add('hidden');
+      resultDiv.innerHTML = `<div class="p-4 bg-red-50 border border-red-200 text-red-700 text-xs">Error de conexión: ${err.message}</div>`;
+      resultDiv.classList.remove('hidden');
+    } finally {
+      sendBtn.disabled = false;
+      spinner.classList.remove('hidden');
+    }
+  });
+
+  // ── Toggle active / inactive ─────────────────────────────────────
+  document.querySelectorAll<HTMLButtonElement>('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const row = btn.closest('tr') as HTMLTableRowElement;
+      const id = row.dataset.id!;
+      const isActive = row.dataset.active === 'true';
+      const newState = !isActive;
+
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.textContent = '...';
+
+      const res = await fetch('/api/admin/newsletter/subscribers', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, is_active: newState }),
+      });
+
+      if (res.ok) {
+        row.dataset.active = newState ? 'true' : 'false';
+        btn.textContent = newState ? 'Desactivar' : 'Activar';
+
+        const badge = row.querySelector('.status-badge') as HTMLSpanElement;
+        if (badge) {
+          badge.textContent = newState ? 'Activo' : 'Baja';
+          badge.className = `status-badge text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 ${
+            newState ? 'bg-black text-white' : 'bg-gray-100 text-gray-400 border border-gray-200'
+          }`;
+        }
+      } else {
+        btn.textContent = original!;
+        alert('Error al actualizar el estado');
+      }
+      btn.disabled = false;
+    });
+  });
+
+  // ── Delete subscriber ────────────────────────────────────────────
+  document.querySelectorAll<HTMLButtonElement>('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const row = btn.closest('tr') as HTMLTableRowElement;
+      const id = row.dataset.id!;
+      const email = row.querySelector('span')?.textContent || '';
+
+      if (!confirm(`¿Eliminar permanentemente a ${email}?`)) return;
+
+      btn.disabled = true;
+
+      const res = await fetch('/api/admin/newsletter/subscribers', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+
+      if (res.ok) {
+        row.remove();
+      } else {
+        alert('Error al eliminar el suscriptor');
+        btn.disabled = false;
+      }
+    });
+  });
+
+  // ── Search subscribers ───────────────────────────────────────────
+  const searchInput = document.getElementById('search-subscribers') as HTMLInputElement;
+  const searchCount = document.getElementById('search-count-nl') as HTMLParagraphElement;
+  const rows = document.querySelectorAll<HTMLTableRowElement>('tbody tr[data-search]');
+
+  searchInput?.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase().trim();
+    let visible = 0;
+
+    rows.forEach(row => {
+      const match = !q || (row.dataset.search || '').includes(q);
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+
+    if (q) {
+      searchCount.textContent = `${visible} resultado${visible !== 1 ? 's' : ''}`;
+      searchCount.classList.remove('hidden');
+    } else {
+      searchCount.classList.add('hidden');
+    }
+  });
+</script>

@@ -1,8 +1,9 @@
 import type { APIRoute } from 'astro';
-import { supabase } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase';
 import { sendEmail, getNewsletterWelcomeTemplate } from '@/lib/brevo';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async (context) => {
+    const { request } = context;
     try {
         const data = await request.json();
         const { email } = data;
@@ -20,7 +21,30 @@ export const POST: APIRoute = async ({ request }) => {
             return new Response(JSON.stringify({ message: 'Servicio de email no configurado. Por favor contacta a soporte.' }), { status: 500 });
         }
 
-        // 2. Send welcome email FIRST (before saving to DB)
+        // Use service-role client to bypass RLS for DB checks
+        const supabase = await createServerSupabaseClient(context, true);
+
+        // 2. Check if already subscribed (active or inactive)
+        console.log('[Newsletter] Checking existing subscriber...');
+        const { data: existing } = await supabase
+          .from('newsletter_subscribers')
+          .select('id, is_active')
+          .eq('email', email)
+          .maybeSingle();
+
+        if (existing) {
+          if (existing.is_active) {
+            return new Response(JSON.stringify({ message: 'Este email ya está suscrito.' }), { status: 409 });
+          }
+          // Inactive subscriber — reactivate them
+          console.log('[Newsletter] Reactivating inactive subscriber:', email);
+          await supabase
+            .from('newsletter_subscribers')
+            .update({ is_active: true })
+            .eq('id', existing.id);
+        }
+
+        // 3. Send welcome email
         console.log('[Newsletter] Sending welcome email...');
         const htmlContent = getNewsletterWelcomeTemplate(email, 'NEWSLETTER10', 10);
         
@@ -37,22 +61,24 @@ export const POST: APIRoute = async ({ request }) => {
 
         console.log('[Newsletter] Email sent successfully, messageId:', emailResult.messageId);
 
-        // 3. Save to newsletter subscribers (AFTER successful email send)
-        const { error } = await supabase
-            .from('newsletter_subscribers')
-            .insert({ email });
+        // 4. Save to DB — only if brand-new subscriber (reactivations already handled above)
+        if (!existing) {
+          const { error } = await supabase
+              .from('newsletter_subscribers')
+              .insert({ email });
 
-        if (error) {
-            if (error.code === '23505') { // Unique violation
-                console.log('[Newsletter] Email already subscribed:', email);
-                return new Response(JSON.stringify({ message: 'Este email ya está suscrito.' }), { status: 409 });
-            }
-            console.error('[Newsletter] Database error:', error);
-            return new Response(JSON.stringify({ message: 'Error al guardar la suscripción.' }), { status: 500 });
+          if (error) {
+              console.error('[Newsletter] Database error:', error);
+              return new Response(JSON.stringify({ message: 'Error al guardar la suscripción.' }), { status: 500 });
+          }
         }
 
-        console.log('[Newsletter] Successfully subscribed:', email);
-        return new Response(JSON.stringify({ message: '¡Gracias por suscribirte! Revisa tu email para el código de descuento.' }), { status: 200 });
+        const msg = existing
+          ? '¡Bienvenido de nuevo! Tu suscripción ha sido reactivada. Revisa tu email.'
+          : '¡Gracias por suscribirte! Revisa tu email para el código de descuento.';
+
+        console.log('[Newsletter] Successfully subscribed/reactivated:', email);
+        return new Response(JSON.stringify({ message: msg }), { status: 200 });
 
     } catch (e: any) {
         console.error('[Newsletter] Exception:', e.message);

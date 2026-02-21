@@ -1,5 +1,7 @@
 import type { APIRoute } from 'astro';
-import { getAdminSupabaseClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
+
+// Uses anon client + SECURITY DEFINER RPC function in Supabase (no service role key needed)
 
 function buildPage(title: string, message: string, success: boolean): string {
   return `<!DOCTYPE html>
@@ -32,8 +34,8 @@ function buildPage(title: string, message: string, success: boolean): string {
 </html>`;
 }
 
-export const GET: APIRoute = async (context) => {
-  const token = context.url.searchParams.get('token');
+export const GET: APIRoute = async ({ url }) => {
+  const token = url.searchParams.get('token');
 
   if (!token) {
     return new Response(
@@ -42,20 +44,9 @@ export const GET: APIRoute = async (context) => {
     );
   }
 
-  // Use service-role client to bypass RLS on the update
-  const supabase = getAdminSupabaseClient();
-  if (!supabase) {
-    return new Response(
-      buildPage('Error', 'Error de configuración del servidor. Contáctanos.', false),
-      { status: 500, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-    );
-  }
-
-  // Use the subscriber's UUID id as the token
+  // Call the SECURITY DEFINER RPC function — runs with elevated privileges server-side in Supabase
   const { error } = await supabase
-    .from('newsletter_subscribers')
-    .update({ is_active: false })
-    .eq('id', token);
+    .rpc('unsubscribe_newsletter', { subscriber_id: token });
 
   if (error) {
     console.error('[Newsletter Unsubscribe] Error:', error);

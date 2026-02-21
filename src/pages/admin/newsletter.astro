@@ -1,9 +1,9 @@
 ---
 export const prerender = false;
 import AdminLayout from '@/layouts/AdminLayout.astro';
-import { getAdminSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase';
 
-const supabase = getAdminSupabaseClient()!;
+const supabase = await createServerSupabaseClient(Astro, true);
 
 const { data: subscribers } = await supabase
   .from('newsletter_subscribers')

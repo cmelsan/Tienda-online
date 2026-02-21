@@ -242,7 +242,7 @@ export default function ProductEditForm({ product, categories, subcategories, br
               className="w-5 h-5 rounded border-amber-400 text-amber-600 focus:ring-amber-500 cursor-pointer"
             />
             <label htmlFor="is_bestseller" className="cursor-pointer select-none">
-              <span className="block text-sm font-semibold text-amber-900">⭐ Marcar como Best Seller</span>
+              <span className="block text-sm font-semibold text-amber-900">Marcar como Best Seller</span>
               <span className="block text-xs text-amber-700">El producto aparecerá en la página /best-sellers</span>
             </label>
           </div>

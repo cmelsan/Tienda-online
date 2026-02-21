@@ -8,7 +8,7 @@ import ProductAddToCart from '@/components/islands/ProductAddToCart';
 // Fetch all products
 const { data: dbProducts } = await supabase
   .from('products')
-  .select('*, brand:brands(name, slug)') // Fetch brand details
+  .select('*, brand:brands(name, slug), category:categories(id, name, slug)')
   .order('created_at', { ascending: false });
 
 // Fetch brands for sidebar
@@ -18,19 +18,20 @@ const { data: brandsList } = await supabase
   .order('name');
 
 // Get URL params for initial filter
-const initialBrandSlug = Astro.url.searchParams.get('marca');
+const initialBrandSlug = Astro.url.searchParams.get('marca') || '';
 
 const products = dbProducts?.map(p => ({
     ...p,
-    brand: p.brand?.name || 'Genérico', // Use real brand name
-    brandSlug: p.brand?.slug,
-    reviews: Math.floor(Math.random() * (5000 - 100) + 100), // Keep mock reviews for now
-    isPromo: Math.random() > 0.7, // Keep mock flags or add to DB later
-    isExclusive: Math.random() > 0.8,
-    originalPrice: p.price * 1.3, // Calculate based on real price
+    brandName: p.brand?.name || 'Genérico',
+    brandSlug: p.brand?.slug || '',
+    categoryId: String(p.category_id || ''),
+    categoryName: p.category?.name || '',
+    isPromo: !!(p.is_flash_sale),
+    isExclusive: false,
+    originalPrice: p.is_flash_sale && p.flash_sale_discount
+        ? Math.round(p.price / (1 - p.flash_sale_discount / 100))
+        : null,
 })) || [];
-
-
 
 // Fetch categories for filter
 const { data: categories } = await supabase
@@ -43,35 +44,28 @@ const { data: categories } = await supabase
   title="Productos - ÉCLAT"
   description="Explora nuestra colección completa de productos de belleza premium."
 >
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data={`{ 
-      selectedCategory: 'all', 
-      selectedBrands: ['${initialBrandSlug || ''}'].filter(Boolean), 
-      searchBrand: '',
-      toggleBrand(brandSlug) {
-          if (this.selectedBrands.includes(brandSlug)) {
-              this.selectedBrands = this.selectedBrands.filter(b => b !== brandSlug);
-          } else {
-              this.selectedBrands.push(brandSlug);
-          }
-      },
-      matchesFilter(productBrandSlug, productCategoryId) {
-          const brandMatch = this.selectedBrands.length === 0 || this.selectedBrands.includes(productBrandSlug);
-          const categoryMatch = this.selectedCategory === 'all' || this.selectedCategory === productCategoryId; 
-          return brandMatch && categoryMatch;
-      }
-  }`}>
-    
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
     <!-- Breadcrumb -->
     <nav class="text-sm text-gray-500 mb-8">
-        <a href="/" class="hover:text-black">Página de inicio</a> / <span class="text-black font-bold">Solo en Éclat</span>
+        <a href="/" class="hover:text-black">Página de inicio</a> / <span class="text-black font-bold">Todos los productos</span>
     </nav>
 
     <!-- Top Categories Visual Navigation -->
     <div class="flex flex-wrap justify-center gap-4 mb-12 border-b border-gray-200 pb-8">
-        {['MAQUILLAJE', 'TRATAMIENTO', 'PERFUME', 'CABELLO', 'HOT ON SOCIAL'].map((cat) => (
-             <a href="#" class="px-6 py-3 border border-black font-bold text-xs uppercase hover:bg-black hover:text-white transition-colors tracking-widest">
-                {cat}
-             </a>
+        <button
+          class="cat-top-btn px-6 py-3 border border-black font-bold text-xs uppercase hover:bg-black hover:text-white transition-colors tracking-widest bg-black text-white"
+          data-cat-id="all"
+        >
+          Ver todos
+        </button>
+        {categories?.map((cat) => (
+             <button
+               class="cat-top-btn px-6 py-3 border border-black font-bold text-xs uppercase hover:bg-black hover:text-white transition-colors tracking-widest"
+               data-cat-id={cat.id}
+             >
+                {cat.name}
+             </button>
         ))}
     </div>
 
@@ -80,31 +74,24 @@ const { data: categories } = await supabase
       <aside class="w-full lg:w-64 pr-0 lg:pr-8 mb-8 lg:mb-0 hidden md:block">
          <div class="border-b border-gray-200 pb-4 mb-6 flex justify-between items-center cursor-pointer group">
             <span class="font-bold text-sm uppercase tracking-widest group-hover:text-gray-600">Ocultar Filtros</span>
-            <svg class="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-         </div>
-
-         <!-- Tipo de Producto Filter Mock (visual only for now as DB doesn't have Types) -->
-         <div class="mb-6">
-            <h3 class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
-                Tipo de Producto
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-            </h3>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
          </div>
 
          <!-- Categoría Filter -->
          <div class="mb-6">
             <h3 class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
                 Categoría
-                <svg class="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </h3>
             <div class="pl-2 space-y-2 mt-2">
-                <button @click="selectedCategory = 'all'" :class="{ 'text-beauty-red font-bold': selectedCategory === 'all', 'text-gray-600': selectedCategory !== 'all' }" class="block text-sm hover:text-black">
+                <button class="cat-btn block text-sm text-left font-bold text-beauty-red hover:text-black" data-cat-id="all">
                     Ver todos
                 </button>
                 {categories?.map((cat) => (
-                     <button @click={`selectedCategory = '${cat.id}'`} 
-                             :class="{ 'text-beauty-red font-bold': selectedCategory === '${cat.id}', 'text-gray-600': selectedCategory !== '${cat.id}' }"
-                             class="block text-sm text-left hover:text-black capitalize">
+                     <button
+                       class="cat-btn block text-sm text-left text-gray-600 hover:text-black capitalize"
+                       data-cat-id={cat.id}
+                     >
                         {cat.name}
                      </button>
                 ))}
@@ -115,21 +102,26 @@ const { data: categories } = await supabase
          <div class="mb-6">
             <h3 class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
                 Marcas
-                <svg class="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </h3>
             <div class="mt-2">
                 <div class="relative mb-4">
-                    <input type="text" x-model="searchBrand" placeholder="Buscar una marca" class="w-full border-b border-black py-2 pl-0 pr-8 text-sm focus:outline-none focus:border-beauty-red placeholder-gray-400 italic font-sans">
+                    <input
+                      type="text"
+                      id="brand-search"
+                      placeholder="Buscar una marca"
+                      class="w-full border-b border-black py-2 pl-0 pr-8 text-sm focus:outline-none focus:border-beauty-red placeholder-gray-400 italic font-sans"
+                    />
                     <svg class="w-4 h-4 absolute right-0 top-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
                 <div class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
                     {brandsList?.map(brand => (
-                        <label class="flex items-center space-x-3 cursor-pointer group" x-show={`'${brand.name}'.toLowerCase().includes(searchBrand.toLowerCase())`}>
-                             <input 
-                                type="checkbox" 
-                                @change={`toggleBrand('${brand.slug}')`}
-                                :checked={`selectedBrands.includes('${brand.slug}')`} 
-                                class="w-5 h-5 border-2 border-gray-300 rounded-none checked:bg-black checked:border-black focus:ring-0 transition-colors" 
+                        <label class="brand-label flex items-center space-x-3 cursor-pointer group" data-brand-name={brand.name.toLowerCase()}>
+                             <input
+                                type="checkbox"
+                                class="brand-checkbox w-5 h-5 border-2 border-gray-300 rounded-none checked:bg-black checked:border-black focus:ring-0 transition-colors"
+                                data-brand-slug={brand.slug}
+                                checked={initialBrandSlug === brand.slug}
                              />
                              <span class="text-sm text-black group-hover:underline">{brand.name}</span>
                         </label>
@@ -142,26 +134,25 @@ const { data: categories } = await supabase
       <!-- Main Grid -->
       <div class="flex-1">
          <div class="mb-6 flex justify-between items-center">
-            <span class="text-sm font-medium" x-text="`${products.filter(p => matchesFilter(p.brand, p.category_id)).length} Productos`"></span>
-            <!-- Simple sort placeholder -->
+            <span class="text-sm font-medium" id="product-count">{products.length} Productos</span>
             <div class="flex items-center gap-2 text-sm">
                 <span class="text-gray-500">Ordenar por:</span>
-                <select class="border-none bg-transparent font-bold focus:ring-0 cursor-pointer">
-                    <option>Recomendados</option>
-                    <option>Precio: Menor a Mayor</option>
-                    <option>Precio: Mayor a Menor</option>
+                <select id="sort-select" class="border-none bg-transparent font-bold focus:ring-0 cursor-pointer">
+                    <option value="default">Recomendados</option>
+                    <option value="price-asc">Precio: Menor a Mayor</option>
+                    <option value="price-desc">Precio: Mayor a Menor</option>
                 </select>
             </div>
          </div>
 
-         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6" id="product-grid">
             {products.map((product) => (
-                <div class="group flex flex-col h-full relative" 
-                     x-show={`matchesFilter('${product.brandSlug}', '${product.category_id}')`}
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 scale-95"
-                     x-transition:enter-end="opacity-100 scale-100">
-                     
+                <div
+                  class="product-card group flex flex-col h-full relative"
+                  data-brand-slug={product.brandSlug}
+                  data-category-id={product.categoryId}
+                  data-price={product.price}
+                >
                     <!-- Badges -->
                     <div class="absolute top-2 left-2 z-10 flex flex-col gap-1">
                         {product.isPromo && (
@@ -171,7 +162,7 @@ const { data: categories } = await supabase
                            <span class="bg-black text-white text-[10px] font-bold uppercase px-2 py-1 tracking-wider">Solo en Éclat</span>
                         )}
                     </div>
-                    
+
                     <!-- Wishlist Button Island -->
                     <div class="absolute top-2 right-2 z-10">
                       <WishlistButton client:load productId={product.id} productName={product.name} />
@@ -179,8 +170,8 @@ const { data: categories } = await supabase
 
                      <!-- Image -->
                     <a href={`/productos/${product.slug}`} class="block relative aspect-square mb-4 bg-gray-50 overflow-hidden">
-                       <img 
-                         src={product.images?.[0]} 
+                       <img
+                         src={product.images?.[0]}
                          alt={product.name}
                          class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                          loading="lazy"
@@ -190,29 +181,19 @@ const { data: categories } = await supabase
                     <!-- Info -->
                     <div class="flex-1 flex flex-col text-center px-2">
                         <div class="mb-1">
-                            <span class="font-bold text-xs uppercase tracking-widest text-black">{product.brand}</span>
+                            <span class="font-bold text-xs uppercase tracking-widest text-black">{product.brandName}</span>
                         </div>
                         <h3 class="font-bold text-sm text-black uppercase mb-1 line-clamp-2 min-h-[40px]">
                             <a href={`/productos/${product.slug}`}>{product.name}</a>
                         </h3>
                         <p class="text-xs text-gray-500 mb-2 line-clamp-1">{product.description}</p>
-                        
-                         <!-- Ratings -->
-                        <div class="flex justify-center items-center gap-1 mb-3">
-                            <div class="flex text-black">
-                                {[1,2,3,4,4.5].map(() => (
-                                   <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                                ))}
-                            </div>
-                            <span class="text-[10px] text-gray-500 font-bold">{product.reviews}</span>
-                        </div>
 
                         <!-- Price -->
                         <div class="mt-auto mb-3">
-                            {product.isPromo ? (
+                            {product.isPromo && product.originalPrice ? (
                                 <div class="flex flex-col items-center gap-0.5">
                                     <span class="font-bold text-base text-red-700">{formatPrice(product.price)}</span>
-                                     <span class="text-xs text-gray-500 line-through">Precio original: {formatPrice(product.originalPrice)}</span>
+                                    <span class="text-xs text-gray-500 line-through">Precio original: {formatPrice(product.originalPrice)}</span>
                                 </div>
                             ) : (
                                 <span class="font-bold text-base text-black">{formatPrice(product.price)}</span>
@@ -221,7 +202,7 @@ const { data: categories } = await supabase
                     </div>
 
                     <!-- Add to Cart Button Island -->
-                    <ProductAddToCart 
+                    <ProductAddToCart
                         client:load
                         productId={product.id}
                         productName={product.name}
@@ -232,42 +213,134 @@ const { data: categories } = await supabase
                 </div>
             ))}
          </div>
+
+         <!-- Empty state -->
+         <div id="empty-state" class="hidden py-20 text-center">
+           <p class="text-sm font-bold uppercase tracking-widest text-gray-400">Sin productos para los filtros seleccionados</p>
+         </div>
       </div>
     </div>
   </div>
 </PublicLayout>
 
 <style>
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f1f1;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #000;
-  }
-  [x-cloak] { display: none !important; }
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #000; }
 
-  @keyframes slideIn {
-    from {
-      transform: translateX(400px);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
+  .product-card.hidden { display: none; }
 
-  @keyframes slideOut {
-    from {
-      transform: translateX(0);
-      opacity: 1;
-    }
-    to {
-      transform: translateX(400px);
-      opacity: 0;
-    }
-  }
+  .cat-btn.active-cat { color: #e11d48; font-weight: 700; }
+  .cat-top-btn.active-cat-top { background: black !important; color: white !important; }
 </style>
+
+<script define:vars={{ initialBrandSlug }}>
+  let selectedCategory = 'all';
+  let selectedBrands = initialBrandSlug ? [initialBrandSlug] : [];
+
+  const cards = document.querySelectorAll('.product-card');
+  const countEl = document.getElementById('product-count');
+  const emptyState = document.getElementById('empty-state');
+  const productGrid = document.getElementById('product-grid');
+
+  function applyFilters() {
+    let visible = 0;
+    cards.forEach(card => {
+      const brandSlug = card.dataset.brandSlug || '';
+      const catId = String(card.dataset.categoryId || '');
+
+      const brandMatch = selectedBrands.length === 0 || selectedBrands.includes(brandSlug);
+      const catMatch = selectedCategory === 'all' || selectedCategory === catId;
+
+      if (brandMatch && catMatch) {
+        card.classList.remove('hidden');
+        visible++;
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+
+    if (countEl) countEl.textContent = `${visible} Producto${visible !== 1 ? 's' : ''}`;
+    if (emptyState) emptyState.classList.toggle('hidden', visible > 0);
+    if (productGrid) productGrid.classList.toggle('hidden', visible === 0);
+  }
+
+  function syncCatButtons(catId) {
+    document.querySelectorAll('.cat-btn').forEach(b => {
+      b.classList.toggle('active-cat', b.dataset.catId === catId);
+    });
+    document.querySelectorAll('.cat-top-btn').forEach(b => {
+      const isActive = b.dataset.catId === catId;
+      b.classList.toggle('active-cat-top', isActive);
+      b.style.background = isActive ? 'black' : '';
+      b.style.color = isActive ? 'white' : '';
+    });
+  }
+
+  // ── Category buttons (sidebar) ──────────────────────────────────
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedCategory = btn.dataset.catId;
+      syncCatButtons(selectedCategory);
+      applyFilters();
+    });
+  });
+
+  // ── Top category buttons ────────────────────────────────────────
+  document.querySelectorAll('.cat-top-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedCategory = btn.dataset.catId;
+      syncCatButtons(selectedCategory);
+      applyFilters();
+    });
+  });
+
+  // ── Brand checkboxes ────────────────────────────────────────────
+  document.querySelectorAll('.brand-checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const slug = cb.dataset.brandSlug;
+      if (cb.checked) {
+        if (!selectedBrands.includes(slug)) selectedBrands.push(slug);
+      } else {
+        selectedBrands = selectedBrands.filter(s => s !== slug);
+      }
+      applyFilters();
+    });
+  });
+
+  // ── Brand search ────────────────────────────────────────────────
+  const brandSearchEl = document.getElementById('brand-search');
+  if (brandSearchEl) {
+    brandSearchEl.addEventListener('input', e => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('.brand-label').forEach(label => {
+        const name = label.dataset.brandName || '';
+        label.style.display = name.includes(q) ? '' : 'none';
+      });
+    });
+  }
+
+  // ── Sort ────────────────────────────────────────────────────────
+  const sortSelect = document.getElementById('sort-select');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', e => {
+      const val = e.target.value;
+      const grid = document.getElementById('product-grid');
+      if (!grid) return;
+      const cardsArr = Array.from(grid.querySelectorAll('.product-card'));
+      cardsArr.sort((a, b) => {
+        const pa = parseInt(a.dataset.price || '0');
+        const pb = parseInt(b.dataset.price || '0');
+        if (val === 'price-asc') return pa - pb;
+        if (val === 'price-desc') return pb - pa;
+        return 0;
+      });
+      cardsArr.forEach(c => grid.appendChild(c));
+    });
+  }
+
+  // ── Initial state (brand from URL) ─────────────────────────────
+  if (initialBrandSlug) {
+    applyFilters();
+  }
+</script>

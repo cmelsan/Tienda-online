@@ -201,7 +201,12 @@ Queremos contarte las últimas novedades de ÉCLAT Beauty...
 
     if (!subject) { alert('Por favor escribe un asunto para el email.'); subjectInput.focus(); return; }
     if (!content) { alert('Por favor escribe el contenido del email.'); contentInput.focus(); return; }
-    if (!confirm(`¿Confirmas el envío de la campaña a todos los suscriptores activos?\n\nAsunto: "${subject}"`)) return;
+    const ok = await (window as any).adminConfirm({
+      title: 'Enviar campaña',
+      message: `¿Confirmas el envío a todos los suscriptores activos? Asunto: "${subject}"`,
+      confirmLabel: 'Sí, enviar',
+    });
+    if (!ok) return;
 
     sendBtn.disabled = true;
     progressDiv.classList.remove('hidden');
@@ -295,7 +300,12 @@ Queremos contarte las últimas novedades de ÉCLAT Beauty...
       const id = row.dataset.id!;
       const email = row.querySelector('span')?.textContent || '';
 
-      if (!confirm(`¿Eliminar permanentemente a ${email}?`)) return;
+      const ok2 = await (window as any).adminConfirm({
+        title: 'Eliminar suscriptor',
+        message: `¿Eliminar permanentemente a ${email}?`,
+        confirmLabel: 'Sí, eliminar',
+      });
+      if (!ok2) return;
 
       btn.disabled = true;
 

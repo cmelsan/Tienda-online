@@ -182,7 +182,12 @@ function formatFecha(coupon: any) {
     btn.addEventListener('click', async (e) => {
       e.preventDefault();
 
-      if (!confirm('Eliminar este cupon?')) return;
+      const ok = await (window as any).adminConfirm({
+        title: 'Eliminar cupón',
+        message: '¿Estás seguro? Esta acción no se puede deshacer.',
+        confirmLabel: 'Sí, eliminar',
+      });
+      if (!ok) return;
 
       const couponId = btn.getAttribute('data-id');
       if (!couponId) return;

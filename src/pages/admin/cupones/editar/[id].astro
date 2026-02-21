@@ -234,21 +234,19 @@ const validUntilDate = coupon.valid_until
 </AdminLayout>
 
 <script define:vars={{ couponId: id }}>
-  const form = document.getElementById('couponForm') as HTMLFormElement;
-  const messageDiv = document.getElementById('message') as HTMLDivElement;
-  const errorDiv = document.getElementById('error') as HTMLDivElement;
-  const messageText = document.getElementById('messageText') as HTMLSpanElement;
-  const errorText = document.getElementById('errorText') as HTMLSpanElement;
-  const deleteBtn = document.getElementById('deleteBtn') as HTMLButtonElement;
+  const form = document.getElementById('couponForm');
+  const messageDiv = document.getElementById('message');
+  const errorDiv = document.getElementById('error');
+  const messageText = document.getElementById('messageText');
+  const errorText = document.getElementById('errorText');
+  const deleteBtn = document.getElementById('deleteBtn');
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // Hide previous messages
     messageDiv.classList.add('hidden');
     errorDiv.classList.add('hidden');
 
-    // Collect form data
     const formData = new FormData(form);
     const data = {
       code: formData.get('code'),
@@ -258,7 +256,7 @@ const validUntilDate = coupon.valid_until
       minPurchaseAmount: formData.get('minPurchaseAmount'),
       maxDiscountAmount: formData.get('maxDiscountAmount'),
       validUntil: formData.get('validUntil'),
-      isActive: (formData.get('isActive') as any) === 'on',
+      isActive: formData.get('isActive') === 'on',
     };
 
     try {
@@ -272,28 +270,27 @@ const validUntilDate = coupon.valid_until
       const result = await response.json();
 
       if (response.ok) {
-        messageText.textContent = '✓ Cupón actualizado exitosamente';
+        messageText.textContent = 'Cupón actualizado exitosamente';
         messageDiv.classList.remove('hidden');
-        
-        setTimeout(() => {
-          window.location.href = '/admin/cupones';
-        }, 1500);
+        setTimeout(() => { window.location.href = '/admin/cupones'; }, 1500);
       } else {
-        errorText.textContent = `✗ ${result.error || 'Error al actualizar el cupón'}`;
+        errorText.textContent = result.error || 'Error al actualizar el cupón';
         errorDiv.classList.remove('hidden');
       }
     } catch (error) {
-      errorText.textContent = '✗ Error de conexión';
+      errorText.textContent = 'Error de conexión';
       errorDiv.classList.remove('hidden');
     }
   });
 
   deleteBtn?.addEventListener('click', async () => {
-    if (!confirm('¿Estás seguro de que deseas eliminar este cupón? Esta acción no se puede deshacer.')) {
-      return;
-    }
+    const ok = await window.adminConfirm({
+      title: 'Eliminar cupón',
+      message: '¿Estás seguro de que deseas eliminar este cupón? Esta acción no se puede deshacer.',
+      confirmLabel: 'Sí, eliminar',
+    });
+    if (!ok) return;
 
-    // Hide previous messages
     messageDiv.classList.add('hidden');
     errorDiv.classList.add('hidden');
 
@@ -307,18 +304,15 @@ const validUntilDate = coupon.valid_until
       const result = await response.json();
 
       if (response.ok) {
-        messageText.textContent = '✓ Cupón eliminado exitosamente';
+        messageText.textContent = 'Cupón eliminado exitosamente';
         messageDiv.classList.remove('hidden');
-        
-        setTimeout(() => {
-          window.location.href = '/admin/cupones';
-        }, 1500);
+        setTimeout(() => { window.location.href = '/admin/cupones'; }, 1500);
       } else {
-        errorText.textContent = `✗ ${result.error || 'Error al eliminar el cupón'}`;
+        errorText.textContent = result.error || 'Error al eliminar el cupón';
         errorDiv.classList.remove('hidden');
       }
     } catch (error) {
-      errorText.textContent = '✗ Error de conexión';
+      errorText.textContent = 'Error de conexión';
       errorDiv.classList.remove('hidden');
     }
   });

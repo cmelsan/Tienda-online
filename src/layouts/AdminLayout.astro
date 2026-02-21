@@ -187,4 +187,61 @@ if (!session) {
       </main>
     </div>
   </div>
+
+  <!-- Admin Confirm Modal (vanilla JS, available on all admin pages) -->
+  <div id="admin-confirm-overlay" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/50 backdrop-blur-sm" style="display:none">
+    <div class="bg-white w-full max-w-sm mx-4 p-8" style="box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+      <div class="flex items-start gap-4 mb-6">
+        <div class="flex-shrink-0 w-10 h-10 bg-red-100 flex items-center justify-center">
+          <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 id="admin-confirm-title" class="text-sm font-bold uppercase tracking-widest text-black mb-1"></h3>
+          <p id="admin-confirm-message" class="text-xs text-gray-500 leading-relaxed"></p>
+        </div>
+      </div>
+      <div class="flex gap-3 justify-end">
+        <button id="admin-confirm-cancel" class="px-5 py-2.5 border border-gray-300 text-xs font-bold uppercase tracking-widest text-gray-600 hover:bg-gray-50 transition-colors">
+          Cancelar
+        </button>
+        <button id="admin-confirm-ok" class="px-5 py-2.5 bg-red-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-colors">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
 </BaseLayout>
+
+<script>
+  // Global vanilla confirm modal for all admin pages
+  window.adminConfirm = function({ title = 'Confirmar acción', message = '¿Estás seguro?', confirmLabel = 'Confirmar' } = {}) {
+    return new Promise((resolve) => {
+      const overlay = document.getElementById('admin-confirm-overlay');
+      const titleEl = document.getElementById('admin-confirm-title');
+      const msgEl = document.getElementById('admin-confirm-message');
+      const okBtn = document.getElementById('admin-confirm-ok');
+      const cancelBtn = document.getElementById('admin-confirm-cancel');
+
+      titleEl.textContent = title;
+      msgEl.textContent = message;
+      okBtn.textContent = confirmLabel;
+
+      overlay.style.display = 'flex';
+
+      const cleanup = (result) => {
+        overlay.style.display = 'none';
+        okBtn.removeEventListener('click', onOk);
+        cancelBtn.removeEventListener('click', onCancel);
+        resolve(result);
+      };
+
+      const onOk = () => cleanup(true);
+      const onCancel = () => cleanup(false);
+
+      okBtn.addEventListener('click', onOk);
+      cancelBtn.addEventListener('click', onCancel);
+    });
+  };
+</script>

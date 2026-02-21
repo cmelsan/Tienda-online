@@ -77,6 +77,22 @@ function stockLabelColor(stock: number) {
     </div>
   </div>
 
+  <!-- Buscador -->
+  <div class="mb-4">
+    <div class="relative">
+      <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+      </svg>
+      <input
+        id="search-productos"
+        type="text"
+        placeholder="Buscar por nombre, categoría..."
+        class="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 text-sm placeholder-gray-400 focus:outline-none focus:border-black transition-colors"
+      />
+    </div>
+    <p id="search-count" class="text-[10px] text-gray-400 mt-2 hidden uppercase tracking-widest"></p>
+  </div>
+
   <!-- Tabla -->
   {productList.length > 0 ? (
     <div class="bg-white border border-gray-200 overflow-hidden">
@@ -93,7 +109,10 @@ function stockLabelColor(stock: number) {
           </thead>
           <tbody>
             {productList.map((product) => (
-                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors group">
+                <tr
+                  class="border-b border-gray-100 hover:bg-gray-50 transition-colors group"
+                  data-search={`${product.name} ${product.category?.name || ''} ${product.slug}`.toLowerCase()}
+                >
                   <!-- Producto -->
                   <td class="py-4 px-4">
                     <div class="flex items-center gap-3">
@@ -189,3 +208,27 @@ function stockLabelColor(stock: number) {
     </div>
   )}
 </AdminLayout>
+
+<script>
+  const searchInput = document.getElementById('search-productos') as HTMLInputElement;
+  const searchCount = document.getElementById('search-count') as HTMLParagraphElement;
+  const rows = document.querySelectorAll<HTMLTableRowElement>('tbody tr[data-search]');
+
+  searchInput?.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase().trim();
+    let visible = 0;
+
+    rows.forEach(row => {
+      const match = !q || (row.dataset.search || '').includes(q);
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+
+    if (q) {
+      searchCount.textContent = `${visible} producto${visible !== 1 ? 's' : ''} encontrado${visible !== 1 ? 's' : ''}`;
+      searchCount.classList.remove('hidden');
+    } else {
+      searchCount.classList.add('hidden');
+    }
+  });
+</script>

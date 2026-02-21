@@ -31,7 +31,7 @@ const withDesc = brands?.filter((b: any) => b.description)?.length || 0;
   </div>
 
   <!-- Header -->
-  <div class="mb-6 flex justify-between items-center">
+  <div class="mb-4 flex justify-between items-center">
     <h3 class="text-sm font-bold uppercase tracking-widest text-black">Marcas registradas</h3>
     <a
       href="/admin/marcas/nueva"
@@ -39,6 +39,22 @@ const withDesc = brands?.filter((b: any) => b.description)?.length || 0;
     >
       + Nueva marca
     </a>
+  </div>
+
+  <!-- Buscador -->
+  <div class="mb-4">
+    <div class="relative">
+      <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+      </svg>
+      <input
+        id="search-marcas"
+        type="text"
+        placeholder="Buscar por nombre o slug..."
+        class="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 text-sm placeholder-gray-400 focus:outline-none focus:border-black transition-colors"
+      />
+    </div>
+    <p id="search-count-marcas" class="text-[10px] text-gray-400 mt-2 hidden uppercase tracking-widest"></p>
   </div>
 
   <!-- Table -->
@@ -55,7 +71,10 @@ const withDesc = brands?.filter((b: any) => b.description)?.length || 0;
         </thead>
         <tbody class="divide-y divide-gray-100">
           {brands?.map((brand: any) => (
-            <tr class="hover:bg-gray-50 transition-colors">
+            <tr
+              class="hover:bg-gray-50 transition-colors"
+              data-search={`${brand.name} ${brand.slug}`.toLowerCase()}
+            >
               <td class="py-4 px-6">
                 <span class="text-sm font-bold text-black">{brand.name}</span>
               </td>
@@ -85,3 +104,27 @@ const withDesc = brands?.filter((b: any) => b.description)?.length || 0;
     </div>
   </div>
 </AdminLayout>
+
+<script>
+  const searchMarcas = document.getElementById('search-marcas') as HTMLInputElement;
+  const countMarcas = document.getElementById('search-count-marcas') as HTMLParagraphElement;
+  const brandRows = document.querySelectorAll<HTMLTableRowElement>('tbody tr[data-search]');
+
+  searchMarcas?.addEventListener('input', () => {
+    const q = searchMarcas.value.toLowerCase().trim();
+    let visible = 0;
+
+    brandRows.forEach(row => {
+      const match = !q || (row.dataset.search || '').includes(q);
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+
+    if (q) {
+      countMarcas.textContent = `${visible} marca${visible !== 1 ? 's' : ''} encontrada${visible !== 1 ? 's' : ''}`;
+      countMarcas.classList.remove('hidden');
+    } else {
+      countMarcas.classList.add('hidden');
+    }
+  });
+</script>

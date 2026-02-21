@@ -75,6 +75,22 @@ function formatFecha(coupon: any) {
     <span id="errorText">Error</span>
   </div>
 
+  <!-- Buscador -->
+  <div class="mb-4">
+    <div class="relative">
+      <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+      </svg>
+      <input
+        id="search-cupones"
+        type="text"
+        placeholder="Buscar por código o descripción..."
+        class="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 text-sm placeholder-gray-400 focus:outline-none focus:border-black transition-colors"
+      />
+    </div>
+    <p id="search-count-cupones" class="text-[10px] text-gray-400 mt-2 hidden uppercase tracking-widest"></p>
+  </div>
+
   <!-- Tabla -->
   {couponList.length > 0 ? (
     <div class="bg-white border border-gray-200 overflow-hidden">
@@ -94,7 +110,10 @@ function formatFecha(coupon: any) {
           </thead>
           <tbody>
             {couponList.map((coupon) => (
-              <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+              <tr
+                class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                data-search={`${coupon.code} ${coupon.description || ''}`.toLowerCase()}
+              >
                 <td class="py-4 px-4">
                   <span class="text-xs font-black text-black tracking-tight">{coupon.code}</span>
                 </td>
@@ -192,5 +211,28 @@ function formatFecha(coupon: any) {
         errorDiv.classList.remove('hidden');
       }
     });
+  });
+
+  // Búsqueda
+  const searchCupones = document.getElementById('search-cupones') as HTMLInputElement;
+  const countCupones = document.getElementById('search-count-cupones') as HTMLParagraphElement;
+  const couponRows = document.querySelectorAll<HTMLTableRowElement>('tbody tr[data-search]');
+
+  searchCupones?.addEventListener('input', () => {
+    const q = searchCupones.value.toLowerCase().trim();
+    let visible = 0;
+
+    couponRows.forEach(row => {
+      const match = !q || (row.dataset.search || '').includes(q);
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+
+    if (q) {
+      countCupones.textContent = `${visible} cupón${visible !== 1 ? 'es' : ''} encontrado${visible !== 1 ? 's' : ''}`;
+      countCupones.classList.remove('hidden');
+    } else {
+      countCupones.classList.add('hidden');
+    }
   });
 </script>

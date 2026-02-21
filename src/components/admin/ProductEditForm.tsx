@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { slugify } from '@/lib/utils';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 interface ProductEditFormProps {
   product: any;
@@ -12,6 +13,7 @@ export default function ProductEditForm({ product, categories, subcategories, br
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(product.category_id);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -71,10 +73,7 @@ export default function ProductEditForm({ product, categories, subcategories, br
   };
 
   const handleDelete = async () => {
-    if (!confirm('¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer.')) {
-      return;
-    }
-
+    setShowDeleteConfirm(false);
     setIsSubmitting(true);
     try {
       const response = await fetch(`/api/admin/products`, {
@@ -99,6 +98,15 @@ export default function ProductEditForm({ product, categories, subcategories, br
 
   return (
     <>
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        title="Eliminar producto"
+        message="¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer."
+        confirmLabel="Sí, eliminar"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
+
       {errorMessage && (
         <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-lg text-rose-700">
           {errorMessage}
@@ -256,7 +264,7 @@ export default function ProductEditForm({ product, categories, subcategories, br
 
             <button
               type="button"
-              onClick={handleDelete}
+              onClick={() => setShowDeleteConfirm(true)}
               disabled={isSubmitting}
               className="px-6 py-3 bg-rose-600 text-white rounded-lg font-medium hover:bg-rose-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >

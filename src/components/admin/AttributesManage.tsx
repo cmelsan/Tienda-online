@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { addNotification } from '@/stores/notifications';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 interface AttributesManageProps {
   token: string;
@@ -18,6 +19,7 @@ export default function AttributesManage({ token: initialToken, categories, subc
   const [newSubName, setNewSubName] = useState('');
   const [newSubCategory, setNewSubCategory] = useState('');
   const [newBrandName, setNewBrandName] = useState('');
+  const [pendingDelete, setPendingDelete] = useState<{ type: 'subcategory' | 'brand'; id: string } | null>(null);
 
   const handleAddSubcategory = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,26 +49,7 @@ export default function AttributesManage({ token: initialToken, categories, subc
   };
 
   const handleDeleteSubcategory = async (id: string) => {
-    if (!confirm('Eliminar esta subcategoria?')) return;
-    setIsSubmitting(true);
-    try {
-      const response = await fetch('/api/admin/attributes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ action: 'delete_subcategory', id })
-      });
-      const data = await response.json();
-      if (data.success) {
-        setSubs(subs.filter(s => s.id !== id));
-      } else {
-        addNotification('Error: ' + (data.error || data.message), 'error');
-      }
-    } catch (error: any) {
-      addNotification('Error al eliminar: ' + error.message, 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
+    setPendingDelete({ type: 'subcategory', id });
   };
 
   const handleAddBrand = async (e: React.FormEvent) => {
@@ -96,34 +79,50 @@ export default function AttributesManage({ token: initialToken, categories, subc
   };
 
   const handleDeleteBrand = async (id: string) => {
-    if (!confirm('Eliminar esta marca?')) return;
-    setIsSubmitting(true);
-    try {
-      const response = await fetch('/api/admin/attributes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ action: 'delete_brand', id })
-      });
-      const data = await response.json();
-      if (data.success) {
-        setBrandsList(brandsList.filter(b => b.id !== id));
-      } else {
-        addNotification('Error: ' + data.message, 'error');
-      }
-    } catch {
-      addNotification('Error al eliminar', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
+    setPendingDelete({ type: 'brand', id });
   };
 
   const filteredSubs = selectedCategory === 'all'
     ? subs
     : subs.filter(s => s.category_id === selectedCategory);
 
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return;
+    const { type, id } = pendingDelete;
+    setPendingDelete(null);
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/admin/attributes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ action: type === 'subcategory' ? 'delete_subcategory' : 'delete_brand', id })
+      });
+      const data = await response.json();
+      if (data.success) {
+        if (type === 'subcategory') setSubs(subs.filter(s => s.id !== id));
+        else setBrandsList(brandsList.filter(b => b.id !== id));
+        addNotification(type === 'subcategory' ? 'Subcategoría eliminada' : 'Marca eliminada', 'success');
+      } else {
+        addNotification('Error: ' + (data.error || data.message), 'error');
+      }
+    } catch (error: any) {
+      addNotification('Error al eliminar: ' + error.message, 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div>
+      <ConfirmModal
+        isOpen={!!pendingDelete}
+        title={pendingDelete?.type === 'subcategory' ? 'Eliminar subcategoría' : 'Eliminar marca'}
+        message="¿Estás seguro? Esta acción no se puede deshacer."
+        confirmLabel="Sí, eliminar"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-end justify-between mb-6">

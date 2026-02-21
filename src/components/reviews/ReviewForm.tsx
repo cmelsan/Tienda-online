@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 interface ReviewFormProps {
   productId: string;
@@ -16,6 +17,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted })
   const [canReview, setCanReview] = useState(false);
   const [existingReview, setExistingReview] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     checkUserAndReview();
@@ -130,8 +132,6 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted })
   };
 
   const handleDelete = async () => {
-    if (!confirm('¿Estás seguro de que quieres eliminar tu opinión?')) return;
-
     setLoading(true);
     try {
       const response = await fetch(`/api/reviews/${existingReview.id}`, {
@@ -175,7 +175,16 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted })
 
   if (existingReview && !isEditing) {
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
+      <>
+        <ConfirmModal
+          isOpen={showDeleteConfirm}
+          title="Eliminar opinión"
+          message="¿Estás seguro de que quieres eliminar tu opinión? Esta acción no se puede deshacer."
+          confirmLabel="Sí, eliminar"
+          onConfirm={() => { setShowDeleteConfirm(false); handleDelete(); }}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
         <div className="flex items-start justify-between mb-4">
           <div>
             <h4 className="font-bold uppercase tracking-widest text-black mb-2">
@@ -205,13 +214,14 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted })
             Editar
           </button>
           <button
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             className="px-4 py-2 bg-gray-200 text-black text-xs font-bold rounded-lg hover:bg-gray-300 transition-colors"
           >
             Eliminar
           </button>
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 

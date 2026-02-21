@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { addNotification } from '@/stores/notifications';
 import ReturnModal from './ReturnModal';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 interface OrderActionsProps {
     orderId: string;
@@ -11,6 +12,7 @@ interface OrderActionsProps {
 
 export default function OrderActions({ orderId, status, deliveredAt }: OrderActionsProps) {
     const [isCancelling, setIsCancelling] = useState(false);
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
     const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
     const [currentStatus, setCurrentStatus] = useState(status);
     const [canReturn, setCanReturn] = useState(false);
@@ -30,8 +32,6 @@ export default function OrderActions({ orderId, status, deliveredAt }: OrderActi
     }, [currentStatus, deliveredAt]);
 
     const handleCancelOrder = async () => {
-        if (!confirm('¿Estás seguro de que quieres cancelar este pedido? Esta acción no se puede deshacer.')) return;
-
         setIsCancelling(true);
         try {
             const response = await fetch('/api/orders/cancel', {
@@ -58,7 +58,16 @@ export default function OrderActions({ orderId, status, deliveredAt }: OrderActi
     };
 
     return (
-        <div className="flex items-center gap-3">
+        <>
+            <ConfirmModal
+                isOpen={showCancelConfirm}
+                title="Cancelar pedido"
+                message="¿Estás seguro de que quieres cancelar este pedido? Esta acción no se puede deshacer."
+                confirmLabel="Sí, cancelar"
+                onConfirm={() => { setShowCancelConfirm(false); handleCancelOrder(); }}
+                onCancel={() => setShowCancelConfirm(false)}
+            />
+            <div className="flex items-center gap-3">
             {/* Status Badges */}
             {currentStatus === 'cancelled' && (
                 <span className="text-red-600 font-bold text-sm bg-red-50 px-3 py-1 rounded-full border border-red-100">
@@ -106,7 +115,7 @@ export default function OrderActions({ orderId, status, deliveredAt }: OrderActi
                 {/* Cancel button - for paid orders or orders awaiting payment */}
                 {(currentStatus === 'paid' || currentStatus === 'awaiting_payment') && (
                     <button
-                        onClick={handleCancelOrder}
+                        onClick={() => setShowCancelConfirm(true)}
                         disabled={isCancelling}
                         className="text-red-600 hover:text-red-800 text-xs font-bold underline decoration-red-600 underline-offset-2 transition-colors disabled:opacity-50"
                     >
@@ -161,6 +170,6 @@ export default function OrderActions({ orderId, status, deliveredAt }: OrderActi
                     </span>
                 )}
             </div>
-        </div>
+        </>
     );
 }

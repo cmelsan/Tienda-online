@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { addNotification } from '@/stores/notifications';
 import ReturnModal from './ReturnModalClient';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 interface OrderItem {
     id: string;
@@ -56,6 +57,7 @@ export default function OrderActionsClient({
     items = []
 }: OrderActionsClientProps) {
     const [isCancelling, setIsCancelling] = useState(false);
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
     const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
     const [currentStatus, setCurrentStatus] = useState(status);
     const [error, setError] = useState<string | null>(null);
@@ -68,8 +70,6 @@ export default function OrderActionsClient({
     const canRequestReturn = (currentStatus === 'delivered' || currentStatus === 'partially_returned') && hasReturnableItems;
 
     const handleCancelOrder = async () => {
-        if (!confirm('¿Estás seguro de que deseas cancelar este pedido? Esta acción no se puede deshacer.')) return;
-
         setIsCancelling(true);
         setError(null);
 
@@ -100,7 +100,16 @@ export default function OrderActionsClient({
     };
 
     return (
-        <div className="flex flex-col gap-2 items-end">
+        <>
+            <ConfirmModal
+                isOpen={showCancelConfirm}
+                title="Cancelar pedido"
+                message="¿Estás seguro de que deseas cancelar este pedido? Esta acción no se puede deshacer."
+                confirmLabel="Sí, cancelar"
+                onConfirm={() => { setShowCancelConfirm(false); handleCancelOrder(); }}
+                onCancel={() => setShowCancelConfirm(false)}
+            />
+            <div className="flex flex-col gap-2 items-end">
             {/* Status Badge */}
             <div className="text-xs font-bold uppercase tracking-wider text-gray-600">
                 {STATUS_LABELS[currentStatus] || currentStatus}
@@ -111,7 +120,7 @@ export default function OrderActionsClient({
                 <div className="flex gap-2 flex-wrap justify-end">
                     {canCancel && (
                         <button
-                            onClick={handleCancelOrder}
+                            onClick={() => setShowCancelConfirm(true)}
                             disabled={isCancelling}
                             className="px-3 py-2 border border-gray-300 text-gray-900 font-medium text-xs uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50 whitespace-nowrap"
                         >
@@ -147,5 +156,6 @@ export default function OrderActionsClient({
                 />
             )}
         </div>
+        </>
     );
 }

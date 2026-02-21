@@ -34,7 +34,9 @@ export default function AttributesManage({ token: initialToken, categories, subc
       });
       const data = await response.json();
       if (data.success) {
-        setSubs([...subs, data.subcategory]);
+        const parentCategory = categories.find(c => c.id === newSubCategory);
+        const enrichedSub = { ...data.subcategory, category: parentCategory || null };
+        setSubs([...subs, enrichedSub]);
         setNewSubName('');
         setNewSubCategory('');
         addNotification('Subcategoria creada', 'success');

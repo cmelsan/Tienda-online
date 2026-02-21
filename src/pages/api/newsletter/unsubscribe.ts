@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { getAdminSupabaseClient } from '@/lib/supabase';
 
 function buildPage(title: string, message: string, success: boolean): string {
   return `<!DOCTYPE html>
@@ -43,7 +43,13 @@ export const GET: APIRoute = async (context) => {
   }
 
   // Use service-role client to bypass RLS on the update
-  const supabase = await createServerSupabaseClient(context, true);
+  const supabase = getAdminSupabaseClient();
+  if (!supabase) {
+    return new Response(
+      buildPage('Error', 'Error de configuración del servidor. Contáctanos.', false),
+      { status: 500, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    );
+  }
 
   // Use the subscriber's UUID id as the token
   const { error } = await supabase

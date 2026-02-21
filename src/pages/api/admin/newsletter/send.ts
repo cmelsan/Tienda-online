@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, getAdminSupabaseClient } from '@/lib/supabase';
 import { sendEmail, getNewsletterTemplate } from '@/lib/brevo';
 
 // Delay between each email to avoid hitting Brevo rate limits
@@ -17,11 +17,17 @@ function contentToHtml(text: string): string {
 
 export const POST: APIRoute = async (context) => {
   try {
-    const supabase = await createServerSupabaseClient(context, true);
-    const { data: { session } } = await supabase.auth.getSession();
-
+    // Auth check with session client
+    const authClient = await createServerSupabaseClient(context, true);
+    const { data: { session } } = await authClient.auth.getSession();
     if (!session) {
       return new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401 });
+    }
+
+    // DB operations with service-role client (bypasses RLS)
+    const supabase = getAdminSupabaseClient();
+    if (!supabase) {
+      return new Response(JSON.stringify({ error: 'Configuración de servidor incompleta' }), { status: 500 });
     }
 
     const body = await context.request.json();

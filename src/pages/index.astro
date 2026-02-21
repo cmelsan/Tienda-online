@@ -108,9 +108,20 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
 
 <PublicLayout title="ÉCLAT - Perfumes, Maquillaje, Tratamiento" description="Descubre lo último en belleza: maquillaje, tratamiento, perfumes y cabello.">
   
-  {/* 1. HERO - Minimalist Black White Pink Design */}
-  <section class="relative w-full h-[85vh] min-h-[600px] max-h-[900px] bg-black overflow-hidden">
-    {/* Background Image - Right Side Only */}
+  {/* 1. HERO - Responsive */}
+  <section class="relative w-full h-[75vh] sm:h-[80vh] lg:h-[85vh] min-h-[500px] max-h-[900px] bg-black overflow-hidden">
+    {/* Mobile: full background image */}
+    <div class="absolute inset-0 lg:hidden">
+      <img 
+        src="https://res.cloudinary.com/dmu6ttz2o/image/upload/v1770483149/eclat-beauty/hero-makeup-girl.jpg" 
+        alt="Maquillaje Premium" 
+        class="w-full h-full object-cover object-top"
+      />
+      {/* Dark overlay so text is readable */}
+      <div class="absolute inset-0 bg-black/55"></div>
+    </div>
+
+    {/* Desktop: image on right half only */}
     <div class="absolute right-0 top-0 bottom-0 w-1/2 hidden lg:block">
       <img 
         src="https://res.cloudinary.com/dmu6ttz2o/image/upload/v1770483149/eclat-beauty/hero-makeup-girl.jpg" 
@@ -122,21 +133,21 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
 
     {/* Content */}
     <div class="relative z-10 h-full flex items-center">
-      <div class="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 w-full">
+      <div class="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 w-full">
         <div class="max-w-2xl">
-          <div class="h-1 w-12 bg-pink-500 mb-8"></div>
-          <h1 class="text-7xl lg:text-8xl text-white font-black tracking-tighter mb-6 leading-tight">
+          <div class="h-1 w-10 sm:w-12 bg-pink-500 mb-5 sm:mb-8"></div>
+          <h1 class="text-5xl sm:text-6xl lg:text-8xl text-white font-black tracking-tighter mb-4 sm:mb-6 leading-tight">
             NUEVA<br/>COLECCIÓN
           </h1>
-          <p class="text-white/70 text-lg mb-10 font-light leading-relaxed max-w-md">
+          <p class="text-white/70 text-sm sm:text-base lg:text-lg mb-7 sm:mb-10 font-light leading-relaxed max-w-xs sm:max-w-sm lg:max-w-md">
             Descubre la revolucion en cuidado de la piel. Productos premium seleccionados para ti.
           </p>
           <a 
             href="/productos" 
-            class="inline-flex items-center gap-3 bg-pink-500 text-black px-8 py-4 font-bold text-sm uppercase tracking-wider hover:bg-pink-600 transition-all duration-300"
+            class="inline-flex items-center gap-3 bg-pink-500 text-black px-6 sm:px-8 py-3 sm:py-4 font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-pink-600 transition-all duration-300"
           >
             Ver Colección
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
           </a>
@@ -145,7 +156,7 @@ const flashSaleEndTime = flashSaleProducts && flashSaleProducts.length > 0
     </div>
     
     {/* Scroll indicator */}
-    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-pink-500 animate-bounce z-20">
+    <div class="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-pink-500 animate-bounce z-20">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
       </svg>

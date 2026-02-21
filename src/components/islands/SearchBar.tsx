@@ -148,7 +148,7 @@ export default function SearchBar() {
 
             {/* ── Full-screen overlay ─────────────────────────────────────── */}
             {isOpen && (
-                <div className="fixed inset-0 z-[999] bg-black flex flex-col items-center justify-start pt-24 md:pt-32 animate-fadeIn">
+                <div className="fixed inset-0 z-[999] flex flex-col items-center justify-start pt-24 md:pt-32" style={{ backgroundColor: '#111010' }}>
 
                     {/* Close */}
                     <button

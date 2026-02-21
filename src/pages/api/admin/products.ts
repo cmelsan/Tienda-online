@@ -129,6 +129,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
       brand_id,
       images,
       slug,
+      is_bestseller,
     } = await request.json();
 
     if (!id || !name || !description || !category_id) {
@@ -153,6 +154,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
         subcategory_id,
         brand_id,
         images,
+        is_bestseller: is_bestseller ?? false,
       })
       .eq('id', id);
 

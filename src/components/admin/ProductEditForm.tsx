@@ -14,6 +14,7 @@ export default function ProductEditForm({ product, categories, subcategories, br
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(product.category_id);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isBestSeller, setIsBestSeller] = useState(!!product.is_bestseller);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -54,6 +55,7 @@ export default function ProductEditForm({ product, categories, subcategories, br
           subcategory_id,
           brand_id,
           images,
+          is_bestseller: isBestSeller,
         })
       });
 
@@ -229,6 +231,20 @@ export default function ProductEditForm({ product, categories, subcategories, br
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="flex items-center space-x-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <input
+              id="is_bestseller"
+              type="checkbox"
+              checked={isBestSeller}
+              onChange={(e) => setIsBestSeller(e.target.checked)}
+              className="w-5 h-5 rounded border-amber-400 text-amber-600 focus:ring-amber-500 cursor-pointer"
+            />
+            <label htmlFor="is_bestseller" className="cursor-pointer select-none">
+              <span className="block text-sm font-semibold text-amber-900">⭐ Marcar como Best Seller</span>
+              <span className="block text-xs text-amber-700">El producto aparecerá en la página /best-sellers</span>
+            </label>
           </div>
 
           <div>

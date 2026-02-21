@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail, getOrderConfirmationTemplate } from '@/lib/brevo';
-import { createSaleInvoice } from '@/lib/invoices';
+import { createSaleInvoice, fetchInvoiceAsAttachment } from '@/lib/invoices';
 
 const DEBUG = import.meta.env.DEV;
 
@@ -116,10 +116,15 @@ export const POST: APIRoute = async ({ request }) => {
                     console.log('[Stripe Webhook] Order status updated to paid');
 
                     // 2b. Crear factura de venta automáticamente
+                    let invoiceAttachment: { content: string; name: string } | null = null;
                     try {
                         const invoiceResult = await createSaleInvoice(supabase, orderId, session.id);
                         if (invoiceResult.success && invoiceResult.invoice_number) {
                             console.log('[Stripe Webhook] Sale invoice created:', invoiceResult.invoice_number);
+                            // Preparar adjunto para el email de confirmación
+                            if (invoiceResult.invoice_id) {
+                                invoiceAttachment = await fetchInvoiceAsAttachment(supabase, invoiceResult.invoice_id);
+                            }
                         } else if (!invoiceResult.success) {
                             console.warn('[Stripe Webhook] Could not create invoice:', invoiceResult.error);
                         }
@@ -177,7 +182,8 @@ export const POST: APIRoute = async ({ request }) => {
                         const emailResult = await sendEmail({
                             to: customerEmail,
                             subject: `📦 Pedido confirmado #${orderData.order_number}`,
-                            htmlContent
+                            htmlContent,
+                            ...(invoiceAttachment ? { attachments: [invoiceAttachment] } : {})
                         });
 
                         if (emailResult.success) {

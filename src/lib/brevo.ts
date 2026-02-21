@@ -6,6 +6,11 @@ const BREVO_API_URL = 'https://api.brevo.com/v3';
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@eclatbeauty.com';
 const FROM_NAME = process.env.FROM_NAME || 'ÉCLAT Beauty';
 
+interface EmailAttachment {
+  content: string; // base64 encoded
+  name: string;    // e.g. 'FAC-2026-001.html'
+}
+
 interface EmailParams {
   to: string | string[];
   subject: string;
@@ -14,6 +19,7 @@ interface EmailParams {
   replyTo?: string;
   cc?: string[];
   bcc?: string[];
+  attachments?: EmailAttachment[];
 }
 
 export async function sendEmail(params: EmailParams): Promise<{ success: boolean; messageId?: string; error?: string }> {
@@ -45,7 +51,10 @@ export async function sendEmail(params: EmailParams): Promise<{ success: boolean
       ...(params.textContent && { textContent: params.textContent }),
       ...(params.replyTo && { replyTo: { email: params.replyTo } }),
       ...(params.cc && { cc: params.cc.map(email => ({ email })) }),
-      ...(params.bcc && { bcc: params.bcc.map(email => ({ email })) })
+      ...(params.bcc && { bcc: params.bcc.map(email => ({ email })) }),
+      ...(params.attachments && params.attachments.length > 0 && {
+        attachment: params.attachments.map(a => ({ content: a.content, name: a.name }))
+      })
     };
 
     if (DEBUG) {

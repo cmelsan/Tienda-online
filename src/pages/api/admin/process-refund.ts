@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import Stripe from 'stripe';
 import { sendEmail, getRefundProcessedTemplate } from '@/lib/brevo';
-import { createCreditNote } from '@/lib/invoices';
+import { createCreditNote, fetchInvoiceAsAttachment } from '@/lib/invoices';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     const stripeSecretKey = import.meta.env.STRIPE_SECRET_KEY;
@@ -181,6 +181,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         }
 
         // Crear factura de abono automáticamente
+        let creditAttachment: { content: string; name: string } | null = null;
         try {
             const creditResult = await createCreditNote(userClient, {
                 orderId,
@@ -191,6 +192,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             });
             if (creditResult.success) {
                 console.log('[API] Credit note created:', creditResult.credit_note_number);
+                if (creditResult.credit_note_id) {
+                    creditAttachment = await fetchInvoiceAsAttachment(userClient, creditResult.credit_note_id);
+                }
             } else {
                 console.warn('[API] Credit note creation failed:', creditResult.error);
             }
@@ -241,7 +245,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             await sendEmail({
                 to: customerEmail,
                 subject: `Reembolso confirmado para tu pedido #${order.order_number || orderId.slice(0, 8).toUpperCase()}`,
-                htmlContent: emailTemplate
+                htmlContent: emailTemplate,
+                ...(creditAttachment ? { attachments: [creditAttachment] } : {})
             });
 
             console.log('[API] Refund confirmation email sent to:', customerEmail);

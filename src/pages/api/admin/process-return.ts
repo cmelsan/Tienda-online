@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createServerSupabaseClient, getAdminSupabaseClient } from '@/lib/supabase';
 import { sendEmail, getRefundProcessedTemplate } from '@/lib/brevo';
+import { createCreditNote, fetchInvoiceAsAttachment } from '@/lib/invoices';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
@@ -116,10 +117,28 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                             refundAmount
                         );
 
+                        // Crear nota de abono y prepararla como adjunto
+                        let creditAttachment: { content: string; name: string } | null = null;
+                        try {
+                            const creditResult = await createCreditNote(userClient, {
+                                orderId,
+                                refundAmount,
+                                refundedItemIds: [],
+                                notes: notes || undefined,
+                            });
+                            if (creditResult.success && creditResult.credit_note_id) {
+                                creditAttachment = await fetchInvoiceAsAttachment(userClient, creditResult.credit_note_id);
+                                console.log('[Process Return API] Credit note created:', creditResult.credit_note_number);
+                            }
+                        } catch (creditErr: any) {
+                            console.error('[Process Return API] Credit note error:', creditErr.message);
+                        }
+
                         await sendEmail({
                             to: customerEmail,
                             subject: `Tu reembolso #${orderData.order_number} ha sido procesado`,
-                            htmlContent: emailTemplate
+                            htmlContent: emailTemplate,
+                            ...(creditAttachment ? { attachments: [creditAttachment] } : {})
                         });
 
                         console.log('[Process Return API] Refund email sent to:', customerEmail);

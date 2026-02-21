@@ -193,6 +193,7 @@ function formatFecha(coupon: any) {
       try {
         const response = await fetch(`/api/admin/coupons/${couponId}`, {
           method: 'DELETE',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
         });
 

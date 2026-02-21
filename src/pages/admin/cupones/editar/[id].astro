@@ -264,6 +264,7 @@ const validUntilDate = coupon.valid_until
     try {
       const response = await fetch(`/api/admin/coupons/${couponId}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
@@ -299,6 +300,7 @@ const validUntilDate = coupon.valid_until
     try {
       const response = await fetch(`/api/admin/coupons/${couponId}`, {
         method: 'DELETE',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
       });
 

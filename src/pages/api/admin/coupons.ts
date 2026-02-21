@@ -1,9 +1,15 @@
 import type { APIRoute } from 'astro';
-import { supabase } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async (context) => {
     try {
-        const data = await request.json();
+        const dbClient = await createServerSupabaseClient(context, true);
+        const { data: { session } } = await dbClient.auth.getSession();
+        if (!session) {
+            return new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401 });
+        }
+
+        const data = await context.request.json();
         
         const code = data.code as string;
         const description = data.description as string;
@@ -27,7 +33,7 @@ export const POST: APIRoute = async ({ request }) => {
         // Convertir a centavos si es tipo fijo
         const finalDiscountValue = discountType === 'fixed' ? discountValue * 100 : discountValue;
 
-        const { data: newCoupon, error: insertError } = await supabase
+        const { data: newCoupon, error: insertError } = await dbClient
             .from('coupons')
             .insert([
                 {

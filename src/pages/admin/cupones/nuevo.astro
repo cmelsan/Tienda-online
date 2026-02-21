@@ -206,6 +206,7 @@ import AdminLayout from '@/layouts/AdminLayout.astro';
     try {
       const response = await fetch('/api/admin/coupons', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });

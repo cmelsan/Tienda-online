@@ -1,19 +1,26 @@
 import type { APIRoute } from 'astro';
-import { supabase } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase';
 
 /**
  * PUT /api/admin/coupons/[id] - Update a coupon
  * DELETE /api/admin/coupons/[id] - Delete a coupon
  */
 
-export const PUT: APIRoute = async ({ request, params }) => {
+export const PUT: APIRoute = async (context) => {
     try {
+        const { params } = context;
         const couponId = params.id;
         if (!couponId) {
             return new Response(JSON.stringify({ error: 'ID del cupón requerido' }), { status: 400 });
         }
 
-        const data = await request.json();
+        const dbClient = await createServerSupabaseClient(context, true);
+        const { data: { session } } = await dbClient.auth.getSession();
+        if (!session) {
+            return new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401 });
+        }
+
+        const data = await context.request.json();
         
         const code = data.code as string;
         const description = data.description as string;
@@ -35,7 +42,7 @@ export const PUT: APIRoute = async ({ request, params }) => {
         }
 
         // Get the existing coupon to check its discount type
-        const { data: existingCoupon, error: fetchError } = await supabase
+        const { data: existingCoupon, error: fetchError } = await dbClient
             .from('coupons')
             .select('discount_type')
             .eq('id', couponId)
@@ -53,7 +60,7 @@ export const PUT: APIRoute = async ({ request, params }) => {
             ? discountValue * 100 
             : discountValue;
 
-        const { error: updateError } = await supabase
+        const { error: updateError } = await dbClient
             .from('coupons')
             .update({
                 code: code.toUpperCase(),
@@ -86,15 +93,22 @@ export const PUT: APIRoute = async ({ request, params }) => {
     }
 };
 
-export const DELETE: APIRoute = async ({ params }) => {
+export const DELETE: APIRoute = async (context) => {
     try {
+        const { params } = context;
         const couponId = params.id;
         if (!couponId) {
             return new Response(JSON.stringify({ error: 'ID del cupón requerido' }), { status: 400 });
         }
 
+        const dbClient = await createServerSupabaseClient(context, true);
+        const { data: { session } } = await dbClient.auth.getSession();
+        if (!session) {
+            return new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401 });
+        }
+
         // Verify coupon exists
-        const { data: coupon, error: fetchError } = await supabase
+        const { data: coupon, error: fetchError } = await dbClient
             .from('coupons')
             .select('id')
             .eq('id', couponId)
@@ -108,7 +122,7 @@ export const DELETE: APIRoute = async ({ params }) => {
         }
 
         // Delete the coupon
-        const { error: deleteError } = await supabase
+        const { error: deleteError } = await dbClient
             .from('coupons')
             .delete()
             .eq('id', couponId);

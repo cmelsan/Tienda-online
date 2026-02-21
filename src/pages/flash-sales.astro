@@ -30,7 +30,14 @@ const products = (flashProducts || []).map((p: any) => ({
   discountedPrice: Math.round(p.price * (1 - (p.flash_sale_discount || 0) / 100)),
   brand: p.brand?.name || 'Marca',
   brandSlug: p.brand?.slug || '',
+  categoryId: String(p.category_id || ''),
 }));
+
+const { data: fsCategories } = await supabase.from('categories').select('*').order('name');
+const { data: fsBrandsList } = await supabase.from('brands').select('*').order('name');
+const fsPrices = products.map((p: any) => p.discountedPrice || p.price).filter(Boolean);
+const fsPriceMin = fsPrices.length ? Math.floor(Math.min(...fsPrices)) : 0;
+const fsPriceMax = fsPrices.length ? Math.ceil(Math.max(...fsPrices)) : 1000;
 
 // Countdown: earliest expiry
 const endTime = products.reduce((earliest: string, p: any) => {
@@ -62,19 +69,72 @@ const endTime = products.reduce((earliest: string, p: any) => {
       {products.length > 0 ? (
         <div class="flex flex-col lg:flex-row gap-10">
 
-          {/* Sidebar marcas */}
-          <aside class="w-full lg:w-56 shrink-0">
-            <h3 class="font-bold text-xs uppercase tracking-widest mb-4 border-b border-black pb-2">MARCA</h3>
-            <div class="space-y-2 max-h-96 overflow-y-auto pr-1">
-              {[...new Map(products.map((p: any) => [p.brandSlug, { slug: p.brandSlug, name: p.brand }])).values()]
-                .filter((b: any) => b.slug)
-                .sort((a: any, b: any) => a.name.localeCompare(b.name))
-                .map((brand: any) => (
-                  <label class="fs-brand-label flex items-center gap-2 cursor-pointer group" data-brand-name={brand.name.toLowerCase()}>
-                    <input type="checkbox" class="fs-brand-cb w-4 h-4 border border-gray-300 rounded-none checked:bg-black checked:border-black focus:ring-0" data-brand-slug={brand.slug} />
-                    <span class="text-sm text-black group-hover:underline">{brand.name}</span>
-                  </label>
-                ))}
+          {/* Sidebar filtros completo */}
+          <aside id="fs-sidebar" class="w-full lg:w-64 shrink-0 hidden md:block">
+            <div id="fs-toggle-btn" class="border-b border-gray-200 pb-4 mb-6 flex justify-between items-center cursor-pointer group">
+              <span id="fs-toggle-label" class="font-bold text-sm uppercase tracking-widest group-hover:text-gray-600">Ocultar Filtros</span>
+              <svg id="fs-toggle-icon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </div>
+            <div id="fs-sidebar-content">
+              {/* Categoría */}
+              <div class="mb-6">
+                <h3 id="fs-toggle-cat" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
+                  Categoría
+                  <svg id="fs-cat-arrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </h3>
+                <div id="fs-cat-section" class="pl-2 space-y-2">
+                  <button class="fs-cat-btn block text-sm text-left font-bold text-beauty-red hover:text-black" data-cat-id="all">Ver todos</button>
+                  {fsCategories?.map((cat: any) => (
+                    <button class="fs-cat-btn block text-sm text-left text-gray-600 hover:text-black capitalize" data-cat-id={cat.id}>{cat.name}</button>
+                  ))}
+                </div>
+              </div>
+              {/* Marcas */}
+              <div class="mb-6">
+                <h3 id="fs-toggle-brand" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
+                  Marcas
+                  <svg id="fs-brand-arrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </h3>
+                <div id="fs-brand-section">
+                  <div class="relative mb-4">
+                    <input type="text" id="fs-brand-search" placeholder="Buscar una marca" class="w-full border-b border-black py-2 pl-0 pr-8 text-sm focus:outline-none placeholder-gray-400 italic" />
+                    <svg class="w-4 h-4 absolute right-0 top-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                  </div>
+                  <div class="space-y-2 max-h-64 overflow-y-auto">
+                    {fsBrandsList?.map((brand: any) => (
+                      <label class="fs-brand-label flex items-center space-x-3 cursor-pointer group" data-brand-name={brand.name.toLowerCase()}>
+                        <input type="checkbox" class="fs-brand-cb w-5 h-5 border-2 border-gray-300 rounded-none checked:bg-black checked:border-black focus:ring-0" data-brand-slug={brand.slug} />
+                        <span class="text-sm text-black group-hover:underline">{brand.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              {/* Precio */}
+              <div class="mb-6">
+                <h3 id="fs-toggle-price" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
+                  Precio
+                  <svg id="fs-price-arrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </h3>
+                <div id="fs-price-section" class="space-y-4">
+                  <div class="flex justify-between text-xs font-bold text-gray-600">
+                    <span id="fs-price-min-label">{fsPriceMin}€</span>
+                    <span id="fs-price-max-label">{fsPriceMax}€</span>
+                  </div>
+                  <input type="range" id="fs-range-min" min={fsPriceMin} max={fsPriceMax} value={fsPriceMin} class="w-full accent-black h-0.5 cursor-pointer" />
+                  <input type="range" id="fs-range-max" min={fsPriceMin} max={fsPriceMax} value={fsPriceMax} class="w-full accent-black h-0.5 cursor-pointer" />
+                  <div class="flex gap-2">
+                    <div class="flex-1 border border-gray-300 px-2 py-1 flex items-center gap-1">
+                      <span class="text-xs text-gray-400">€</span>
+                      <input type="number" id="fs-input-min" value={fsPriceMin} min={fsPriceMin} max={fsPriceMax} class="w-full text-xs focus:outline-none" />
+                    </div>
+                    <div class="flex-1 border border-gray-300 px-2 py-1 flex items-center gap-1">
+                      <span class="text-xs text-gray-400">€</span>
+                      <input type="number" id="fs-input-max" value={fsPriceMax} min={fsPriceMin} max={fsPriceMax} class="w-full text-xs focus:outline-none" />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </aside>
 
@@ -85,7 +145,7 @@ const endTime = products.reduce((earliest: string, p: any) => {
             </p>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-5" id="fs-grid">
               {products.map((product: any) => (
-                <div class="fs-card" data-brand-slug={product.brandSlug}>
+                <div class="fs-card" data-brand-slug={product.brandSlug} data-category-id={product.categoryId} data-price={product.discountedPrice || product.price}>
                   <ProductCard product={product} />
                 </div>
               ))}
@@ -114,11 +174,16 @@ const endTime = products.reduce((earliest: string, p: any) => {
 
 <style>
   .fs-card.hidden { display: none; }
+  .fs-cat-btn.fs-active-cat { color: #e11d48; font-weight: 700; }
 </style>
 
-<script>
-  let selectedBrands: string[] = [];
-  const cards = document.querySelectorAll<HTMLElement>('.fs-card');
+<script define:vars={{ fsPriceMin, fsPriceMax }}>
+  let fsSelectedCategory = 'all';
+  let fsSelectedBrands: string[] = [];
+  let fsCurrentMin = fsPriceMin;
+  let fsCurrentMax = fsPriceMax;
+
+  const cards = document.querySelectorAll('.fs-card');
   const countEl = document.getElementById('fs-count');
   const emptyEl = document.getElementById('fs-empty');
   const gridEl = document.getElementById('fs-grid');
@@ -126,8 +191,13 @@ const endTime = products.reduce((earliest: string, p: any) => {
   function applyFilters() {
     let visible = 0;
     cards.forEach(card => {
-      const slug = card.dataset.brandSlug || '';
-      const show = selectedBrands.length === 0 || selectedBrands.includes(slug);
+      const brand = (card as HTMLElement).dataset.brandSlug || '';
+      const cat = String((card as HTMLElement).dataset.categoryId || '');
+      const price = parseInt((card as HTMLElement).dataset.price || '0');
+      const show =
+        (fsSelectedBrands.length === 0 || fsSelectedBrands.includes(brand)) &&
+        (fsSelectedCategory === 'all' || fsSelectedCategory === cat) &&
+        price >= fsCurrentMin && price <= fsCurrentMax;
       card.classList.toggle('hidden', !show);
       if (show) visible++;
     });
@@ -136,12 +206,74 @@ const endTime = products.reduce((earliest: string, p: any) => {
     if (gridEl) gridEl.classList.toggle('hidden', visible === 0);
   }
 
-  document.querySelectorAll<HTMLInputElement>('.fs-brand-cb').forEach(cb => {
-    cb.addEventListener('change', () => {
-      const slug = cb.dataset.brandSlug || '';
-      if (cb.checked) { if (!selectedBrands.includes(slug)) selectedBrands.push(slug); }
-      else { selectedBrands = selectedBrands.filter(s => s !== slug); }
+  // Toggle sidebar
+  let fsSidebarOpen = true;
+  const fsSidebarContent = document.getElementById('fs-sidebar-content');
+  const fsToggleBtn = document.getElementById('fs-toggle-btn');
+  const fsToggleLabel = document.getElementById('fs-toggle-label');
+  const fsToggleIcon = document.getElementById('fs-toggle-icon');
+  if (fsToggleBtn) {
+    fsToggleBtn.addEventListener('click', () => {
+      fsSidebarOpen = !fsSidebarOpen;
+      fsSidebarContent?.classList.toggle('hidden', !fsSidebarOpen);
+      if (fsToggleLabel) fsToggleLabel.textContent = fsSidebarOpen ? 'Ocultar Filtros' : 'Mostrar Filtros';
+      if (fsToggleIcon) fsToggleIcon.style.transform = fsSidebarOpen ? '' : 'rotate(180deg)';
+    });
+  }
+
+  // Collapsible sections
+  [['fs-toggle-cat','fs-cat-section','fs-cat-arrow'],
+   ['fs-toggle-brand','fs-brand-section','fs-brand-arrow'],
+   ['fs-toggle-price','fs-price-section','fs-price-arrow']].forEach(([b,s,a]) => {
+    const btn = document.getElementById(b), sec = document.getElementById(s), arr = document.getElementById(a);
+    let open = true;
+    btn?.addEventListener('click', () => { open = !open; sec?.classList.toggle('hidden', !open); if(arr) arr.style.transform = open ? '' : 'rotate(-90deg)'; });
+  });
+
+  // Category
+  document.querySelectorAll('.fs-cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      fsSelectedCategory = (btn as HTMLElement).dataset.catId || 'all';
+      document.querySelectorAll('.fs-cat-btn').forEach(b => b.classList.toggle('fs-active-cat', (b as HTMLElement).dataset.catId === fsSelectedCategory));
       applyFilters();
     });
   });
+
+  // Brands
+  document.querySelectorAll('.fs-brand-cb').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const slug = (cb as HTMLInputElement).dataset.brandSlug || '';
+      if ((cb as HTMLInputElement).checked) { if (!fsSelectedBrands.includes(slug)) fsSelectedBrands.push(slug); }
+      else { fsSelectedBrands = fsSelectedBrands.filter(s => s !== slug); }
+      applyFilters();
+    });
+  });
+
+  // Brand search
+  document.getElementById('fs-brand-search')?.addEventListener('input', e => {
+    const q = (e.target as HTMLInputElement).value.toLowerCase();
+    document.querySelectorAll('.fs-brand-label').forEach(label => {
+      (label as HTMLElement).style.display = ((label as HTMLElement).dataset.brandName || '').includes(q) ? '' : 'none';
+    });
+  });
+
+  // Price
+  function updatePriceUI() {
+    const lMin = document.getElementById('fs-price-min-label');
+    const lMax = document.getElementById('fs-price-max-label');
+    const rMin = document.getElementById('fs-range-min') as HTMLInputElement;
+    const rMax = document.getElementById('fs-range-max') as HTMLInputElement;
+    const iMin = document.getElementById('fs-input-min') as HTMLInputElement;
+    const iMax = document.getElementById('fs-input-max') as HTMLInputElement;
+    if (lMin) lMin.textContent = `${fsCurrentMin}€`;
+    if (lMax) lMax.textContent = `${fsCurrentMax}€`;
+    if (rMin) rMin.value = String(fsCurrentMin);
+    if (rMax) rMax.value = String(fsCurrentMax);
+    if (iMin) iMin.value = String(fsCurrentMin);
+    if (iMax) iMax.value = String(fsCurrentMax);
+  }
+  document.getElementById('fs-range-min')?.addEventListener('input', e => { fsCurrentMin = Math.min(parseInt((e.target as HTMLInputElement).value), fsCurrentMax - 1); updatePriceUI(); applyFilters(); });
+  document.getElementById('fs-range-max')?.addEventListener('input', e => { fsCurrentMax = Math.max(parseInt((e.target as HTMLInputElement).value), fsCurrentMin + 1); updatePriceUI(); applyFilters(); });
+  document.getElementById('fs-input-min')?.addEventListener('change', e => { fsCurrentMin = Math.max(fsPriceMin, Math.min(parseInt((e.target as HTMLInputElement).value)||fsPriceMin, fsCurrentMax-1)); updatePriceUI(); applyFilters(); });
+  document.getElementById('fs-input-max')?.addEventListener('change', e => { fsCurrentMax = Math.min(fsPriceMax, Math.max(parseInt((e.target as HTMLInputElement).value)||fsPriceMax, fsCurrentMin+1)); updatePriceUI(); applyFilters(); });
 </script>

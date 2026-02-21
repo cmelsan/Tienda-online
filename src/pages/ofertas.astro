@@ -55,12 +55,19 @@ if (Array.isArray(featuredOffers) && featuredOffers.length > 0) {
           flash_sale_discount: product.flash_sale_discount || 0,
           brandName: product.brand?.name || 'Marca',
           brandSlug: product.brand?.slug || '',
+          categoryId: String(product.category_id || ''),
         };
       }
       return null;
     })
     .filter(Boolean);
 }
+
+const { data: rbCategories } = await supabase.from('categories').select('*').order('name');
+const { data: rbBrandsList } = await supabase.from('brands').select('*').order('name');
+const rbPrices = (rebajasProducts as any[]).map((p: any) => p.discountedPrice || p.price).filter(Boolean);
+const rbPriceMin = rbPrices.length ? Math.floor(Math.min(...rbPrices)) : 0;
+const rbPriceMax = rbPrices.length ? Math.ceil(Math.max(...rbPrices)) : 1000;
 
 ---
 
@@ -82,19 +89,72 @@ if (Array.isArray(featuredOffers) && featuredOffers.length > 0) {
       {rebajasProducts.length > 0 ? (
         <div class="flex flex-col lg:flex-row gap-10">
 
-          {/* Sidebar marcas */}
-          <aside class="w-full lg:w-56 shrink-0">
-            <h3 class="font-bold text-xs uppercase tracking-widest mb-4 border-b border-black pb-2">MARCA</h3>
-            <div class="space-y-2 max-h-96 overflow-y-auto pr-1">
-              {[...new Map((rebajasProducts as any[]).map((p: any) => [p.brandSlug, { slug: p.brandSlug, name: p.brandName }])).values()]
-                .filter((b: any) => b.slug)
-                .sort((a: any, b: any) => a.name.localeCompare(b.name))
-                .map((brand: any) => (
-                  <label class="rb-brand-label flex items-center gap-2 cursor-pointer group" data-brand-name={brand.name.toLowerCase()}>
-                    <input type="checkbox" class="rb-brand-cb w-4 h-4 border border-gray-300 rounded-none checked:bg-black checked:border-black focus:ring-0" data-brand-slug={brand.slug} />
-                    <span class="text-sm text-black group-hover:underline">{brand.name}</span>
-                  </label>
-                ))}
+          {/* Sidebar filtros completo */}
+          <aside id="rb-sidebar" class="w-full lg:w-64 shrink-0 hidden md:block">
+            <div id="rb-toggle-btn" class="border-b border-gray-200 pb-4 mb-6 flex justify-between items-center cursor-pointer group">
+              <span id="rb-toggle-label" class="font-bold text-sm uppercase tracking-widest group-hover:text-gray-600">Ocultar Filtros</span>
+              <svg id="rb-toggle-icon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </div>
+            <div id="rb-sidebar-content">
+              {/* Categoría */}
+              <div class="mb-6">
+                <h3 id="rb-toggle-cat" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
+                  Categoría
+                  <svg id="rb-cat-arrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </h3>
+                <div id="rb-cat-section" class="pl-2 space-y-2">
+                  <button class="rb-cat-btn block text-sm text-left font-bold text-beauty-red hover:text-black" data-cat-id="all">Ver todos</button>
+                  {rbCategories?.map((cat: any) => (
+                    <button class="rb-cat-btn block text-sm text-left text-gray-600 hover:text-black capitalize" data-cat-id={cat.id}>{cat.name}</button>
+                  ))}
+                </div>
+              </div>
+              {/* Marcas */}
+              <div class="mb-6">
+                <h3 id="rb-toggle-brand" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
+                  Marcas
+                  <svg id="rb-brand-arrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </h3>
+                <div id="rb-brand-section">
+                  <div class="relative mb-4">
+                    <input type="text" id="rb-brand-search" placeholder="Buscar una marca" class="w-full border-b border-black py-2 pl-0 pr-8 text-sm focus:outline-none placeholder-gray-400 italic" />
+                    <svg class="w-4 h-4 absolute right-0 top-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                  </div>
+                  <div class="space-y-2 max-h-64 overflow-y-auto">
+                    {rbBrandsList?.map((brand: any) => (
+                      <label class="rb-brand-label flex items-center space-x-3 cursor-pointer group" data-brand-name={brand.name.toLowerCase()}>
+                        <input type="checkbox" class="rb-brand-cb w-5 h-5 border-2 border-gray-300 rounded-none checked:bg-black checked:border-black focus:ring-0" data-brand-slug={brand.slug} />
+                        <span class="text-sm text-black group-hover:underline">{brand.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              {/* Precio */}
+              <div class="mb-6">
+                <h3 id="rb-toggle-price" class="font-bold text-sm uppercase mb-4 flex justify-between cursor-pointer">
+                  Precio
+                  <svg id="rb-price-arrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </h3>
+                <div id="rb-price-section" class="space-y-4">
+                  <div class="flex justify-between text-xs font-bold text-gray-600">
+                    <span id="rb-price-min-label">{rbPriceMin}€</span>
+                    <span id="rb-price-max-label">{rbPriceMax}€</span>
+                  </div>
+                  <input type="range" id="rb-range-min" min={rbPriceMin} max={rbPriceMax} value={rbPriceMin} class="w-full accent-black h-0.5 cursor-pointer" />
+                  <input type="range" id="rb-range-max" min={rbPriceMin} max={rbPriceMax} value={rbPriceMax} class="w-full accent-black h-0.5 cursor-pointer" />
+                  <div class="flex gap-2">
+                    <div class="flex-1 border border-gray-300 px-2 py-1 flex items-center gap-1">
+                      <span class="text-xs text-gray-400">€</span>
+                      <input type="number" id="rb-input-min" value={rbPriceMin} min={rbPriceMin} max={rbPriceMax} class="w-full text-xs focus:outline-none" />
+                    </div>
+                    <div class="flex-1 border border-gray-300 px-2 py-1 flex items-center gap-1">
+                      <span class="text-xs text-gray-400">€</span>
+                      <input type="number" id="rb-input-max" value={rbPriceMax} min={rbPriceMin} max={rbPriceMax} class="w-full text-xs focus:outline-none" />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </aside>
 
@@ -105,7 +165,7 @@ if (Array.isArray(featuredOffers) && featuredOffers.length > 0) {
             </p>
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6" id="rb-grid">
               {(rebajasProducts as any[]).map((product: any) => (
-                <div class="rb-card" data-brand-slug={product.brandSlug}>
+                <div class="rb-card" data-brand-slug={product.brandSlug} data-category-id={product.categoryId} data-price={product.discountedPrice || product.price}>
                   <ProductCard product={{ ...product, brand: product.brandName }} />
                 </div>
               ))}
@@ -134,11 +194,16 @@ if (Array.isArray(featuredOffers) && featuredOffers.length > 0) {
 
 <style>
   .rb-card.hidden { display: none; }
+  .rb-cat-btn.rb-active-cat { color: #e11d48; font-weight: 700; }
 </style>
 
-<script>
-  let selectedBrands: string[] = [];
-  const cards = document.querySelectorAll<HTMLElement>('.rb-card');
+<script define:vars={{ rbPriceMin, rbPriceMax }}>
+  let rbSelectedCategory = 'all';
+  let rbSelectedBrands: string[] = [];
+  let rbCurrentMin = rbPriceMin;
+  let rbCurrentMax = rbPriceMax;
+
+  const cards = document.querySelectorAll('.rb-card');
   const countEl = document.getElementById('rb-count');
   const emptyEl = document.getElementById('rb-empty');
   const gridEl = document.getElementById('rb-grid');
@@ -146,8 +211,13 @@ if (Array.isArray(featuredOffers) && featuredOffers.length > 0) {
   function applyFilters() {
     let visible = 0;
     cards.forEach(card => {
-      const slug = card.dataset.brandSlug || '';
-      const show = selectedBrands.length === 0 || selectedBrands.includes(slug);
+      const brand = (card as HTMLElement).dataset.brandSlug || '';
+      const cat = String((card as HTMLElement).dataset.categoryId || '');
+      const price = parseInt((card as HTMLElement).dataset.price || '0');
+      const show =
+        (rbSelectedBrands.length === 0 || rbSelectedBrands.includes(brand)) &&
+        (rbSelectedCategory === 'all' || rbSelectedCategory === cat) &&
+        price >= rbCurrentMin && price <= rbCurrentMax;
       card.classList.toggle('hidden', !show);
       if (show) visible++;
     });
@@ -156,12 +226,74 @@ if (Array.isArray(featuredOffers) && featuredOffers.length > 0) {
     if (gridEl) gridEl.classList.toggle('hidden', visible === 0);
   }
 
-  document.querySelectorAll<HTMLInputElement>('.rb-brand-cb').forEach(cb => {
-    cb.addEventListener('change', () => {
-      const slug = cb.dataset.brandSlug || '';
-      if (cb.checked) { if (!selectedBrands.includes(slug)) selectedBrands.push(slug); }
-      else { selectedBrands = selectedBrands.filter(s => s !== slug); }
+  // Toggle sidebar
+  let rbSidebarOpen = true;
+  const rbSidebarContent = document.getElementById('rb-sidebar-content');
+  const rbToggleBtn = document.getElementById('rb-toggle-btn');
+  const rbToggleLabel = document.getElementById('rb-toggle-label');
+  const rbToggleIcon = document.getElementById('rb-toggle-icon');
+  if (rbToggleBtn) {
+    rbToggleBtn.addEventListener('click', () => {
+      rbSidebarOpen = !rbSidebarOpen;
+      rbSidebarContent?.classList.toggle('hidden', !rbSidebarOpen);
+      if (rbToggleLabel) rbToggleLabel.textContent = rbSidebarOpen ? 'Ocultar Filtros' : 'Mostrar Filtros';
+      if (rbToggleIcon) rbToggleIcon.style.transform = rbSidebarOpen ? '' : 'rotate(180deg)';
+    });
+  }
+
+  // Collapsible sections
+  [['rb-toggle-cat','rb-cat-section','rb-cat-arrow'],
+   ['rb-toggle-brand','rb-brand-section','rb-brand-arrow'],
+   ['rb-toggle-price','rb-price-section','rb-price-arrow']].forEach(([b,s,a]) => {
+    const btn = document.getElementById(b), sec = document.getElementById(s), arr = document.getElementById(a);
+    let open = true;
+    btn?.addEventListener('click', () => { open = !open; sec?.classList.toggle('hidden', !open); if(arr) arr.style.transform = open ? '' : 'rotate(-90deg)'; });
+  });
+
+  // Category
+  document.querySelectorAll('.rb-cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      rbSelectedCategory = (btn as HTMLElement).dataset.catId || 'all';
+      document.querySelectorAll('.rb-cat-btn').forEach(b => b.classList.toggle('rb-active-cat', (b as HTMLElement).dataset.catId === rbSelectedCategory));
       applyFilters();
     });
   });
+
+  // Brands
+  document.querySelectorAll('.rb-brand-cb').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const slug = (cb as HTMLInputElement).dataset.brandSlug || '';
+      if ((cb as HTMLInputElement).checked) { if (!rbSelectedBrands.includes(slug)) rbSelectedBrands.push(slug); }
+      else { rbSelectedBrands = rbSelectedBrands.filter(s => s !== slug); }
+      applyFilters();
+    });
+  });
+
+  // Brand search
+  document.getElementById('rb-brand-search')?.addEventListener('input', e => {
+    const q = (e.target as HTMLInputElement).value.toLowerCase();
+    document.querySelectorAll('.rb-brand-label').forEach(label => {
+      (label as HTMLElement).style.display = ((label as HTMLElement).dataset.brandName || '').includes(q) ? '' : 'none';
+    });
+  });
+
+  // Price
+  function updatePriceUI() {
+    const lMin = document.getElementById('rb-price-min-label');
+    const lMax = document.getElementById('rb-price-max-label');
+    const rMin = document.getElementById('rb-range-min') as HTMLInputElement;
+    const rMax = document.getElementById('rb-range-max') as HTMLInputElement;
+    const iMin = document.getElementById('rb-input-min') as HTMLInputElement;
+    const iMax = document.getElementById('rb-input-max') as HTMLInputElement;
+    if (lMin) lMin.textContent = `${rbCurrentMin}€`;
+    if (lMax) lMax.textContent = `${rbCurrentMax}€`;
+    if (rMin) rMin.value = String(rbCurrentMin);
+    if (rMax) rMax.value = String(rbCurrentMax);
+    if (iMin) iMin.value = String(rbCurrentMin);
+    if (iMax) iMax.value = String(rbCurrentMax);
+  }
+  document.getElementById('rb-range-min')?.addEventListener('input', e => { rbCurrentMin = Math.min(parseInt((e.target as HTMLInputElement).value), rbCurrentMax - 1); updatePriceUI(); applyFilters(); });
+  document.getElementById('rb-range-max')?.addEventListener('input', e => { rbCurrentMax = Math.max(parseInt((e.target as HTMLInputElement).value), rbCurrentMin + 1); updatePriceUI(); applyFilters(); });
+  document.getElementById('rb-input-min')?.addEventListener('change', e => { rbCurrentMin = Math.max(rbPriceMin, Math.min(parseInt((e.target as HTMLInputElement).value)||rbPriceMin, rbCurrentMax-1)); updatePriceUI(); applyFilters(); });
+  document.getElementById('rb-input-max')?.addEventListener('change', e => { rbCurrentMax = Math.min(rbPriceMax, Math.max(parseInt((e.target as HTMLInputElement).value)||rbPriceMax, rbCurrentMin+1)); updatePriceUI(); applyFilters(); });
 </script>

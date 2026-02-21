@@ -19,7 +19,7 @@ if (flashSaleSettings?.value === false) {
 const now = new Date().toISOString();
 const { data: flashProducts } = await supabase
   .from('products')
-  .select('*, brand:brands(name), category:categories(name, slug)')
+  .select('*, brand:brands(name, slug), category:categories(name, slug)')
   .eq('is_flash_sale', true)
   .or(`flash_sale_end_time.is.null,flash_sale_end_time.gt.${now}`)
   .order('flash_sale_discount', { ascending: false });
@@ -29,6 +29,7 @@ const products = (flashProducts || []).map((p: any) => ({
   discount: p.flash_sale_discount || 0,
   discountedPrice: Math.round(p.price * (1 - (p.flash_sale_discount || 0) / 100)),
   brand: p.brand?.name || 'Marca',
+  brandSlug: p.brand?.slug || '',
 }));
 
 // Countdown: earliest expiry
@@ -42,17 +43,12 @@ const endTime = products.reduce((earliest: string, p: any) => {
 <PublicLayout title="Flash Sales - ÉCLAT Beauty" description="Ofertas flash con descuentos increíbles por tiempo limitado.">
   <div class="min-h-screen bg-white">
 
-    {/* Header */}
-    <div class="bg-black py-14 md:py-20 relative overflow-hidden">
-      <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-pink-900/30 via-transparent to-transparent"></div>
-      <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <span class="inline-block text-pink-400 text-[10px] uppercase tracking-[0.35em] mb-4 font-bold">Tiempo Limitado</span>
-        <h1 class="text-5xl md:text-6xl font-black text-white uppercase tracking-tight mb-4">
-          ⚡ Flash Sales
-        </h1>
-        <p class="text-gray-400 text-base mb-8">Descuentos exclusivos que no durarán para siempre</p>
-
-        {/* Countdown */}
+    {/* Header - mismo estilo que Rebajas */}
+    <div class="bg-gradient-to-r from-rose-100 to-pink-100 py-12 md:py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <span class="inline-block text-pink-500 text-[10px] uppercase tracking-[0.3em] mb-3 font-medium">Tiempo Limitado</span>
+        <h1 class="text-4xl md:text-5xl font-sans font-bold text-black mb-4 uppercase">Flash Sales</h1>
+        <p class="text-gray-600 text-lg mb-6">Descuentos exclusivos que no durarán para siempre</p>
         {endTime && (
           <div class="flex justify-center" id="flash-page-section">
             <CountdownTimer client:only="react" endTime={endTime} sectionId="flash-page-section" />
@@ -61,47 +57,91 @@ const endTime = products.reduce((earliest: string, p: any) => {
       </div>
     </div>
 
-    {/* Products Grid */}
+    {/* Main content */}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
       {products.length > 0 ? (
-        <>
-          <p class="text-xs text-gray-500 uppercase tracking-widest mb-8 font-medium">
-            {products.length} producto{products.length !== 1 ? 's' : ''} en oferta flash
-          </p>
+        <div class="flex flex-col lg:flex-row gap-10">
 
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
-            {products.map((product: any) => (
-              <div class="group bg-white border border-gray-200 hover:border-pink-400 hover:shadow-lg transition-all duration-300">
-                <ProductCard product={product} />
-              </div>
-            ))}
+          {/* Sidebar marcas */}
+          <aside class="w-full lg:w-56 shrink-0">
+            <h3 class="font-bold text-xs uppercase tracking-widest mb-4 border-b border-black pb-2">MARCA</h3>
+            <div class="space-y-2 max-h-96 overflow-y-auto pr-1">
+              {[...new Map(products.map((p: any) => [p.brandSlug, { slug: p.brandSlug, name: p.brand }])).values()]
+                .filter((b: any) => b.slug)
+                .sort((a: any, b: any) => a.name.localeCompare(b.name))
+                .map((brand: any) => (
+                  <label class="fs-brand-label flex items-center gap-2 cursor-pointer group" data-brand-name={brand.name.toLowerCase()}>
+                    <input type="checkbox" class="fs-brand-cb w-4 h-4 border border-gray-300 rounded-none checked:bg-black checked:border-black focus:ring-0" data-brand-slug={brand.slug} />
+                    <span class="text-sm text-black group-hover:underline">{brand.name}</span>
+                  </label>
+                ))}
+            </div>
+          </aside>
+
+          {/* Grid */}
+          <div class="flex-1">
+            <p class="text-xs text-gray-500 uppercase tracking-widest mb-6 font-medium" id="fs-count">
+              {products.length} producto{products.length !== 1 ? 's' : ''} en oferta flash
+            </p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-5" id="fs-grid">
+              {products.map((product: any) => (
+                <div class="fs-card" data-brand-slug={product.brandSlug}>
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+            <div id="fs-empty" class="hidden text-center py-16">
+              <p class="text-gray-400 text-sm uppercase tracking-widest font-bold">Sin productos para los filtros seleccionados</p>
+            </div>
           </div>
-        </>
+        </div>
       ) : (
         <div class="text-center py-24">
-          <div class="text-6xl mb-6">⚡</div>
           <h2 class="text-2xl font-bold text-black mb-3 uppercase tracking-wide">No hay ofertas activas</h2>
           <p class="text-gray-500 text-sm mb-8">En este momento no hay productos en oferta flash. ¡Vuelve pronto!</p>
-          <a
-            href="/productos"
-            class="inline-block bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-pink-500 transition-colors"
-          >
+          <a href="/productos" class="inline-block bg-black text-white px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-pink-500 transition-colors">
             Ver todos los productos
           </a>
         </div>
       )}
     </div>
 
-    {/* Back link */}
-    {products.length > 0 && (
-      <div class="text-center pb-16">
-        <a
-          href="/productos"
-          class="text-xs font-bold uppercase tracking-widest text-black border-b-2 border-pink-500 pb-1 hover:text-pink-500 transition-colors"
-        >
-          Ver todos los productos
-        </a>
-      </div>
-    )}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="w-full h-px bg-black"></div>
+    </div>
   </div>
 </PublicLayout>
+
+<style>
+  .fs-card.hidden { display: none; }
+</style>
+
+<script>
+  let selectedBrands: string[] = [];
+  const cards = document.querySelectorAll<HTMLElement>('.fs-card');
+  const countEl = document.getElementById('fs-count');
+  const emptyEl = document.getElementById('fs-empty');
+  const gridEl = document.getElementById('fs-grid');
+
+  function applyFilters() {
+    let visible = 0;
+    cards.forEach(card => {
+      const slug = card.dataset.brandSlug || '';
+      const show = selectedBrands.length === 0 || selectedBrands.includes(slug);
+      card.classList.toggle('hidden', !show);
+      if (show) visible++;
+    });
+    if (countEl) countEl.textContent = `${visible} producto${visible !== 1 ? 's' : ''} en oferta flash`;
+    if (emptyEl) emptyEl.classList.toggle('hidden', visible > 0);
+    if (gridEl) gridEl.classList.toggle('hidden', visible === 0);
+  }
+
+  document.querySelectorAll<HTMLInputElement>('.fs-brand-cb').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const slug = cb.dataset.brandSlug || '';
+      if (cb.checked) { if (!selectedBrands.includes(slug)) selectedBrands.push(slug); }
+      else { selectedBrands = selectedBrands.filter(s => s !== slug); }
+      applyFilters();
+    });
+  });
+</script>

@@ -35,10 +35,16 @@ if (typeof window !== 'undefined' && !(window as any).__authSyncInitialized) {
                 
                 if (accessToken && refreshToken) {
                     console.log('[Auth Sync] Attempting to restore session from cookies');
-                    await supabase.auth.setSession({
+                    const { error } = await supabase.auth.setSession({
                         access_token: accessToken,
                         refresh_token: refreshToken
                     });
+                    if (error) {
+                        // Tokens are stale/expired — clear them to avoid repeated 400 errors
+                        const expired = `; path=/; max-age=0; SameSite=Lax${isSecure ? '; secure' : ''}`;
+                        document.cookie = `sb-access-token=${expired}`;
+                        document.cookie = `sb-refresh-token=${expired}`;
+                    }
                 }
             }
         } catch (error) {

@@ -1,16 +1,26 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient, createTokenClient } from '@/lib/supabase';
+import { createTokenClient } from '@/lib/supabase';
 
-// Helper: get authenticated client using the same session mechanism as middleware
-async function getAuthClient(context: any) {
+// Decode a base64url-encoded JWT payload (handles - + _ / and missing padding)
+function decodeJWTPayload(token: string): any {
+    const part = token.split('.')[1];
+    const base64 = part.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    return JSON.parse(atob(padded));
+}
+
+// Helper: read JWT from httpOnly cookie, decode it, return a token client
+function getAuthClient(context: any): { client: ReturnType<typeof createTokenClient> | null; userId: string | null } {
+    const accessToken = context.cookies.get('sb-access-token')?.value;
+    if (!accessToken) return { client: null, userId: null };
     try {
-        const supabase = await createServerSupabaseClient(context);
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error || !session) return { client: null, userId: null };
-        return {
-            client: createTokenClient(session.access_token),
-            userId: session.user.id,
-        };
+        const payload = decodeJWTPayload(accessToken);
+        const userId: string = payload.sub;
+        // Check expiry
+        if (Math.floor(Date.now() / 1000) >= payload.exp) {
+            return { client: null, userId: null };
+        }
+        return { client: createTokenClient(accessToken), userId };
     } catch {
         return { client: null, userId: null };
     }

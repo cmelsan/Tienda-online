@@ -24,9 +24,20 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // If user is authenticated with a valid token, they've already been verified as admin during login
-    // No need to check is_admin again - the login endpoint already verified this
-    // Use token-authenticated client so RLS sees this user as the authenticated admin
+    // Check if user is admin
+    const { data: profilePost } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single();
+
+    if (!profilePost?.is_admin) {
+      return new Response(JSON.stringify({ error: 'Forbidden - Admin access required' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const dbClient = createTokenClient(token);
 
     const { name, slug, description, logo_url } = await request.json();

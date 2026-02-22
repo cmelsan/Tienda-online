@@ -1,32 +1,25 @@
 import type { APIRoute } from 'astro';
-import { getAdminSupabaseClient, createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, createTokenClient } from '@/lib/supabase';
 
 export const GET: APIRoute = async (context) => {
   try {
-    console.log('[Offers API GET] Starting...');
-    console.log('[Offers API GET] Request headers:', context.request.headers.get('cookie'));
-
-    // Check authentication
     const userClient = await createServerSupabaseClient(context, true);
     const { data: { session }, error: sessionError } = await userClient.auth.getSession();
 
-    console.log('[Offers API GET] Session error:', sessionError);
-    console.log('[Offers API GET] Session found:', !!session);
-    console.log('[Offers API GET] Session user:', session?.user?.email);
-
     if (sessionError || !session) {
-      console.error('[Offers API GET] No session found - returning 401');
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Try admin client first, fallback to user client
-    const adminClient = getAdminSupabaseClient();
-    const dbClient = adminClient || userClient;
+    // Check is_admin
+    const { data: profile } = await userClient.from('profiles').select('is_admin').eq('id', session.user.id).single();
+    if (!profile?.is_admin) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+    }
 
-    console.log('[Offers API GET] Using', adminClient ? 'admin' : 'user', 'client');
+    const dbClient = createTokenClient(session.access_token);
 
     // Fetch all products
     const { data: products, error: productsError } = await dbClient
@@ -44,13 +37,10 @@ export const GET: APIRoute = async (context) => {
       .single();
 
     if (offersError && offersError.code !== 'PGRST116') {
-      // PGRST116 = not found, which is OK
       throw offersError;
     }
 
     const featuredOffers = offersData?.value || [];
-
-    console.log('[Offers API GET] Products:', products?.length, 'Featured:', featuredOffers.length);
 
     return new Response(
       JSON.stringify({
@@ -74,52 +64,40 @@ export const GET: APIRoute = async (context) => {
 
 export const POST: APIRoute = async (context) => {
   try {
-    console.log('[Offers API POST] Starting...');
-    console.log('[Offers API POST] Request headers:', context.request.headers.get('cookie'));
-
-    // Check authentication
     const userClient = await createServerSupabaseClient(context, true);
     const { data: { session }, error: sessionError } = await userClient.auth.getSession();
 
-    console.log('[Offers API POST] Session error:', sessionError);
-    console.log('[Offers API POST] Session found:', !!session);
-    console.log('[Offers API POST] Session user:', session?.user?.email);
-
     if (sessionError || !session) {
-      console.error('[Offers API POST] No session found - returning 401');
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
+    // Check is_admin
+    const { data: profile } = await userClient.from('profiles').select('is_admin').eq('id', session.user.id).single();
+    if (!profile?.is_admin) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+    }
+
     const { featuredOffers } = await context.request.json();
 
-    console.log('[Offers API POST] Received featuredOffers:', featuredOffers);
-    console.log('[Offers API POST] Is array?', Array.isArray(featuredOffers));
-    console.log('[Offers API POST] Length:', featuredOffers?.length);
-
     if (!Array.isArray(featuredOffers)) {
-      console.error('[Offers API POST] featuredOffers is not an array, type:', typeof featuredOffers);
       return new Response(
         JSON.stringify({ error: 'featuredOffers must be an array' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Try admin client first, fallback to user client
-    const adminClient = getAdminSupabaseClient();
-    const dbClient = adminClient || userClient;
+    const dbClient = createTokenClient(session.access_token);
 
     // Validate format - must have id and discount
     const formattedOffers = featuredOffers
-      .filter((offer: any) => offer.id && typeof offer.id === 'string' && offer.id.trim()) // Filtrar items sin ID válido
+      .filter((offer: any) => offer.id && typeof offer.id === 'string' && offer.id.trim())
       .map((offer: any) => ({
         id: offer.id,
-        discount: Math.max(0, Math.min(100, offer.discount || 0)) // Clamp between 0-100
+        discount: Math.max(0, Math.min(100, offer.discount || 0))
       }));
-
-    console.log('[Offers API POST] Formatted offers (filtered):', formattedOffers);
 
     // Upsert setting
     const { data, error } = await dbClient
@@ -139,8 +117,6 @@ export const POST: APIRoute = async (context) => {
       console.error('[Offers API POST] Upsert error:', error);
       throw error;
     }
-
-    console.log('[Offers API POST] Setting saved successfully');
 
     return new Response(JSON.stringify({ success: true, data }), {
       status: 200,

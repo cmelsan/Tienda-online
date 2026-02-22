@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getAdminSupabaseClient, supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 export const GET: APIRoute = async ({ url }) => {
     const email = url.searchParams.get('email');
@@ -9,9 +9,7 @@ export const GET: APIRoute = async ({ url }) => {
     }
 
     try {
-        // Use admin client to bypass any RLS on profiles
-        const adminClient = getAdminSupabaseClient() || supabase;
-        const { data } = await adminClient
+        const { data } = await supabase
             .from('profiles')
             .select('id')
             .eq('email', email)
@@ -19,7 +17,6 @@ export const GET: APIRoute = async ({ url }) => {
 
         return new Response(JSON.stringify({ exists: !!data }), { status: 200 });
     } catch (err) {
-        console.error('[check-email] Error:', err);
         return new Response(JSON.stringify({ exists: false }), { status: 200 });
     }
 };

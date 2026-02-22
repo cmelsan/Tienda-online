@@ -4,7 +4,20 @@ import { cartItemsArray, cartTotal, clearCart, appliedCoupon } from '@/stores/ca
 import { supabase } from '@/lib/supabase';
 import { addNotification } from '@/stores/notifications';
 
-export default function CheckoutButton() {
+interface CheckoutButtonProps {
+    shippingAddress?: {
+        fullName?: string;
+        street: string;
+        city: string;
+        zip: string;
+        country?: string;
+    };
+}
+
+/**
+ * @deprecated Usar CheckoutFlow en su lugar, que gestiona direcciones de envío correctamente.
+ */
+export default function CheckoutButton({ shippingAddress }: CheckoutButtonProps = {}) {
     const items = useStore(cartItemsArray);
     const total = useStore(cartTotal);
     const coupon = useStore(appliedCoupon);
@@ -62,14 +75,21 @@ export default function CheckoutButton() {
             // 2. Create Order in Pending State
             const emailToUse = finalGuestEmail || user?.email;
 
+            if (!shippingAddress?.street || !shippingAddress?.city) {
+                addNotification('Debes introducir una dirección de envío antes de continuar', 'error');
+                setIsLoading(false);
+                return;
+            }
+
             const { data, error } = await supabase.rpc('create_order', {
                 p_items: orderItems,
                 p_total_amount: total,
                 p_shipping_address: {
-                    street: 'Calle Demo 123', // Placeholder, replace with actual addressSteps.shipping.address
-                    city: 'Madrid', // Placeholder, replace with actual addressSteps.shipping.city
-                    zip: '28000', // Placeholder, replace with actual addressSteps.shipping.zip
-                    country: 'Spain' // Placeholder, replace with actual addressSteps.shipping.country
+                    fullName: shippingAddress.fullName || '',
+                    street: shippingAddress.street,
+                    city: shippingAddress.city,
+                    zip: shippingAddress.zip || '',
+                    country: shippingAddress.country || 'España'
                 },
                 p_guest_email: emailToUse,
                 p_coupon_id: coupon?.id || null,

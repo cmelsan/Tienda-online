@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient, getAdminSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase';
 import Stripe from 'stripe';
 import { sendEmail, getCancellationEmailTemplate } from '@/lib/brevo';
 

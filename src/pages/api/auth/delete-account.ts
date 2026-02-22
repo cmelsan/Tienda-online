@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient, getAdminSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, createTokenClient } from '@/lib/supabase';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
@@ -25,17 +25,24 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             return new Response(JSON.stringify({ error: 'Contraseña incorrecta.' }), { status: 403 });
         }
 
-        // Eliminar usuario con cliente admin (service role)
-        const adminClient = getAdminSupabaseClient();
-        if (!adminClient) {
-            return new Response(JSON.stringify({ error: 'Error de configuración del servidor.' }), { status: 500 });
+        // Obtener sesión para token
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            return new Response(JSON.stringify({ error: 'Sesión expirada.' }), { status: 401 });
         }
 
-        const { error: deleteErr } = await (adminClient as any).auth.admin.deleteUser(user.id);
+        // Llamar RPC SECURITY DEFINER que elimina todos los datos del usuario
+        // IMPORTANTE: ejecutar fix_delete_account.sql en Supabase si no lo has hecho
+        const tokenClient = createTokenClient(session.access_token);
+        const { data: result, error: rpcError } = await tokenClient.rpc('delete_my_account');
 
-        if (deleteErr) {
-            console.error('[Delete Account]', deleteErr);
+        if (rpcError) {
+            console.error('[Delete Account] RPC error:', rpcError.message);
             return new Response(JSON.stringify({ error: 'Error al eliminar la cuenta. Inténtalo de nuevo.' }), { status: 500 });
+        }
+
+        if (result && result.success === false) {
+            return new Response(JSON.stringify({ error: result.error || 'Error al eliminar la cuenta.' }), { status: 500 });
         }
 
         return new Response(JSON.stringify({ success: true }), { status: 200 });

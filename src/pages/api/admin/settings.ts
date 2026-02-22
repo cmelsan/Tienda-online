@@ -1,29 +1,26 @@
 import type { APIRoute } from 'astro';
-import { getAdminSupabaseClient, createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, createTokenClient } from '@/lib/supabase';
 
 export const POST: APIRoute = async (context) => {
   try {
-    console.log('[Settings API] POST request received');
-    
-    // Use createServerSupabaseClient which handles cookies automatically
     const userClient = await createServerSupabaseClient(context, true);
-    
-    // Check if user is authenticated via cookies
+
     const { data: { session }, error: sessionError } = await userClient.auth.getSession();
-    
+
     if (sessionError || !session) {
-      console.error('[Settings API] No session found:', sessionError);
       return new Response(JSON.stringify({ error: 'Unauthorized - no session' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    console.log('[Settings API] User authenticated via cookies:', session.user.id);
+    // Check is_admin
+    const { data: profile } = await userClient.from('profiles').select('is_admin').eq('id', session.user.id).single();
+    if (!profile?.is_admin) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+    }
 
     const { key, value } = await context.request.json();
-
-    console.log('[Settings API] Updating setting:', key, '=', value);
 
     if (!key) {
       return new Response(JSON.stringify({ error: 'Key is required' }), {
@@ -32,11 +29,7 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Try to use admin client first, fallback to user client
-    const adminClient = getAdminSupabaseClient();
-    const client = adminClient || userClient;
-
-    console.log('[Settings API] Using', adminClient ? 'admin' : 'user', 'client');
+    const client = createTokenClient(session.access_token);
 
     // Upsert setting
     const { data: setting, error } = await client
@@ -56,8 +49,6 @@ export const POST: APIRoute = async (context) => {
       console.error('[Settings API] Upsert error:', error);
       throw error;
     }
-
-    console.log('[Settings API] Setting updated successfully:', setting);
 
     return new Response(JSON.stringify({ success: true, setting }), {
       status: 200,

@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import Stripe from 'stripe';
-import { supabase, getAdminSupabaseClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { sendEmail, getOrderConfirmationTemplate } from '@/lib/brevo';
 import { createSaleInvoice, fetchInvoiceAsAttachment } from '@/lib/invoices';
 
@@ -233,7 +233,7 @@ export const POST: APIRoute = async ({ request }) => {
                     try {
                         const userId = orderData?.user_id || null;
                         // Prefer admin client (bypasses RLS); fallback to anon with SECURITY DEFINER fn
-                        const couponClient = getAdminSupabaseClient() || supabase;
+                        const couponClient = supabase; // SECURITY DEFINER RPC no necesita admin client
                         const { data: couponResult, error: couponRpcError } = await (couponClient as any).rpc(
                             'increment_coupon_usage_atomic',
                             {

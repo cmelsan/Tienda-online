@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, getAdminSupabaseClient } from './supabase';
 
 const DEBUG = import.meta.env.DEV;
 
@@ -119,10 +119,9 @@ export async function validateCoupon(
     // Check if user has already used this coupon (if userId provided)
     // Restrict to one use per user
     if (userId) {
-      // Use SECURITY DEFINER RPC — direct table query with anon client
-      // returns 0 rows due to RLS even when usage exists, so we use
-      // a server-side function that bypasses RLS.
-      const { data: alreadyUsed, error: usageError } = await (supabase as any).rpc(
+      // Use admin client (SECURITY DEFINER not needed) — direct table read with service role
+      const adminClient = getAdminSupabaseClient() ?? supabase;
+      const { data: alreadyUsed, error: usageError } = await (adminClient as any).rpc(
         'check_coupon_used_by_user',
         { p_coupon_id: validCoupon.id, p_user_id: userId }
       );

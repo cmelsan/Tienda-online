@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, getAdminSupabaseClient } from '@/lib/supabase';
 import { validateCoupon, calculateDiscount } from '@/lib/coupons';
 import type { CartItemForCoupon } from '@/lib/coupons';
 
@@ -51,6 +51,30 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' }
             });
+        }
+
+        // Extra server-side check: query coupon_usage directly with admin client
+        // This is the authoritative check — bypasses all RLS and RPC issues
+        if (userId) {
+            const adminClient = getAdminSupabaseClient();
+            if (adminClient) {
+                const { data: existingUsage } = await adminClient
+                    .from('coupon_usage')
+                    .select('id')
+                    .eq('coupon_id', validation.coupon.id)
+                    .eq('user_id', userId)
+                    .limit(1);
+
+                if (existingUsage && existingUsage.length > 0) {
+                    return new Response(JSON.stringify({
+                        valid: false,
+                        error: 'Ya has utilizado este código de descuento. Solo puedes usarlo una vez.'
+                    }), {
+                        status: 400,
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
+            }
         }
 
         // Calculate actual discount amount

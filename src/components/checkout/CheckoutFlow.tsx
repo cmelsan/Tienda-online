@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useStore } from '@nanostores/react';
 import { cartItems, cartTotal, cartSubtotal, appliedCoupon, applyCoupon, removeCoupon } from '@/stores/cart';
@@ -11,15 +11,20 @@ import { formatPrice } from '@/lib/utils';
 // Steps definition
 type CheckoutStep = 'email' | 'address' | 'shipping' | 'payment';
 
-export default function CheckoutFlow() {
-    const [step, setStep] = useState<CheckoutStep>('email');
-    const [user, setUser] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+interface CheckoutFlowProps {
+    initialUser?: { id: string; email: string; user_metadata?: any } | null;
+}
+
+export default function CheckoutFlow({ initialUser }: CheckoutFlowProps = {}) {
+    const alreadyLoggedIn = !!initialUser;
+    const [step, setStep] = useState<CheckoutStep>(alreadyLoggedIn ? 'address' : 'email');
+    const [user, setUser] = useState<any>(initialUser || null);
+    const [loading, setLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
 
     // Checkout State
-    const [email, setEmail] = useState('');
-    const [isGuest, setIsGuest] = useState(true);
+    const [email, setEmail] = useState(initialUser?.email || '');
+    const [isGuest, setIsGuest] = useState(!alreadyLoggedIn);
     const [shippingAddress, setShippingAddress] = useState<any>(null);
 
     // Coupon State
@@ -32,21 +37,6 @@ export default function CheckoutFlow() {
     const subtotal = useStore(cartSubtotal);
     const total = useStore(cartTotal);
     const coupon = useStore(appliedCoupon);
-
-    useEffect(() => {
-        checkSession();
-    }, []);
-
-    const checkSession = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-            setUser(session.user);
-            setEmail(session.user.email || '');
-            setIsGuest(false);
-            setStep('address'); // Skip email step if logged in
-        }
-        setLoading(false);
-    };
 
     const handleEmailContinue = async (inputEmail: string, registerData?: { password: string }) => {
         setEmail(inputEmail);
@@ -246,8 +236,6 @@ export default function CheckoutFlow() {
             setProcessing(false);
         }
     };
-
-    if (loading) return <div className="p-12 text-center">Cargando checkout...</div>;
 
     if (Object.keys(items).length === 0) {
         return (

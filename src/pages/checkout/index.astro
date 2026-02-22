@@ -1,11 +1,29 @@
 ---
+export const prerender = false;
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import CheckoutFlow from '@/components/checkout/CheckoutFlow';
+import { createServerSupabaseClient } from '@/lib/supabase';
+
+// Read user session from httpOnly cookies server-side
+let initialUser: { id: string; email: string; user_metadata?: any } | null = null;
+try {
+  const supabase = await createServerSupabaseClient(Astro, false);
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.user) {
+    initialUser = {
+      id: session.user.id,
+      email: session.user.email || '',
+      user_metadata: session.user.user_metadata,
+    };
+  }
+} catch (e) {
+  // No session — guest checkout
+}
 ---
 
 <BaseLayout title="Finalizar Compra">
   <div class="container mx-auto px-4 py-8 max-w-6xl">
     <h1 class="text-3xl font-sans mb-8 text-center">Finalizar Compra</h1>
-    <CheckoutFlow client:only="react" />
+    <CheckoutFlow client:only="react" initialUser={initialUser} />
   </div>
 </BaseLayout>

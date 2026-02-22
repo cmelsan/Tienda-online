@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient, getAdminSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase';
 
 // GET — fetch saved addresses (all types or filtered by ?type=shipping|billing)
 export const GET: APIRoute = async (context) => {
@@ -28,22 +28,6 @@ export const GET: APIRoute = async (context) => {
         const { data, error } = await query;
 
         if (error) {
-            // Fallback: try with admin client if session client fails (RLS issue)
-            const adminClient = getAdminSupabaseClient();
-            if (adminClient) {
-                let adminQuery = adminClient
-                    .from('user_addresses')
-                    .select('*')
-                    .eq('user_id', session.user.id)
-                    .order('is_default', { ascending: false })
-                    .order('created_at', { ascending: false });
-                if (type) adminQuery = adminQuery.eq('address_type', type);
-                const { data: adminData, error: adminError } = await adminQuery;
-                if (adminError) {
-                    return new Response(JSON.stringify({ error: adminError.message }), { status: 400 });
-                }
-                return new Response(JSON.stringify({ addresses: adminData ?? [] }), { status: 200 });
-            }
             return new Response(JSON.stringify({ error: error.message }), { status: 400 });
         }
 
@@ -70,13 +54,10 @@ export const POST: APIRoute = async (context) => {
             return new Response(JSON.stringify({ error: 'Datos de dirección requeridos' }), { status: 400 });
         }
 
-        const client = getAdminSupabaseClient() ?? supabase;
-
         // Determine if this will be the default
         let makeDefault = is_default ?? false;
         if (!makeDefault) {
-            // Auto-make default if it's the first of this type
-            const { count } = await client
+            const { count } = await supabase
                 .from('user_addresses')
                 .select('id', { count: 'exact', head: true })
                 .eq('user_id', session.user.id)
@@ -87,14 +68,14 @@ export const POST: APIRoute = async (context) => {
 
         // If setting as default, unset others of same type
         if (makeDefault) {
-            await client
+            await supabase
                 .from('user_addresses')
                 .update({ is_default: false })
                 .eq('user_id', session.user.id)
                 .eq('address_type', address_type);
         }
 
-        const { error } = await client.from('user_addresses').insert({
+        const { error } = await supabase.from('user_addresses').insert({
             user_id: session.user.id,
             address_data: addressData,
             address_type,

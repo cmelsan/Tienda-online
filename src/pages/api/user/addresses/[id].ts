@@ -1,42 +1,16 @@
 import type { APIRoute } from 'astro';
-import { createTokenClient } from '@/lib/supabase';
+import { createServerSupabaseClient, createTokenClient } from '@/lib/supabase';
 
-// Helper: get authenticated client directly from cookie token
+// Helper: get authenticated client using the same session mechanism as middleware
 async function getAuthClient(context: any) {
-    const accessToken = context.cookies.get('sb-access-token')?.value;
-    const refreshToken = context.cookies.get('sb-refresh-token')?.value;
-
-    if (!accessToken) return { client: null, userId: null };
-
-    // Decode JWT payload to get user id (no verification needed, server trusts Supabase tokens)
     try {
-        const payload = JSON.parse(atob(accessToken.split('.')[1]));
-        const userId: string = payload.sub;
-        const exp: number = payload.exp;
-
-        // If expired, try to refresh
-        if (Date.now() / 1000 > exp) {
-            if (!refreshToken) return { client: null, userId: null };
-            // Use refresh token to get new access token via Supabase Auth REST
-            const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-            const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-            const res = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=refresh_token`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'apikey': supabaseAnonKey },
-                body: JSON.stringify({ refresh_token: refreshToken }),
-            });
-            if (!res.ok) return { client: null, userId: null };
-            const { access_token: newToken, refresh_token: newRefresh } = await res.json();
-            // Update cookies
-            const isSecure = (import.meta.env.PUBLIC_SITE_URL || '').startsWith('https');
-            const maxAge = 60 * 60 * 24 * 7;
-            context.cookies.set('sb-access-token', newToken, { path: '/', maxAge, httpOnly: true, sameSite: isSecure ? 'none' : 'lax', secure: isSecure });
-            context.cookies.set('sb-refresh-token', newRefresh, { path: '/', maxAge, httpOnly: true, sameSite: isSecure ? 'none' : 'lax', secure: isSecure });
-            const newPayload = JSON.parse(atob(newToken.split('.')[1]));
-            return { client: createTokenClient(newToken), userId: newPayload.sub };
-        }
-
-        return { client: createTokenClient(accessToken), userId };
+        const supabase = await createServerSupabaseClient(context);
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error || !session) return { client: null, userId: null };
+        return {
+            client: createTokenClient(session.access_token),
+            userId: session.user.id,
+        };
     } catch {
         return { client: null, userId: null };
     }

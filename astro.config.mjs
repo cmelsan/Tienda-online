@@ -22,5 +22,8 @@ export default defineConfig({
     optimizeDeps: {
       exclude: ['@supabase/supabase-js'],
     },
+    ssr: {
+      external: ['pdfkit'],
+    },
   },
 });

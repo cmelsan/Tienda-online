@@ -3,6 +3,7 @@
  * que crean la factura o el abono directamente en la BD.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
+import * as PDFDocument from 'pdfkit';
 
 // ─────────────────────────────────────────────
 // Tipos
@@ -294,7 +295,201 @@ export function generateInvoiceHtml(invoice: any, orderNumber?: string): string 
 }
 
 // ─────────────────────────────────────────────
-// Obtener factura de la BD y prepararla como adjunto base64 para email
+// Generar PDF de factura/abono con pdfkit
+// ─────────────────────────────────────────────
+export async function generateInvoicePdf(invoice: any, orderNumber?: string): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    const doc = new (PDFDocument as any)({ size: 'A4', margin: 50, bufferPages: true });
+
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    const isCreditNote = invoice.type === 'credit_note';
+    const lineItems: any[] = invoice.line_items || [];
+    const address = invoice.customer_address || {};
+    const docTitle = isCreditNote
+      ? `Factura de abono${invoice.credit_note_scope === 'partial' ? ' (parcial)' : ''}`
+      : 'Factura de venta';
+    const W = doc.page.width - 100; // usable width (margins 50 each side)
+    const L = 50; // left margin
+
+    // ── Colores ──────────────────────────────
+    const BLACK   = '#000000';
+    const GRAY    = '#888888';
+    const LGRAY   = '#e5e7eb';
+    const WHITE   = '#ffffff';
+    const RED     = '#dc2626';
+    const ACCENT  = isCreditNote ? RED : BLACK;
+
+    // ── Helper: formatCents inline ────────────
+    const fmt = (cents: number) =>
+      new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(
+        Math.abs(cents) / 100
+      );
+    const fmtDate = (iso: string) =>
+      new Date(iso).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    // ═══════════════════════════════════════
+    //  HEADER
+    // ═══════════════════════════════════════
+    // Brand
+    doc.fontSize(22).font('Helvetica-Bold').fillColor(BLACK).text('ÉCLAT BEAUTY', L, 50);
+    doc.fontSize(8).font('Helvetica').fillColor(GRAY).text('Tienda online de cosmética', L, 76);
+
+    // Doc meta (right-aligned)
+    doc.fontSize(8).font('Helvetica').fillColor(GRAY).text(docTitle.toUpperCase(), 0, 50, { align: 'right' });
+    doc.fontSize(16).font('Helvetica-Bold').fillColor(BLACK).text(invoice.invoice_number, 0, 62, { align: 'right' });
+    doc.fontSize(9).font('Helvetica').fillColor(GRAY).text(fmtDate(invoice.issued_at), 0, 82, { align: 'right' });
+
+    // Horizontal rule
+    doc.moveTo(L, 100).lineTo(L + W, 100).lineWidth(2).strokeColor(BLACK).stroke();
+
+    // ═══════════════════════════════════════
+    //  CREDIT NOTE BANNER
+    // ═══════════════════════════════════════
+    let yPos = 110;
+    if (isCreditNote) {
+      doc.rect(L, yPos, W, 22).fill(RED);
+      doc.fontSize(8).font('Helvetica-Bold').fillColor(WHITE)
+        .text(`FACTURA DE ABONO — ${invoice.credit_note_scope === 'partial' ? 'DEVOLUCIÓN PARCIAL' : 'DEVOLUCIÓN TOTAL'}`,
+          L, yPos + 7, { align: 'center', width: W });
+      yPos += 32;
+    }
+
+    // ═══════════════════════════════════════
+    //  PARTIES
+    // ═══════════════════════════════════════
+    doc.rect(L, yPos, W / 2 - 4, 90).strokeColor(LGRAY).lineWidth(1).stroke();
+    doc.rect(L + W / 2 + 4, yPos, W / 2 - 4, 90).strokeColor(LGRAY).lineWidth(1).stroke();
+
+    // Emisor
+    doc.fontSize(7).font('Helvetica-Bold').fillColor(GRAY).text('EMISOR', L + 10, yPos + 10);
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(BLACK).text('Éclat Beauty S.L.', L + 10, yPos + 22);
+    doc.fontSize(9).font('Helvetica').fillColor('#444444')
+      .text(`CIF: B-XXXXXXXX\nCalle Ejemplo, 1\n28001 Madrid, España\nhola@eclatbeauty.com`, L + 10, yPos + 38, { lineGap: 2 });
+
+    // Cliente
+    const rxParty = L + W / 2 + 14;
+    doc.fontSize(7).font('Helvetica-Bold').fillColor(GRAY).text('CLIENTE', rxParty, yPos + 10);
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(BLACK).text(invoice.customer_name || 'Cliente', rxParty, yPos + 22);
+    const clientLines = [
+      invoice.customer_email,
+      invoice.customer_nif ? `NIF/CIF: ${invoice.customer_nif}` : null,
+      address.address,
+      address.city ? `${address.city}${address.province ? `, ${address.province}` : ''}` : null,
+      address.postal_code ? `${address.postal_code} ${address.country || 'España'}` : null,
+    ].filter(Boolean).join('\n');
+    doc.fontSize(9).font('Helvetica').fillColor('#444444').text(clientLines || '-', rxParty, yPos + 38, { lineGap: 2 });
+
+    yPos += 100;
+
+    // Order ref
+    doc.fontSize(9).font('Helvetica').fillColor(GRAY)
+      .text(`Pedido: `, L, yPos, { continued: true })
+      .font('Helvetica-Bold').fillColor(BLACK)
+      .text(`#${orderNumber || String(invoice.order_id).slice(0, 8)}`);
+    yPos += 20;
+
+    // ═══════════════════════════════════════
+    //  TABLE HEADER
+    // ═══════════════════════════════════════
+    const colDesc = L;
+    const colQty  = L + W * 0.48;
+    const colUnit = L + W * 0.56;
+    const colBase = L + W * 0.68;
+    const colIva  = L + W * 0.80;
+    const colTot  = L + W * 0.90;
+
+    doc.rect(L, yPos, W, 20).fill(BLACK);
+    doc.fontSize(7).font('Helvetica-Bold').fillColor(WHITE);
+    doc.text('DESCRIPCIÓN',   colDesc + 4, yPos + 7);
+    doc.text('CANT.',         colQty,      yPos + 7, { width: 30, align: 'center' });
+    doc.text('P.UNIT.',       colUnit,     yPos + 7, { width: 50, align: 'right' });
+    doc.text('BASE IMP.',     colBase,     yPos + 7, { width: 50, align: 'right' });
+    doc.text(`IVA ${invoice.tax_rate}%`, colIva, yPos + 7, { width: 40, align: 'right' });
+    doc.text('TOTAL',         colTot,      yPos + 7, { width: W - (colTot - L), align: 'right' });
+    yPos += 20;
+
+    // ═══════════════════════════════════════
+    //  TABLE ROWS
+    // ═══════════════════════════════════════
+    lineItems.forEach((item, i) => {
+      const gross   = Math.abs(item.unit_price_gross);
+      const net     = Math.abs(item.unit_price_net);
+      const taxAmt  = gross - net;
+      const qty     = item.quantity;
+      const total   = Math.abs(item.line_total);
+      const rowH    = 22;
+
+      if (i % 2 === 0) doc.rect(L, yPos, W, rowH).fill('#f9f9f9');
+      doc.rect(L, yPos, W, rowH).strokeColor(LGRAY).lineWidth(0.5).stroke();
+
+      doc.fontSize(9).font('Helvetica').fillColor(BLACK);
+      doc.text(item.name,           colDesc + 4, yPos + 7, { width: colQty - colDesc - 8, ellipsis: true });
+      doc.text(String(qty),          colQty,      yPos + 7, { width: 30, align: 'center' });
+      doc.text(fmt(gross),           colUnit,     yPos + 7, { width: 50, align: 'right' });
+      doc.text(fmt(net * qty),       colBase,     yPos + 7, { width: 50, align: 'right' });
+      doc.text(fmt(taxAmt * qty),    colIva,      yPos + 7, { width: 40, align: 'right' });
+      doc.font('Helvetica-Bold').fillColor(isCreditNote ? RED : BLACK)
+        .text(`${isCreditNote ? '-' : ''}${fmt(total)}`, colTot, yPos + 7, { width: W - (colTot - L), align: 'right' });
+
+      yPos += rowH;
+    });
+
+    // ═══════════════════════════════════════
+    //  TOTALS
+    // ═══════════════════════════════════════
+    yPos += 10;
+    const totW = 220;
+    const totX = L + W - totW;
+
+    const drawTotalRow = (label: string, value: string, bold = false) => {
+      doc.rect(totX, yPos, totW, 20).strokeColor(LGRAY).lineWidth(0.5).stroke();
+      if (bold) doc.font('Helvetica-Bold'); else doc.font('Helvetica');
+      doc.fontSize(9).fillColor(BLACK).text(label, totX + 8, yPos + 6, { width: totW / 2 });
+      doc.font('Helvetica-Bold').text(value, totX, yPos + 6, { width: totW - 8, align: 'right' });
+      yPos += 20;
+    };
+
+    drawTotalRow('Base imponible', `${isCreditNote ? '-' : ''}${fmt(Math.abs(invoice.subtotal))}`);
+    if (invoice.discount_amount > 0) {
+      drawTotalRow('Descuento (cupón)', `-${fmt(invoice.discount_amount)}`);
+    }
+    drawTotalRow(`IVA (${invoice.tax_rate}%)`, `${isCreditNote ? '-' : ''}${fmt(Math.abs(invoice.tax_amount))}`);
+
+    // Total row (black background)
+    doc.rect(totX, yPos, totW, 26).fill(ACCENT);
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(WHITE)
+      .text('TOTAL', totX + 8, yPos + 8, { width: totW / 2 });
+    doc.text(`${isCreditNote ? '-' : ''}${fmt(Math.abs(invoice.total_amount))}`, totX, yPos + 8, { width: totW - 8, align: 'right' });
+    yPos += 36;
+
+    // Notes
+    if (invoice.notes) {
+      yPos += 10;
+      doc.rect(L, yPos, W, 40).fill('#f9f9f9');
+      doc.fontSize(7).font('Helvetica-Bold').fillColor(GRAY).text('NOTAS', L + 10, yPos + 8);
+      doc.fontSize(9).font('Helvetica').fillColor('#444444').text(invoice.notes, L + 10, yPos + 20, { width: W - 20 });
+      yPos += 50;
+    }
+
+    // ═══════════════════════════════════════
+    //  FOOTER
+    // ═══════════════════════════════════════
+    const pageH = doc.page.height;
+    doc.moveTo(L, pageH - 60).lineTo(L + W, pageH - 60).lineWidth(0.5).strokeColor(LGRAY).stroke();
+    doc.fontSize(8).font('Helvetica').fillColor(GRAY)
+      .text('Éclat Beauty S.L. — CIF: B-XXXXXXXX', L, pageH - 50)
+      .text(`Documento generado el ${fmtDate(new Date().toISOString())}`, 0, pageH - 50, { align: 'right' });
+
+    doc.end();
+  });
+}
+
+// ─────────────────────────────────────────────
+// Obtener factura de la BD y prepararla como adjunto PDF para email
 // ─────────────────────────────────────────────
 export async function fetchInvoiceAsAttachment(
   supabase: SupabaseClient,
@@ -312,9 +507,9 @@ export async function fetchInvoiceAsAttachment(
   }
 
   const orderNumber = (inv as any).orders?.order_number;
-  const html = generateInvoiceHtml(inv as any, orderNumber);
-  const content = Buffer.from(html).toString('base64');
-  return { content, name: `${inv.invoice_number}.html` };
+  const pdfBuffer = await generateInvoicePdf(inv as any, orderNumber);
+  const content = pdfBuffer.toString('base64');
+  return { content, name: `${inv.invoice_number}.pdf` };
 }
 
 // ─────────────────────────────────────────────

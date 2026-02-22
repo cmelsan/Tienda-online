@@ -46,7 +46,7 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
         <div id="loading" class="text-center py-16 text-gray-400 text-sm">Cargando...</div>
 
         <!-- Lista de direcciones -->
-        <div id="address-list" style="display:none" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        <div id="address-list" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 
         <!-- Estado vacío -->
         <div id="empty-state" class="hidden bg-gray-50 text-center py-16 border border-gray-100">
@@ -67,7 +67,7 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
   </div>
 
   <!-- Modal formulario -->
-  <div id="modal" style="display:none" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+  <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
     <div class="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
         <h2 id="modal-title" class="text-sm font-bold uppercase tracking-widest">Nueva dirección</h2>
@@ -159,8 +159,6 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
 </PublicLayout>
 
 <script>
-  import { supabase } from '@/lib/supabase';
-
   // ── Helpers ────────────────────────────────────────────────
   const $ = (id: string) => document.getElementById(id)!;
 
@@ -190,9 +188,9 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
     list.innerHTML = addresses.map(addr => {
       const d = addr.address_data;
       const lines = [
-        d.address,
+        d.address || d.street,
         d.address2,
-        [d.postal_code, d.city].filter(Boolean).join(' '),
+        [d.postal_code || d.postalCode, d.city].filter(Boolean).join(' '),
         [d.province, d.country].filter(Boolean).join(', '),
         d.phone,
       ].filter(Boolean);
@@ -201,7 +199,7 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
         <div class="border border-gray-100 p-5 relative group" data-id="${addr.id}">
           ${addr.is_default ? `<span class="absolute top-3 right-3 text-[9px] font-bold uppercase tracking-widest bg-black text-white px-2 py-0.5">Predeterminada</span>` : ''}
           <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">${typeName(addr.address_type)}</p>
-          <p class="font-bold text-sm mb-2">${d.name || ''}</p>
+          <p class="font-bold text-sm mb-2">${d.name || d.fullName || ''}</p>
           <p class="text-sm text-gray-600 leading-relaxed">${lines.join('<br>')}</p>
           <div class="flex gap-4 mt-4 pt-4 border-t border-gray-100">
             <button class="btn-edit text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-black transition-colors"
@@ -221,14 +219,14 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
 
   // ── Fetch ──────────────────────────────────────────────────
   async function loadAddresses() {
-    const { data, error } = await supabase
-      .from('user_addresses')
-      .select('*')
-      .order('is_default', { ascending: false })
-      .order('created_at', { ascending: false });
-
-    if (error) { showMsg('Error al cargar las direcciones.', false); return; }
-    renderAddresses(data || []);
+    try {
+      const res = await fetch('/api/user/addresses');
+      if (!res.ok) { showMsg('Error al cargar las direcciones.', false); return; }
+      const { addresses } = await res.json();
+      renderAddresses(addresses || []);
+    } catch {
+      showMsg('Error de conexión.', false);
+    }
   }
 
   // ── Modal ──────────────────────────────────────────────────
@@ -245,20 +243,18 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
     ($('field-country') as HTMLInputElement).value = 'España';
   }
 
-  function openAdd() {
-    openModal('Nueva dirección');
-  }
+  function openAdd() { openModal('Nueva dirección'); }
 
   function openEdit(id: string, addresses: any[]) {
     const addr = addresses.find(a => a.id === id);
     if (!addr) return;
     const d = addr.address_data;
     ($('field-id') as HTMLInputElement).value = id;
-    ($('field-name') as HTMLInputElement).value = d.name || '';
+    ($('field-name') as HTMLInputElement).value = d.name || d.fullName || '';
     ($('field-phone') as HTMLInputElement).value = d.phone || '';
-    ($('field-address') as HTMLInputElement).value = d.address || '';
+    ($('field-address') as HTMLInputElement).value = d.address || d.street || '';
     ($('field-address2') as HTMLInputElement).value = d.address2 || '';
-    ($('field-postal') as HTMLInputElement).value = d.postal_code || '';
+    ($('field-postal') as HTMLInputElement).value = d.postal_code || d.postalCode || '';
     ($('field-city') as HTMLInputElement).value = d.city || '';
     ($('field-province') as HTMLInputElement).value = d.province || '';
     ($('field-country') as HTMLInputElement).value = d.country || 'España';
@@ -275,12 +271,9 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
     btn.textContent = 'Guardando...';
     $('form-error').classList.add('hidden');
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { btn.disabled = false; btn.textContent = 'Guardar'; return; }
-
     const id = ($('field-id') as HTMLInputElement).value;
-    const isDefault = ($('field-default') as HTMLInputElement).checked;
-    const addrType = ($('field-type') as HTMLSelectElement).value;
+    const is_default = ($('field-default') as HTMLInputElement).checked;
+    const address_type = ($('field-type') as HTMLSelectElement).value;
 
     const address_data = {
       name:        ($('field-name') as HTMLInputElement).value.trim(),
@@ -293,65 +286,66 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
       country:     ($('field-country') as HTMLInputElement).value.trim() || 'España',
     };
 
-    // Si se pone como predeterminada, quitar la anterior
-    if (isDefault) {
-      await supabase
-        .from('user_addresses')
-        .update({ is_default: false })
-        .eq('user_id', user.id)
-        .eq('address_type', addrType)
-        .neq('id', id || '00000000-0000-0000-0000-000000000000');
+    try {
+      let res;
+      if (id) {
+        res = await fetch(`/api/user/addresses/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address_data, address_type, is_default }),
+        });
+      } else {
+        res = await fetch('/api/user/addresses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ addressData: address_data, address_type, is_default }),
+        });
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Guardar';
+
+      if (!res.ok) {
+        const { error } = await res.json();
+        const errEl = $('form-error');
+        errEl.textContent = error || 'Error al guardar la dirección. Inténtalo de nuevo.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      closeModal();
+      showMsg(id ? 'Dirección actualizada.' : 'Dirección añadida.');
+      loadAddresses();
+    } catch {
+      btn.disabled = false;
+      btn.textContent = 'Guardar';
+      showMsg('Error de conexión.', false);
     }
-
-    let error;
-    if (id) {
-      ({ error } = await supabase
-        .from('user_addresses')
-        .update({ address_data, address_type: addrType, is_default: isDefault, updated_at: new Date().toISOString() })
-        .eq('id', id));
-    } else {
-      ({ error } = await supabase
-        .from('user_addresses')
-        .insert({ user_id: user.id, address_data, address_type: addrType, is_default: isDefault }));
-    }
-
-    btn.disabled = false;
-    btn.textContent = 'Guardar';
-
-    if (error) {
-      const errEl = $('form-error');
-      errEl.textContent = 'Error al guardar la dirección. Inténtalo de nuevo.';
-      errEl.classList.remove('hidden');
-      return;
-    }
-
-    closeModal();
-    showMsg(id ? 'Dirección actualizada.' : 'Dirección añadida.');
-    loadAddresses();
   });
 
   // ── Default ────────────────────────────────────────────────
   async function setDefault(id: string) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data: addr } = await supabase.from('user_addresses').select('address_type').eq('id', id).single();
-    if (!addr) return;
-
-    await supabase.from('user_addresses').update({ is_default: false }).eq('user_id', user.id).eq('address_type', addr.address_type);
-    const { error } = await supabase.from('user_addresses').update({ is_default: true }).eq('id', id);
-    if (error) { showMsg('Error al actualizar.', false); return; }
-    showMsg('Dirección predeterminada actualizada.');
-    loadAddresses();
+    try {
+      const res = await fetch(`/api/user/addresses/${id}`, { method: 'PATCH' });
+      if (!res.ok) { showMsg('Error al actualizar.', false); return; }
+      showMsg('Dirección predeterminada actualizada.');
+      loadAddresses();
+    } catch {
+      showMsg('Error de conexión.', false);
+    }
   }
 
   // ── Delete ─────────────────────────────────────────────────
   async function deleteAddress(id: string) {
     if (!confirm('¿Eliminar esta dirección?')) return;
-    const { error } = await supabase.from('user_addresses').delete().eq('id', id);
-    if (error) { showMsg('Error al eliminar la dirección.', false); return; }
-    showMsg('Dirección eliminada.');
-    loadAddresses();
+    try {
+      const res = await fetch(`/api/user/addresses/${id}`, { method: 'DELETE' });
+      if (!res.ok) { showMsg('Error al eliminar la dirección.', false); return; }
+      showMsg('Dirección eliminada.');
+      loadAddresses();
+    } catch {
+      showMsg('Error de conexión.', false);
+    }
   }
 
   // ── Events ─────────────────────────────────────────────────

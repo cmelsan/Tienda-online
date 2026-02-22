@@ -119,13 +119,13 @@ export async function validateCoupon(
     // Check if user has already used this coupon (if userId provided)
     // Restrict to one use per user
     if (userId) {
-      // Use maybeSingle() — returns null (no error) when 0 rows, error only on DB failure
-      const { data: userUsage, error: usageError } = await supabase
-        .from('coupon_usage')
-        .select('id')
-        .eq('coupon_id', validCoupon.id)
-        .eq('user_id', userId)
-        .maybeSingle();
+      // Use SECURITY DEFINER RPC — direct table query with anon client
+      // returns 0 rows due to RLS even when usage exists, so we use
+      // a server-side function that bypasses RLS.
+      const { data: alreadyUsed, error: usageError } = await (supabase as any).rpc(
+        'check_coupon_used_by_user',
+        { p_coupon_id: validCoupon.id, p_user_id: userId }
+      );
 
       if (usageError) {
         // Real DB error — fail safely blocking the coupon
@@ -135,8 +135,8 @@ export async function validateCoupon(
         };
       }
 
-      // If a row exists, user has already used this coupon
-      if (userUsage) {
+      // RPC returns true if already used
+      if (alreadyUsed === true) {
         return {
           valid: false,
           error: 'Ya has utilizado este código de descuento. Solo puedes usarlo una vez.',

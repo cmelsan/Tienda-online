@@ -43,8 +43,23 @@ export const POST: APIRoute = async ({ request }) => {
         }
         const dbProducts = productsResult.data;
 
-        // Prepare line items using CART prices (already include flash sale / featured offer discounts)
-        // Only validate stock from DB - prices are trusted from cart which is validated at add-to-cart time
+        // Fetch featured offers (rebajas) from app_settings to apply server-side discounts
+        const { data: offersData } = await supabase
+            .from('app_settings')
+            .select('value')
+            .eq('key', 'featured_offers')
+            .single();
+
+        // Build a map of productId → discount percentage for rebajas
+        const featuredOffersMap: Record<string, number> = {};
+        if (Array.isArray(offersData?.value)) {
+            for (const offer of offersData.value as any[]) {
+                if (offer.id && offer.discount > 0) {
+                    featuredOffersMap[offer.id] = offer.discount;
+                }
+            }
+        }
+
         const line_items = items.map((item: any) => {
             const dbProduct = dbProducts.find(p => p.id === item.product.id);
             
@@ -57,17 +72,25 @@ export const POST: APIRoute = async ({ request }) => {
                 throw new Error(`Insufficient stock for ${dbProduct.name}. Available: ${dbProduct.stock}`);
             }
 
-            // SECURITY: Calculate price server-side — never trust client value
-            // Apply flash sale discount if active
+            // SECURITY: Calculate effective price server-side — never trust client value.
+            // Apply the best available discount: flash sale OR featured offer (rebajas).
             const now = new Date();
             const isFlashSaleActive =
                 dbProduct.is_flash_sale &&
                 dbProduct.flash_sale_discount > 0 &&
                 (!dbProduct.flash_sale_end_time || new Date(dbProduct.flash_sale_end_time) > now);
 
-            const unitAmount = isFlashSaleActive
+            const flashSalePrice = isFlashSaleActive
                 ? Math.round(dbProduct.price * (1 - dbProduct.flash_sale_discount / 100))
                 : dbProduct.price;
+
+            const featuredDiscount = featuredOffersMap[dbProduct.id] || 0;
+            const featuredOfferPrice = featuredDiscount > 0
+                ? Math.round(dbProduct.price * (1 - featuredDiscount / 100))
+                : dbProduct.price;
+
+            // Use the lowest price between flash sale and featured offer
+            const unitAmount = Math.min(flashSalePrice, featuredOfferPrice);
 
             if (DEBUG) {
                 console.log('[Checkout] Product validated:', {
@@ -76,6 +99,7 @@ export const POST: APIRoute = async ({ request }) => {
                     clientPrice: item.price,
                     effectivePrice: unitAmount,
                     flashSale: isFlashSaleActive,
+                    featuredDiscount: featuredDiscount,
                     quantity: item.quantity,
                     stock: dbProduct.stock
                 });

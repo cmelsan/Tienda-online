@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ÉCLAT Beauty — Documentación Técnica</title>
+  <style>
+    /* ── RESET & BASE ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 13px; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #1a1a1a;
+      background: #fff;
+      line-height: 1.6;
+    }
+
+    /* ── PRINT ── */
+    @media print {
+      html { font-size: 11px; }
+      .page-break { page-break-before: always; }
+      .no-break { page-break-inside: avoid; }
+      body { background: #fff; }
+      .download-btn { display: none !important; }
+    }
+
+    /* ── LAYOUT ── */
+    .page { max-width: 900px; margin: 0 auto; padding: 32px 40px; }
+
+    /* ── DOWNLOAD BTN ── */
+    .download-btn {
+      position: fixed; top: 20px; right: 20px; z-index: 999;
+      background: #1a1a1a; color: #fff;
+      border: none; padding: 10px 20px; border-radius: 4px;
+      font-size: 13px; cursor: pointer; font-family: inherit;
+    }
+    .download-btn:hover { background: #333; }
+
+    /* ── COVER ── */
+    .cover {
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
+      border-bottom: 2px solid #e8c4b8;
+      padding-bottom: 60px;
+    }
+    .cover-logo {
+      font-size: 11px; letter-spacing: 0.4em; text-transform: uppercase;
+      color: #c8956c; font-weight: 600; margin-bottom: 24px;
+    }
+    .cover h1 {
+      font-size: 42px; font-weight: 300; letter-spacing: -0.5px;
+      color: #1a1a1a; line-height: 1.15; margin-bottom: 16px;
+    }
+    .cover h1 span { font-weight: 700; }
+    .cover-sub {
+      font-size: 14px; color: #666; max-width: 520px;
+      margin-bottom: 40px; line-height: 1.7;
+    }
+    .cover-meta {
+      display: flex; gap: 40px; flex-wrap: wrap;
+    }
+    .cover-meta-item { }
+    .cover-meta-label {
+      font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+      color: #999; display: block; margin-bottom: 3px;
+    }
+    .cover-meta-value { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+    .cover-stack {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 32px;
+    }
+    .tag {
+      background: #f5f0ed; color: #7a5c4f; border: 1px solid #e8d5cb;
+      padding: 4px 12px; border-radius: 20px; font-size: 11px;
+      letter-spacing: 0.05em; font-weight: 500;
+    }
+
+    /* ── SECTION ── */
+    .section { margin-top: 60px; }
+    .section-number {
+      font-size: 10px; letter-spacing: 0.35em; text-transform: uppercase;
+      color: #c8956c; font-weight: 600; display: block; margin-bottom: 8px;
+    }
+    .section h2 {
+      font-size: 26px; font-weight: 300; color: #1a1a1a;
+      border-bottom: 1px solid #e5e5e5; padding-bottom: 12px;
+      margin-bottom: 24px;
+    }
+    .section h2 strong { font-weight: 700; }
+    .section h3 {
+      font-size: 15px; font-weight: 700; color: #1a1a1a;
+      margin: 28px 0 10px;
+    }
+    .section p { color: #444; margin-bottom: 12px; }
+
+    /* ── ER DIAGRAM ── */
+    .er-wrap {
+      background: #fafafa;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 32px 16px;
+      overflow-x: auto;
+    }
+    .er-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      min-width: 760px;
+    }
+    .er-entity {
+      background: #fff;
+      border: 1.5px solid #d0b8aa;
+      border-radius: 6px;
+      overflow: hidden;
+      font-size: 11px;
+    }
+    .er-entity.central {
+      border-color: #c8956c;
+      border-width: 2px;
+    }
+    .er-entity.auth {
+      border-color: #8aaccc;
+      border-width: 2px;
+    }
+    .er-entity-header {
+      background: #f5ede8;
+      padding: 5px 8px;
+      font-weight: 700;
+      font-size: 10.5px;
+      letter-spacing: 0.03em;
+      color: #5a3a2a;
+      text-transform: uppercase;
+      border-bottom: 1px solid #e0c9bd;
+    }
+    .er-entity.central .er-entity-header { background: #e8c4b0; }
+    .er-entity.auth .er-entity-header { background: #c4d9f0; color: #2a4a6a; border-color: #aabfd9; }
+    .er-entity-fields { padding: 6px 8px; }
+    .er-field {
+      display: flex; align-items: center; gap: 5px;
+      padding: 2px 0;
+      border-bottom: 1px solid #f0f0f0;
+      color: #333;
+    }
+    .er-field:last-child { border-bottom: none; }
+    .er-field-pk { color: #c8956c; font-weight: 700; font-size: 9.5px; flex-shrink: 0; }
+    .er-field-fk { color: #6a9cc8; font-weight: 700; font-size: 9.5px; flex-shrink: 0; }
+    .er-field-name { font-size: 10.5px; }
+    .er-field-type { font-size: 9.5px; color: #999; margin-left: auto; }
+    .er-span-2 { grid-column: span 2; }
+    .er-col-start-2 { grid-column-start: 2; }
+
+    /* Relations table */
+    .relations-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+    .relations-table th {
+      background: #f5ede8; color: #5a3a2a; font-weight: 700;
+      padding: 7px 12px; text-align: left; border-bottom: 2px solid #e0c9bd;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .relations-table td { padding: 6px 12px; border-bottom: 1px solid #f0f0f0; color: #333; vertical-align: top; }
+    .relations-table tr:hover td { background: #fdfaf8; }
+    .rel-type { display: inline-block; background: #f0e8e0; color: #7a5040;
+      padding: 1px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+    code { background: #f5f5f5; padding: 1px 5px; border-radius: 3px; font-size: 11px;
+      font-family: 'Consolas', monospace; color: #c0392b; }
+
+    /* ── TECH TABLE ── */
+    .tech-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    .tech-table th {
+      background: #1a1a1a; color: #fff;
+      padding: 10px 14px; text-align: left; font-size: 11px;
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .tech-table td { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+    .tech-table tr:nth-child(even) td { background: #fafafa; }
+    .tech-name { font-weight: 700; color: #1a1a1a; font-size: 13px; }
+    .tech-version { font-size: 10px; color: #999; display: block; }
+    .tech-why { color: #444; font-size: 12px; line-height: 1.55; }
+    .tech-why ul { padding-left: 16px; margin-top: 4px; }
+    .tech-why li { margin-bottom: 2px; }
+    .badge { display: inline-block; background: #e8f5e9; color: #2e7d32;
+      padding: 1px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; margin-left: 6px; }
+    .badge.red { background: #fce4ec; color: #c62828; }
+    .badge.blue { background: #e3f2fd; color: #1565c0; }
+
+    /* ── FLOW DIAGRAM ── */
+    .flow-section { margin-bottom: 40px; }
+    .flow-title {
+      font-size: 13px; font-weight: 700; color: #5a3a2a;
+      background: #f5ede8; border-left: 3px solid #c8956c;
+      padding: 8px 14px; margin-bottom: 16px; border-radius: 0 4px 4px 0;
+    }
+    .flow {
+      display: flex; flex-direction: column; gap: 0;
+      max-width: 680px; margin: 0 auto;
+    }
+    .flow-step {
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    .flow-line {
+      display: flex; flex-direction: column; align-items: center; flex-shrink: 0;
+      width: 36px;
+    }
+    .flow-circle {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #1a1a1a; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .flow-circle.highlight { background: #c8956c; }
+    .flow-circle.green { background: #2e7d32; }
+    .flow-circle.blue { background: #1565c0; }
+    .flow-connector {
+      width: 2px; background: #e0e0e0; flex: 1; min-height: 18px; margin: 2px 0;
+    }
+    .flow-content { padding-bottom: 18px; flex: 1; padding-top: 5px; }
+    .flow-content strong { font-size: 13px; display: block; margin-bottom: 3px; }
+    .flow-content p { font-size: 12px; color: #555; margin: 0; line-height: 1.55; }
+    .flow-actor {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 1px 7px; border-radius: 3px; margin-bottom: 4px;
+    }
+    .actor-cliente { background: #e3f2fd; color: #1565c0; }
+    .actor-stripe { background: #f3e5f5; color: #6a1b9a; }
+    .actor-sistema { background: #e8f5e9; color: #2e7d32; }
+    .actor-admin { background: #fff3e0; color: #e65100; }
+
+    /* ── DB SUMMARY ── */
+    .db-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px;
+    }
+    .db-card {
+      border: 1px solid #e5e5e5; border-radius: 6px;
+      padding: 12px 14px; background: #fafafa;
+    }
+    .db-card-name { font-size: 12px; font-weight: 700; color: #c8956c; font-family: 'Consolas', monospace; }
+    .db-card-desc { font-size: 11px; color: #666; margin-top: 3px; line-height: 1.45; }
+    .db-card-pk { font-size: 10px; color: #999; margin-top: 5px; }
+    .db-card-pk span { color: #c0392b; font-family: 'Consolas', monospace; }
+
+    /* ── HIGHLIGHT BOX ── */
+    .highlight-box {
+      background: #f5ede8; border-left: 4px solid #c8956c;
+      padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 20px 0;
+    }
+    .highlight-box strong { color: #5a3a2a; }
+    .highlight-box p { color: #5a3a2a; margin: 0; font-size: 12px; line-height: 1.6; }
+
+    /* ── FOOTER ── */
+    .doc-footer {
+      margin-top: 60px; padding-top: 20px; border-top: 1px solid #e5e5e5;
+      font-size: 11px; color: #999; display: flex; justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+<button class="download-btn" onclick="window.print()">Descargar PDF (Ctrl+P)</button>
+
+<div class="page">
+
+  <!-- ══════════ PORTADA ══════════ -->
+  <div class="cover">
+    <span class="cover-logo">ÉCLAT Beauty &mdash; Documentación Técnica</span>
+    <h1>Informe <span>Técnico</span><br>del Proyecto</h1>
+    <p class="cover-sub">
+      Plataforma e-commerce de cosmética premium construida sobre Astro 5, Supabase y Stripe.
+      Este documento recoge el diagrama entidad-relación de la base de datos, la justificación
+      del stack tecnológico y la descripción detallada del flujo de facturación.
+    </p>
+
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Proyecto</span>
+        <span class="cover-meta-value">ÉCLAT Beauty — Tienda Online</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Fecha</span>
+        <span class="cover-meta-value">Febrero 2026</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Tablas en BD</span>
+        <span class="cover-meta-value">18 tablas PostgreSQL</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="cover-meta-label">Despliegue</span>
+        <span class="cover-meta-value">Coolify + Docker (VPS)</span>
+      </div>
+    </div>
+
+    <div class="cover-stack">
+      <span class="tag">Astro 5</span>
+      <span class="tag">React 18</span>
+      <span class="tag">TypeScript</span>
+      <span class="tag">Supabase PostgreSQL</span>
+      <span class="tag">Stripe</span>
+      <span class="tag">Brevo Email</span>
+      <span class="tag">Cloudinary</span>
+      <span class="tag">PDFKit</span>
+      <span class="tag">Nanostores</span>
+      <span class="tag">Tailwind CSS 3</span>
+      <span class="tag">Docker · Coolify</span>
+    </div>
+  </div>
+
+  <!-- ══════════ ÍNDICE ══════════ -->
+  <div class="section">
+    <span class="section-number">Contenido</span>
+    <h2><strong>Índice</strong></h2>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;">
+      <tr><td style="padding:6px 0;border-bottom:1px dashed #e5e5e5;">1. Diagrama Entidad-Relación (ER)</td><td style="text-align:right;color:#999;border-bottom:1px dashed #e5e5e5;">Sección 1</td></tr>
+      <tr><td style="padding:6px 0;border-bottom:1px dashed #e5e5e5;">&nbsp;&nbsp;&nbsp;1.1 Entidades y atributos principales</td><td style="text-align:right;color:#999;border-bottom:1px dashed #e5e5e5;"></td></tr>
+      <tr><td style="padding:6px 0;border-bottom:1px dashed #e5e5e5;">&nbsp;&nbsp;&nbsp;1.2 Relaciones entre tablas</td><td style="text-align:right;color:#999;border-bottom:1px dashed #e5e5e5;"></td></tr>
+      <tr><td style="padding:6px 0;border-bottom:1px dashed #e5e5e5;">2. Justificación del Stack Tecnológico</td><td style="text-align:right;color:#999;border-bottom:1px dashed #e5e5e5;">Sección 2</td></tr>
+      <tr><td style="padding:6px 0;border-bottom:1px dashed #e5e5e5;">3. Flujo de Facturación</td><td style="text-align:right;color:#999;border-bottom:1px dashed #e5e5e5;">Sección 3</td></tr>
+      <tr><td style="padding:6px 0;border-bottom:1px dashed #e5e5e5;">&nbsp;&nbsp;&nbsp;3.1 Compra (Happy Path)</td><td style="text-align:right;color:#999;border-bottom:1px dashed #e5e5e5;"></td></tr>
+      <tr><td style="padding:6px 0;border-bottom:1px dashed #e5e5e5;">&nbsp;&nbsp;&nbsp;3.2 Cancelación con reembolso</td><td style="text-align:right;color:#999;border-bottom:1px dashed #e5e5e5;"></td></tr>
+      <tr><td style="padding:6px 0;">&nbsp;&nbsp;&nbsp;3.3 Devolución parcial post-entrega</td><td style="text-align:right;color:#999;"></td></tr>
+    </table>
+  </div>
+
+  <!-- ══════════ SECCIÓN 1: ER ══════════ -->
+  <div class="section page-break">
+    <span class="section-number">Sección 01</span>
+    <h2>Diagrama <strong>Entidad-Relación</strong></h2>
+
+    <p>La base de datos de ÉCLAT Beauty está implementada en <strong>PostgreSQL (Supabase)</strong> y consta de <strong>18 tablas</strong> con claves foráneas, restricciones <code>CHECK</code> y Row Level Security (RLS) activado en todas ellas. A continuación se representan las entidades agrupadas por dominio.</p>
+
+    <!-- ENTIDADES VISUALES -->
+    <div class="er-wrap no-break">
+      <!-- SVG ER Diagram -->
+      <svg viewBox="0 0 860 760" xmlns="http://www.w3.org/2000/svg" style="width:100%;font-family:'Segoe UI',Arial,sans-serif;font-size:11px;">
+
+        <!-- ── DEFS ── -->
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#bbb"/>
+          </marker>
+          <marker id="arrow-orange" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#c8956c"/>
+          </marker>
+        </defs>
+
+        <!-- ════ ENTITIES ════ -->
+
+        <!-- auth.users (top-left) -->
+        <rect x="10" y="10" width="155" height="100" rx="6" fill="#e8f0fa" stroke="#6a9cc8" stroke-width="1.5"/>
+        <rect x="10" y="10" width="155" height="24" rx="6" fill="#6a9cc8"/>
+        <rect x="10" y="28" width="155" height="6" fill="#6a9cc8"/>
+        <text x="88" y="27" text-anchor="middle" fill="white" font-weight="700" font-size="11">auth.users</text>
+        <text x="17" y="50" fill="#333" font-size="10">🔑 id : uuid (PK)</text>
+        <text x="17" y="65" fill="#777" font-size="10">  email : text</text>
+        <text x="17" y="80" fill="#777" font-size="10">  phone : text</text>
+        <text x="17" y="95" fill="#444" font-size="9.5" font-style="italic">  (gestionado por Supabase)</text>
+
+        <!-- profiles -->
+        <rect x="180" y="10" width="150" height="100" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="180" y="10" width="150" height="24" rx="6" fill="#e8c4b0"/>
+        <rect x="180" y="28" width="150" height="6" fill="#e8c4b0"/>
+        <text x="255" y="27" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="11">profiles</text>
+        <text x="187" y="50" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK, FK→users)</text>
+        <text x="187" y="65" fill="#777" font-size="10">  email : text</text>
+        <text x="187" y="80" fill="#333" font-size="10">  is_admin : boolean</text>
+        <text x="187" y="95" fill="#777" font-size="10">  created_at : timestamptz</text>
+
+        <!-- password_reset_tokens -->
+        <rect x="344" y="10" width="170" height="110" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="344" y="10" width="170" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="344" y="28" width="170" height="6" fill="#f5ede8"/>
+        <text x="429" y="27" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="10.5">password_reset_tokens</text>
+        <text x="351" y="50" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="351" y="65" fill="#6a9cc8" font-size="10" font-weight="700">🔗 user_id : uuid (FK→users)</text>
+        <text x="351" y="80" fill="#777" font-size="10">  token : text (UNIQUE)</text>
+        <text x="351" y="95" fill="#777" font-size="10">  expires_at : timestamptz</text>
+        <text x="351" y="110" fill="#777" font-size="10">  used : boolean</text>
+
+        <!-- newsletter_subscribers -->
+        <rect x="528" y="10" width="155" height="85" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="528" y="10" width="155" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="528" y="28" width="155" height="6" fill="#f5ede8"/>
+        <text x="606" y="27" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="10.5">newsletter_subscribers</text>
+        <text x="535" y="50" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="535" y="65" fill="#777" font-size="10">  email : varchar (UNIQUE)</text>
+        <text x="535" y="80" fill="#777" font-size="10">  is_active : boolean</text>
+
+        <!-- app_settings -->
+        <rect x="697" y="10" width="148" height="85" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="697" y="10" width="148" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="697" y="28" width="148" height="6" fill="#f5ede8"/>
+        <text x="771" y="27" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="11">app_settings</text>
+        <text x="704" y="50" fill="#c8956c" font-size="10" font-weight="700">🔑 key : text (PK)</text>
+        <text x="704" y="65" fill="#777" font-size="10">  value : jsonb</text>
+        <text x="704" y="80" fill="#777" font-size="10">  updated_at : timestamptz</text>
+
+        <!-- ── ROW 2 ── -->
+
+        <!-- carts -->
+        <rect x="10" y="145" width="165" height="115" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="10" y="145" width="165" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="10" y="163" width="165" height="6" fill="#f5ede8"/>
+        <text x="92" y="162" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="11">carts</text>
+        <text x="17" y="184" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="17" y="199" fill="#6a9cc8" font-size="10" font-weight="700">🔗 user_id : uuid (FK→users)</text>
+        <text x="17" y="214" fill="#777" font-size="10">  session_id : text (UNIQUE)</text>
+        <text x="17" y="229" fill="#777" font-size="10">  items : jsonb</text>
+        <text x="17" y="244" fill="#777" font-size="10">  expires_at : timestamptz</text>
+
+        <!-- user_addresses -->
+        <rect x="190" y="145" width="155" height="115" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="190" y="145" width="155" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="190" y="163" width="155" height="6" fill="#f5ede8"/>
+        <text x="268" y="162" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="11">user_addresses</text>
+        <text x="197" y="184" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="197" y="199" fill="#6a9cc8" font-size="10" font-weight="700">🔗 user_id : uuid (FK→users)</text>
+        <text x="197" y="214" fill="#777" font-size="10">  address_data : jsonb</text>
+        <text x="197" y="229" fill="#777" font-size="10">  address_type : varchar</text>
+        <text x="197" y="244" fill="#777" font-size="10">  is_default : boolean</text>
+
+        <!-- categories -->
+        <rect x="360" y="145" width="150" height="115" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="360" y="145" width="150" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="360" y="163" width="150" height="6" fill="#f5ede8"/>
+        <text x="435" y="162" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="11">categories</text>
+        <text x="367" y="184" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="367" y="199" fill="#777" font-size="10">  name : varchar</text>
+        <text x="367" y="214" fill="#777" font-size="10">  slug : varchar (UNIQUE)</text>
+        <text x="367" y="229" fill="#777" font-size="10">  description : text</text>
+
+        <!-- subcategories -->
+        <rect x="524" y="145" width="160" height="115" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="524" y="145" width="160" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="524" y="163" width="160" height="6" fill="#f5ede8"/>
+        <text x="604" y="162" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="11">subcategories</text>
+        <text x="531" y="184" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="531" y="199" fill="#777" font-size="10">  name : varchar</text>
+        <text x="531" y="214" fill="#777" font-size="10">  slug : varchar</text>
+        <text x="531" y="229" fill="#6a9cc8" font-size="10" font-weight="700">🔗 category_id : uuid (FK)</text>
+
+        <!-- brands -->
+        <rect x="697" y="145" width="148" height="115" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="697" y="145" width="148" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="697" y="163" width="148" height="6" fill="#f5ede8"/>
+        <text x="771" y="162" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="11">brands</text>
+        <text x="704" y="184" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="704" y="199" fill="#777" font-size="10">  name : varchar</text>
+        <text x="704" y="214" fill="#777" font-size="10">  slug : varchar (UNIQUE)</text>
+        <text x="704" y="229" fill="#777" font-size="10">  logo_url : text</text>
+        <text x="704" y="244" fill="#777" font-size="10">  description : text</text>
+
+        <!-- ── ROW 3: products (CENTRAL) ── -->
+
+        <!-- products -->
+        <rect x="280" y="305" width="290" height="175" rx="6" fill="#fff" stroke="#c8956c" stroke-width="2"/>
+        <rect x="280" y="305" width="290" height="26" rx="6" fill="#c8956c"/>
+        <rect x="280" y="323" width="290" height="8" fill="#c8956c"/>
+        <text x="425" y="323" text-anchor="middle" fill="white" font-weight="700" font-size="12">products ★</text>
+        <text x="287" y="347" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="287" y="362" fill="#777" font-size="10">  name, slug, description, price, stock</text>
+        <text x="287" y="377" fill="#6a9cc8" font-size="10" font-weight="700">🔗 category_id : uuid (FK)</text>
+        <text x="287" y="392" fill="#6a9cc8" font-size="10" font-weight="700">🔗 subcategory_id : uuid (FK)</text>
+        <text x="287" y="407" fill="#6a9cc8" font-size="10" font-weight="700">🔗 brand_id : uuid (FK)</text>
+        <text x="287" y="422" fill="#777" font-size="10">  images : text[]</text>
+        <text x="287" y="437" fill="#777" font-size="10">  is_flash_sale, flash_sale_discount, flash_sale_end_time</text>
+        <text x="287" y="452" fill="#777" font-size="10">  is_bestseller : boolean</text>
+        <text x="287" y="469" fill="#777" font-size="10">  created_at, updated_at : timestamptz</text>
+
+        <!-- wishlist -->
+        <rect x="10" y="305" width="155" height="100" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="10" y="305" width="155" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="10" y="323" width="155" height="6" fill="#f5ede8"/>
+        <text x="88" y="322" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="11">wishlist</text>
+        <text x="17" y="344" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="17" y="359" fill="#6a9cc8" font-size="10" font-weight="700">🔗 user_id : uuid (FK→users)</text>
+        <text x="17" y="374" fill="#6a9cc8" font-size="10" font-weight="700">🔗 product_id : uuid (FK)</text>
+        <text x="17" y="389" fill="#777" font-size="10">  created_at : timestamptz</text>
+
+        <!-- reviews -->
+        <rect x="10" y="420" width="155" height="115" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="10" y="420" width="155" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="10" y="438" width="155" height="6" fill="#f5ede8"/>
+        <text x="88" y="437" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="11">reviews</text>
+        <text x="17" y="459" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="17" y="474" fill="#6a9cc8" font-size="10" font-weight="700">🔗 product_id : uuid (FK)</text>
+        <text x="17" y="489" fill="#6a9cc8" font-size="10" font-weight="700">🔗 user_id : uuid (FK→users)</text>
+        <text x="17" y="504" fill="#777" font-size="10">  rating : int (0–5)</text>
+        <text x="17" y="519" fill="#777" font-size="10">  comment : text</text>
+
+        <!-- coupons -->
+        <rect x="620" y="305" width="225" height="160" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="620" y="305" width="225" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="620" y="323" width="225" height="6" fill="#f5ede8"/>
+        <text x="733" y="322" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="11">coupons</text>
+        <text x="627" y="344" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="627" y="359" fill="#777" font-size="10">  code : varchar (UNIQUE)</text>
+        <text x="627" y="374" fill="#777" font-size="10">  discount_type : varchar</text>
+        <text x="627" y="389" fill="#777" font-size="10">  discount_value : numeric</text>
+        <text x="627" y="404" fill="#777" font-size="10">  max_uses, current_uses : int</text>
+        <text x="627" y="419" fill="#777" font-size="10">  min_purchase_amount : numeric</text>
+        <text x="627" y="434" fill="#777" font-size="10">  applicable_categories : array</text>
+        <text x="627" y="449" fill="#777" font-size="10">  is_active, valid_from, valid_until</text>
+
+        <!-- ── ROW 4: orders (CENTRAL) ── -->
+
+        <!-- orders -->
+        <rect x="200" y="530" width="255" height="185" rx="6" fill="#fff" stroke="#c8956c" stroke-width="2"/>
+        <rect x="200" y="530" width="255" height="26" rx="6" fill="#c8956c"/>
+        <rect x="200" y="548" width="255" height="8" fill="#c8956c"/>
+        <text x="328" y="548" text-anchor="middle" fill="white" font-weight="700" font-size="12">orders ★</text>
+        <text x="207" y="572" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="207" y="587" fill="#6a9cc8" font-size="10" font-weight="700">🔗 user_id : uuid (FK→users, nullable)</text>
+        <text x="207" y="602" fill="#777" font-size="10">  status : varchar (CHECK enum)</text>
+        <text x="207" y="617" fill="#777" font-size="10">    awaiting_payment | paid | shipped</text>
+        <text x="207" y="632" fill="#777" font-size="10">    delivered | cancelled | return_*</text>
+        <text x="207" y="647" fill="#777" font-size="10">  total_amount : int (céntimos)</text>
+        <text x="207" y="662" fill="#777" font-size="10">  order_number : varchar (UNIQUE)</text>
+        <text x="207" y="677" fill="#777" font-size="10">  stripe_payment_intent_id : varchar</text>
+        <text x="207" y="692" fill="#777" font-size="10">  guest_email, shipping_address (jsonb)</text>
+        <text x="207" y="707" fill="#777" font-size="10">  return_deadline_at, customer_name</text>
+
+        <!-- order_items -->
+        <rect x="10" y="555" width="175" height="160" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="10" y="555" width="175" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="10" y="573" width="175" height="6" fill="#f5ede8"/>
+        <text x="97" y="572" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="11">order_items</text>
+        <text x="17" y="594" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="17" y="609" fill="#6a9cc8" font-size="10" font-weight="700">🔗 order_id : uuid (FK)</text>
+        <text x="17" y="624" fill="#6a9cc8" font-size="10" font-weight="700">🔗 product_id : uuid (FK)</text>
+        <text x="17" y="639" fill="#777" font-size="10">  quantity : int</text>
+        <text x="17" y="654" fill="#777" font-size="10">  price_at_purchase : int</text>
+        <text x="17" y="669" fill="#777" font-size="10">  return_status : varchar</text>
+        <text x="17" y="684" fill="#777" font-size="10">    requested | approved</text>
+        <text x="17" y="699" fill="#777" font-size="10">    rejected | refunded</text>
+        <text x="17" y="714" fill="#777" font-size="10">  return_reason, return_requested_at</text>
+
+        <!-- invoices -->
+        <rect x="470" y="530" width="195" height="190" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="470" y="530" width="195" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="470" y="548" width="195" height="6" fill="#f5ede8"/>
+        <text x="568" y="547" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="11">invoices</text>
+        <text x="477" y="569" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="477" y="584" fill="#6a9cc8" font-size="10" font-weight="700">🔗 order_id : uuid (FK)</text>
+        <text x="477" y="599" fill="#6a9cc8" font-size="10" font-weight="700">🔗 reference_invoice_id (FK self)</text>
+        <text x="477" y="614" fill="#777" font-size="10">  type : invoice | credit_note</text>
+        <text x="477" y="629" fill="#777" font-size="10">  invoice_number : varchar (UNIQUE)</text>
+        <text x="477" y="644" fill="#777" font-size="10">  subtotal, tax_amount, total_amount</text>
+        <text x="477" y="659" fill="#777" font-size="10">  tax_rate : 21%</text>
+        <text x="477" y="674" fill="#777" font-size="10">  discount_amount : int</text>
+        <text x="477" y="689" fill="#777" font-size="10">  line_items : jsonb</text>
+        <text x="477" y="704" fill="#777" font-size="10">  stripe_refund_id : varchar</text>
+        <text x="477" y="719" fill="#777" font-size="10">  customer_name, customer_nif</text>
+
+        <!-- order_status_history -->
+        <rect x="680" y="530" width="165" height="135" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="680" y="530" width="165" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="680" y="548" width="165" height="6" fill="#f5ede8"/>
+        <text x="763" y="547" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="10">order_status_history</text>
+        <text x="687" y="569" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="687" y="584" fill="#6a9cc8" font-size="10" font-weight="700">🔗 order_id : uuid (FK)</text>
+        <text x="687" y="599" fill="#777" font-size="10">  from_status : varchar</text>
+        <text x="687" y="614" fill="#777" font-size="10">  to_status : varchar</text>
+        <text x="687" y="629" fill="#777" font-size="10">  changed_by_type:</text>
+        <text x="687" y="644" fill="#777" font-size="10">    user | admin | system</text>
+        <text x="687" y="659" fill="#777" font-size="10">  notes : text</text>
+
+        <!-- refunds_log -->
+        <rect x="680" y="678" width="165" height="100" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="680" y="678" width="165" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="680" y="696" width="165" height="6" fill="#f5ede8"/>
+        <text x="763" y="695" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="11">refunds_log</text>
+        <text x="687" y="717" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="687" y="732" fill="#6a9cc8" font-size="10" font-weight="700">🔗 order_id : uuid (FK)</text>
+        <text x="687" y="747" fill="#777" font-size="10">  stripe_refund_id : varchar</text>
+        <text x="687" y="762" fill="#777" font-size="10">  amount : int (céntimos)</text>
+
+        <!-- coupon_usage -->
+        <rect x="470" y="735" width="195" height="100" rx="6" fill="#fff" stroke="#d0b8aa" stroke-width="1.5"/>
+        <rect x="470" y="735" width="195" height="24" rx="6" fill="#f5ede8"/>
+        <rect x="470" y="753" width="195" height="6" fill="#f5ede8"/>
+        <text x="568" y="752" text-anchor="middle" fill="#5a3a2a" font-weight="700" font-size="11">coupon_usage</text>
+        <text x="477" y="774" fill="#c8956c" font-size="10" font-weight="700">🔑 id : uuid (PK)</text>
+        <text x="477" y="789" fill="#6a9cc8" font-size="10" font-weight="700">🔗 coupon_id : uuid (FK)</text>
+        <text x="477" y="804" fill="#6a9cc8" font-size="10" font-weight="700">🔗 order_id : uuid (FK)</text>
+        <text x="477" y="819" fill="#777" font-size="10">  discount_applied : numeric</text>
+
+        <!-- ════ RELATIONSHIPS (arrows/lines) ════ -->
+
+        <!-- auth.users → profiles (1:1) -->
+        <line x1="165" y1="55" x2="180" y2="55" stroke="#6a9cc8" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+        <!-- auth.users → password_reset_tokens -->
+        <line x1="88" y1="110" x2="88" y2="128" stroke="#bbb" stroke-width="1" marker-end="url(#arrow)"/>
+        <line x1="88" y1="128" x2="429" y2="128" stroke="#bbb" stroke-width="1"/>
+        <line x1="429" y1="128" x2="429" y2="120" stroke="#bbb" stroke-width="1" marker-end="url(#arrow)"/>
+
+        <!-- auth.users → carts -->
+        <line x1="88" y1="110" x2="88" y2="145" stroke="#6a9cc8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- auth.users → user_addresses -->
+        <line x1="165" y1="75" x2="190" y2="75" stroke="#bbb" stroke-width="1"/>
+        <line x1="190" y1="75" x2="190" y2="145" stroke="#bbb" stroke-width="1" marker-end="url(#arrow)"/>
+
+        <!-- categories → subcategories -->
+        <line x1="510" y1="200" x2="524" y2="200" stroke="#c8956c" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+
+        <!-- categories → products -->
+        <line x1="435" y1="260" x2="435" y2="305" stroke="#c8956c" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+
+        <!-- subcategories → products -->
+        <line x1="604" y1="260" x2="604" y2="290" stroke="#c8956c" stroke-width="1.5"/>
+        <line x1="604" y1="290" x2="490" y2="290" stroke="#c8956c" stroke-width="1.5"/>
+        <line x1="490" y1="290" x2="490" y2="305" stroke="#c8956c" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+
+        <!-- brands → products -->
+        <line x1="697" y1="200" x2="620" y2="200" stroke="#c8956c" stroke-width="1.5"/>
+        <line x1="620" y1="200" x2="550" y2="200" stroke="#c8956c" stroke-width="1.5"/>
+        <line x1="550" y1="200" x2="550" y2="305" stroke="#c8956c" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+
+        <!-- products → orders (via order_items) -->
+        <line x1="330" y1="480" x2="330" y2="530" stroke="#c8956c" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+
+        <!-- auth.users → orders -->
+        <line x1="88" y1="110" x2="88" y2="540" stroke="#6a9cc8" stroke-width="1" stroke-dasharray="5,4"/>
+        <line x1="88" y1="540" x2="200" y2="540" stroke="#6a9cc8" stroke-width="1" marker-end="url(#arrow)"/>
+
+        <!-- orders → order_items -->
+        <line x1="200" y1="620" x2="185" y2="620" stroke="#c8956c" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+
+        <!-- orders → invoices -->
+        <line x1="455" y1="610" x2="470" y2="610" stroke="#c8956c" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+
+        <!-- orders → order_status_history -->
+        <line x1="455" y1="570" x2="680" y2="570" stroke="#bbb" stroke-width="1" marker-end="url(#arrow)"/>
+
+        <!-- orders → refunds_log -->
+        <line x1="455" y1="650" x2="660" y2="650" stroke="#bbb" stroke-width="1"/>
+        <line x1="660" y1="650" x2="660" y2="710" stroke="#bbb" stroke-width="1"/>
+        <line x1="660" y1="710" x2="680" y2="710" stroke="#bbb" stroke-width="1" marker-end="url(#arrow)"/>
+
+        <!-- orders → coupon_usage -->
+        <line x1="420" y1="715" x2="420" y2="757" stroke="#bbb" stroke-width="1"/>
+        <line x1="420" y1="757" x2="470" y2="757" stroke="#bbb" stroke-width="1" marker-end="url(#arrow)"/>
+
+        <!-- coupons → coupon_usage -->
+        <line x1="733" y1="465" x2="733" y2="757" stroke="#bbb" stroke-width="1"/>
+        <line x1="733" y1="757" x2="665" y2="757" stroke="#bbb" stroke-width="1" marker-end="url(#arrow)"/>
+
+        <!-- invoices → invoices (self-ref credit note) -->
+        <path d="M665 600 Q700 600 700 580 Q700 550 680 545" fill="none" stroke="#bbb" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+        <!-- products → wishlist -->
+        <line x1="280" y1="370" x2="165" y2="355" stroke="#bbb" stroke-width="1" marker-end="url(#arrow)"/>
+
+        <!-- products → reviews -->
+        <line x1="280" y1="440" x2="165" y2="455" stroke="#bbb" stroke-width="1" marker-end="url(#arrow)"/>
+
+        <!-- LEGEND -->
+        <rect x="10" y="760" width="840" height="0" fill="none"/>
+
+        <!-- Key -->
+        <text x="10" y="760" fill="#999" font-size="10">🔑 Clave primaria (PK)</text>
+        <text x="160" y="760" fill="#6a9cc8" font-size="10" font-weight="700">🔗 Clave foránea (FK)</text>
+        <text x="310" y="760" fill="#c8956c" font-size="10" font-weight="700">★ Entidad central</text>
+        <text x="430" y="760" fill="#999" font-size="10">— — Relación opcional / nullable</text>
+
+      </svg>
+    </div>
+
+    <!-- RELACIONES TABLE -->
+    <h3>1.2 Tabla de relaciones</h3>
+    <p>Todas las claves foráneas tienen restricción <code>ON DELETE</code> implícita de Supabase. Las relaciones con <code>user_id nullable</code> soportan pedidos de clientes guest.</p>
+
+    <table class="relations-table no-break">
+      <thead>
+        <tr>
+          <th>Tabla origen</th>
+          <th>FK</th>
+          <th>Tabla destino</th>
+          <th>Tipo</th>
+          <th>Descripción</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>profiles</code></td><td><code>id</code></td><td><code>auth.users</code></td><td><span class="rel-type">1:1</span></td><td>Extiende el usuario de Supabase Auth con <code>is_admin</code></td></tr>
+        <tr><td><code>carts</code></td><td><code>user_id</code></td><td><code>auth.users</code></td><td><span class="rel-type">N:1</span></td><td>Carrito de usuario; si es anónimo usa <code>session_id</code></td></tr>
+        <tr><td><code>user_addresses</code></td><td><code>user_id</code></td><td><code>auth.users</code></td><td><span class="rel-type">N:1</span></td><td>Múltiples direcciones por usuario</td></tr>
+        <tr><td><code>password_reset_tokens</code></td><td><code>user_id</code></td><td><code>auth.users</code></td><td><span class="rel-type">N:1</span></td><td>Tokens de restablecimiento de contraseña</td></tr>
+        <tr><td><code>orders</code></td><td><code>user_id</code></td><td><code>auth.users</code></td><td><span class="rel-type">N:1</span></td><td>Nullable: soporta pedidos guest con <code>guest_email</code></td></tr>
+        <tr><td><code>order_items</code></td><td><code>order_id</code></td><td><code>orders</code></td><td><span class="rel-type">N:1</span></td><td>Líneas del pedido; cada ítem guarda <code>price_at_purchase</code></td></tr>
+        <tr><td><code>order_items</code></td><td><code>product_id</code></td><td><code>products</code></td><td><span class="rel-type">N:1</span></td><td>Enlaza ítem con el producto del catálogo</td></tr>
+        <tr><td><code>order_status_history</code></td><td><code>order_id</code></td><td><code>orders</code></td><td><span class="rel-type">N:1</span></td><td>Audit trail completo de cambios de estado</td></tr>
+        <tr><td><code>invoices</code></td><td><code>order_id</code></td><td><code>orders</code></td><td><span class="rel-type">N:1</span></td><td>Un pedido genera 1 factura + 0-N notas de abono</td></tr>
+        <tr><td><code>invoices</code></td><td><code>reference_invoice_id</code></td><td><code>invoices</code></td><td><span class="rel-type">Self</span></td><td>Nota de abono referencia la factura original</td></tr>
+        <tr><td><code>refunds_log</code></td><td><code>order_id</code></td><td><code>orders</code></td><td><span class="rel-type">N:1</span></td><td>Registro de cada reembolso procesado en Stripe</td></tr>
+        <tr><td><code>coupon_usage</code></td><td><code>order_id</code></td><td><code>orders</code></td><td><span class="rel-type">N:1</span></td><td>Registro de uso del cupón por pedido</td></tr>
+        <tr><td><code>coupon_usage</code></td><td><code>coupon_id</code></td><td><code>coupons</code></td><td><span class="rel-type">N:1</span></td><td>Enlaza con el cupón aplicado</td></tr>
+        <tr><td><code>products</code></td><td><code>category_id</code></td><td><code>categories</code></td><td><span class="rel-type">N:1</span></td><td>Categoría principal del producto</td></tr>
+        <tr><td><code>products</code></td><td><code>subcategory_id</code></td><td><code>subcategories</code></td><td><span class="rel-type">N:1</span></td><td>Subcategoría (nullable)</td></tr>
+        <tr><td><code>products</code></td><td><code>brand_id</code></td><td><code>brands</code></td><td><span class="rel-type">N:1</span></td><td>Marca del producto (nullable)</td></tr>
+        <tr><td><code>subcategories</code></td><td><code>category_id</code></td><td><code>categories</code></td><td><span class="rel-type">N:1</span></td><td>Jerarquía de dos niveles en el catálogo</td></tr>
+        <tr><td><code>wishlist</code></td><td><code>user_id / product_id</code></td><td><code>auth.users / products</code></td><td><span class="rel-type">N:N</span></td><td>Tabla intermedia de lista de deseos</td></tr>
+        <tr><td><code>reviews</code></td><td><code>user_id / product_id</code></td><td><code>auth.users / products</code></td><td><span class="rel-type">N:N</span></td><td>Valoraciones de productos (rating 0–5)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════ SECCIÓN 2: STACK ══════════ -->
+  <div class="section page-break">
+    <span class="section-number">Sección 02</span>
+    <h2>Justificación del <strong>Stack Tecnológico</strong></h2>
+
+    <p>Cada tecnología fue seleccionada por criterios concretos de rendimiento, escalabilidad, coste y adecuación a e-commerce. A continuación se justifica cada elección frente a sus alternativas.</p>
+
+    <table class="tech-table">
+      <thead>
+        <tr>
+          <th style="width:180px;">Tecnología</th>
+          <th>Por qué se eligió</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <span class="tech-name">Astro 5</span>
+            <span class="tech-version">v5.0.3 · Framework web</span>
+          </td>
+          <td class="tech-why">
+            Astro permite un modelo <strong>híbrido SSG + SSR</strong> en el mismo proyecto:
+            <ul>
+              <li>Páginas estáticas (FAQ, Contacto, Sobre Nosotros) se generan una sola vez en build → carga instantánea + SEO óptimo</li>
+              <li>Catálogo, carrito y admin se renderizan en servidor → datos siempre frescos (stock, precios, flash sales)</li>
+              <li>Arquitectura de <strong>islas</strong>: sólo los componentes interactivos cargan JavaScript; el resto es HTML puro</li>
+            </ul>
+            <em>Alternativa descartada:</em> Next.js (React-only, overhead mayor; Astro se integra con cualquier framework de UI).
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="tech-name">React 18</span>
+            <span class="tech-version">v18.3.1 · UI interactiva</span>
+          </td>
+          <td class="tech-why">
+            Usado exclusivamente para componentes que requieren interactividad: carrito, checkout multi-paso, filtros del catálogo, formularios admin. React 18 aporta <strong>Concurrent Mode</strong> y <code>useTransition</code> para actualizaciones de UI no bloqueantes.
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="tech-name">Nanostores</span>
+            <span class="tech-version">Estado global</span>
+          </td>
+          <td class="tech-why">
+            Gestión del <strong>carrito persistente</strong> entre navegaciones (sin perder el carrito al cambiar de página en SSR).
+            <ul>
+              <li>Framework-agnostic: funciona igual en componentes Astro y React</li>
+              <li><code>@nanostores/persistent</code>: sincroniza automáticamente con <code>localStorage</code></li>
+              <li>Solo ~1 KB frente a los 8 KB de Redux o 3 KB de Zustand</li>
+            </ul>
+            <em>Alternativa descartada:</em> Redux (sobre-ingeniería para este caso de uso).
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="tech-name">Supabase</span>
+            <span class="tech-version">PostgreSQL + Auth + RLS</span>
+          </td>
+          <td class="tech-why">
+            Proporciona un backend completo sin servidor propio:
+            <ul>
+              <li><strong>PostgreSQL</strong> real con soporte a JSONB, arrays, constraints y triggers</li>
+              <li><strong>Row Level Security (RLS)</strong>: los datos están protegidos a nivel de BD, no sólo en la API</li>
+              <li><strong>RPCs con SECURITY DEFINER</strong>: operaciones atómicas (crear pedido, reducir stock) sin exponer la <code>service_role</code> key</li>
+              <li><strong>Auth</strong> integrada: JWT + refresh tokens, sin implementación propia</li>
+            </ul>
+            <em>Alternativa descartada:</em> Firebase (NoSQL → consultas relacionales complejas como el dashboard son ineficientes).
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="tech-name">Stripe</span>
+            <span class="tech-version">Pagos + Webhooks</span>
+          </td>
+          <td class="tech-why">
+            Estándar del sector para pagos en línea:
+            <ul>
+              <li><strong>Checkout Sessions</strong>: el formulario de pago es gestionado por Stripe (PCI-DSS compliant, nunca pasan datos de tarjeta por nuestros servidores)</li>
+              <li><strong>Webhook <code>checkout.session.completed</code></strong>: confirma el pago de forma asíncrona y fiable, desencadenando la creación de pedido + factura</li>
+              <li><strong>Refunds API</strong>: reembolsos totales/parciales; sin <code>amount</code> → devuelve exactamente lo cobrado (evita errores con cupones)</li>
+            </ul>
+            <em>Alternativa descartada:</em> PayPal (API menos consistente, UX inferior en Europa).
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="tech-name">Brevo (Sendinblue)</span>
+            <span class="tech-version">Email transaccional</span>
+          </td>
+          <td class="tech-why">
+            Envío de emails transaccionales con adjuntos PDF:
+            <ul>
+              <li>Confirmación de pedido (con factura adjunta), notificación de envío, cancelación, nota de abono</li>
+              <li>API sencilla que acepta adjuntos binarios (Buffer de Node.js) → ideal para PDFs de PDFKit</li>
+              <li>Plan gratuito generoso: 300 emails/día</li>
+            </ul>
+            <em>Alternativa descartada:</em> SendGrid (más complejo de configurar para adjuntos binarios).
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="tech-name">Cloudinary</span>
+            <span class="tech-version">Storage de imágenes</span>
+          </td>
+          <td class="tech-why">
+            Gestión optimizada de imágenes de producto:
+            <ul>
+              <li>Transformaciones on-the-fly: redimensionado, conversión a WebP, compresión</li>
+              <li>CDN global: entrega rápida sin importar la ubicación del usuario</li>
+              <li><strong>Upload firmado</strong>: el admin sube directamente desde el navegador con una firma generada en servidor → sin pasar las imágenes por nuestro servidor</li>
+            </ul>
+            <em>Alternativa descartada:</em> Supabase Storage (sin CDN ni transformaciones automatizadas).
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="tech-name">PDFKit</span>
+            <span class="tech-version">Generación de PDF</span>
+          </td>
+          <td class="tech-why">
+            Generación de facturas y notas de abono directamente en Node.js:
+            <ul>
+              <li>Sin dependencias de navegador (funciona en API routes de Astro SSR)</li>
+              <li>Layout programático con posicionamiento exacto, fuentes y colores de marca</li>
+              <li>Output en <code>Buffer</code> → adjuntable directamente en el email de Brevo</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="tech-name">Tailwind CSS 3</span>
+            <span class="tech-version">v3.4.17 · Estilos</span>
+          </td>
+          <td class="tech-why">
+            Desarrollo rápido de UI con diseño consistente:
+            <ul>
+              <li>Clases utilitarias → sin CSS en ficheros separados, menor riesgo de conflictos</li>
+              <li>PurgeCSS incluido: bundle de CSS final mínimo (~8 KB)</li>
+              <li>Responsive de forma declarativa con prefijos <code>sm:</code>, <code>md:</code>, <code>lg:</code></li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="tech-name">Recharts</span>
+            <span class="tech-version">Dashboard KPIs</span>
+          </td>
+          <td class="tech-why">
+            Gráficas para el panel de administración (ventas por mes, pedidos por estado, top productos). Basado en D3 pero con API de componentes React declarativa. Alternativa <em>descartada:</em> Chart.js (menos integrable con React).
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="tech-name">Coolify + Docker</span>
+            <span class="tech-version">Despliegue en VPS</span>
+          </td>
+          <td class="tech-why">
+            Plataforma self-hosted similar a Heroku/Railway pero en servidor propio:
+            <ul>
+              <li>Imagen Docker multi-stage con Node standalone (sin overhead de Next.js server)</li>
+              <li>SSL automático con Let's Encrypt, proxy Caddy</li>
+              <li>Redeploys automáticos desde GitHub al hacer push a <code>main</code></li>
+              <li>Coste fijo del VPS vs. coste variable de Vercel/Railway a escala</li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════ SECCIÓN 3: FLUJOS ══════════ -->
+  <div class="section page-break">
+    <span class="section-number">Sección 03</span>
+    <h2>Flujo de <strong>Facturación</strong></h2>
+
+    <p>El sistema de facturación de ÉCLAT Beauty cubre tres escenarios principales: compra exitosa, cancelación y devolución parcial post-entrega. Todos los precios se almacenan en <strong>céntimos de euro</strong> (enteros) para evitar errores de coma flotante.</p>
+
+    <div class="highlight-box">
+      <strong>Nota sobre cupones y reembolsos:</strong>
+      <p>Cuando se aplica un cupón, Stripe cobra el importe <em>ya descontado</em>. Los reembolsos se realizan siempre sin pasar el parámetro <code>amount</code> (reembolso total) o con el importe exacto introducido por el admin (parcial). Esto evita el error <em>"refund amount exceeds charge amount"</em> que ocurriría si se intentara reembolsar el total bruto del pedido.</p>
+    </div>
+
+    <!-- FLUJO 1: COMPRA -->
+    <div class="flow-section no-break">
+      <div class="flow-title">3.1 Flujo de Compra — Happy Path</div>
+      <div class="flow">
+
+        <div class="flow-step">
+          <div class="flow-line">
+            <div class="flow-circle">1</div>
+            <div class="flow-connector"></div>
+          </div>
+          <div class="flow-content">
+            <span class="flow-actor actor-cliente">Cliente</span>
+            <strong>Añade productos al carrito</strong>
+            <p>El carrito se almacena en <strong>Nanostores</strong> (persistido en <code>localStorage</code>) y se sincroniza con la tabla <code>carts</code> de Supabase. Si el cliente tiene sesión, el carrito queda vinculado a su <code>user_id</code>; si no, se usa un <code>session_id</code> anónimo. Al hacer login, ambos carritos se fusionan.</p>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-line">
+            <div class="flow-circle">2</div>
+            <div class="flow-connector"></div>
+          </div>
+          <div class="flow-content">
+            <span class="flow-actor actor-cliente">Cliente</span>
+            <strong>Introduce dirección y aplica cupón (opcional)</strong>
+            <p>El cupón se valida en tiempo real contra la tabla <code>coupons</code>: se comprueba que esté activo, dentro del rango de fechas, que no haya superado <code>max_uses</code> y que el importe del carrito supere <code>min_purchase_amount</code>. El descuento se muestra antes de confirmar el pago.</p>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-line">
+            <div class="flow-circle highlight">3</div>
+            <div class="flow-connector"></div>
+          </div>
+          <div class="flow-content">
+            <span class="flow-actor actor-sistema">Sistema (API)</span>
+            <strong>Crea Checkout Session en Stripe</strong>
+            <p>El endpoint <code>POST /api/create-checkout-session</code> genera una sesión de Stripe con el importe <em>ya descontado por el cupón</em>. Stripe gestiona el formulario de pago de forma segura (PCI-DSS compliant). Al completar el pago, Stripe redirige al cliente a <code>/checkout/success</code>.</p>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-line">
+            <div class="flow-circle actor-stripe" style="background:#6a1b9a;font-size:10px;">WH</div>
+            <div class="flow-connector"></div>
+          </div>
+          <div class="flow-content">
+            <span class="flow-actor actor-stripe">Stripe → Webhook</span>
+            <strong>Evento <code>checkout.session.completed</code></strong>
+            <p>Stripe envía una llamada POST a <code>/api/webhooks/stripe</code>. El servidor verifica la firma HMAC con <code>STRIPE_WEBHOOK_SECRET</code> para garantizar la autenticidad. Este mecanismo asíncrono es más fiable que el redirect del cliente (que podría cerrarse antes de completar).</p>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-line">
+            <div class="flow-circle green">4</div>
+            <div class="flow-connector"></div>
+          </div>
+          <div class="flow-content">
+            <span class="flow-actor actor-sistema">Sistema (RPC)</span>
+            <strong>Creación atómica del pedido (<code>create_order_from_session_atomic</code>)</strong>
+            <p>Un RPC de Supabase con <code>SECURITY DEFINER</code> ejecuta en una <strong>única transacción</strong>:</p>
+            <ul style="font-size:12px;color:#555;padding-left:18px;margin-top:4px;">
+              <li>Inserta fila en <code>orders</code> con <code>status = 'paid'</code></li>
+              <li>Inserta todas las filas en <code>order_items</code></li>
+              <li>Reduce el <code>stock</code> de cada producto de forma atómica (sin race conditions)</li>
+              <li>Registra el uso del cupón en <code>coupon_usage</code> e incrementa <code>current_uses</code></li>
+              <li>Vacía el carrito en <code>carts</code></li>
+            </ul>
+            <p style="margin-top:6px;">Si alguna operación falla, la transacción completa se revierte (<code>ROLLBACK</code>).</p>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-line">
+            <div class="flow-circle green">5</div>
+            <div class="flow-connector"></div>
+          </div>
+          <div class="flow-content">
+            <span class="flow-actor actor-sistema">Sistema</span>
+            <strong>Generación de factura PDF y envío de email</strong>
+            <p>Tras confirmar la creación del pedido:</p>
+            <ul style="font-size:12px;color:#555;padding-left:18px;margin-top:4px;">
+              <li><strong>PDFKit</strong> genera la factura con número correlativo <code>FAC-YYYY-NNNN</code>, líneas de producto, IVA 21%, descuento del cupón y total</li>
+              <li>La factura se inserta en la tabla <code>invoices</code> (<code>type = 'invoice'</code>)</li>
+              <li><strong>Brevo</strong> envía el email de confirmación con la factura PDF adjunta como Buffer</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FLUJO 2: CANCELACIÓN -->
+    <div class="flow-section no-break page-break">
+      <div class="flow-title">3.2 Flujo de Cancelación con Reembolso</div>
+      <div class="flow">
+
+        <div class="flow-step">
+          <div class="flow-line">
+            <div class="flow-circle">1</div>
+            <div class="flow-connector"></div>
+          </div>
+          <div class="flow-content">
+            <span class="flow-actor actor-admin">Admin / Cliente</span>
+            <strong>Solicita cancelación del pedido</strong>
+            <p>Sólo se pueden cancelar pedidos con <code>status = 'paid'</code>. Los pedidos ya enviados (<code>shipped</code>) o entregados (<code>delivered</code>) no pueden cancelarse desde esta vía; deben gestionarse como devolución.</p>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-line">
+            <div class="flow-circle highlight">2</div>
+            <div class="flow-connector"></div>
+          </div>
+          <div class="flow-content">
+            <span class="flow-actor actor-stripe">Stripe</span>
+            <strong>Reembolso total automático</strong>
+            <p>Se llama a <code>stripe.refunds.create({ payment_intent: id })</code> <strong>sin pasar el parámetro <code>amount</code></strong>. Stripe reembolsa exactamente lo que el cliente pagó, incluyendo el descuento del cupón. Esto evita el error de intentar reembolsar más de lo cobrado.</p>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-line">
+            <div class="flow-circle green">3</div>
+            <div class="flow-connector"></div>
+          </div>
+          <div class="flow-content">
+            <span class="flow-actor actor-sistema">Sistema (RPC)</span>
+            <strong>Actualización atómica en BD (<code>admin_cancel_order_atomic</code>)</strong>
+            <p>En una única transacción:</p>
+            <ul style="font-size:12px;color:#555;padding-left:18px;margin-top:4px;">
+              <li><code>orders.status</code> → <code>'cancelled'</code></li>
+              <li>Restaura el <code>stock</code> de todos los <code>order_items</code></li>
+              <li>Registra el cambio en <code>order_status_history</code></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-line">
+            <div class="flow-circle green">4</div>
+          </div>
+          <div class="flow-content">
+            <span class="flow-actor actor-sistema">Sistema</span>
+            <strong>Nota de abono PDF y email de cancelación</strong>
+            <p>PDFKit genera una nota de abono (<code>type = 'credit_note'</code>, número <code>ABN-YYYY-NNNN</code>) que referencia la factura original mediante <code>reference_invoice_id</code>. Brevo envía el email de cancelación con la nota de abono adjunta.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FLUJO 3: DEVOLUCIÓN -->
+    <div class="flow-section no-break">
+      <div class="flow-title">3.3 Flujo de Devolución Parcial Post-Entrega</div>
+      <div class="flow">
+
+        <div class="flow-step">
+          <div class="flow-line">
+            <div class="flow-circle">1</div>
+            <div class="flow-connector"></div>
+          </div>
+          <div class="flow-content">
+            <span class="flow-actor actor-cliente">Cliente</span>
+            <strong>Solicita devolución desde "Mi Cuenta"</strong>
+            <p>El cliente selecciona uno o varios ítems del pedido entregado y proporciona el motivo. Cada ítem queda con <code>return_status = 'requested'</code> en la tabla <code>order_items</code>. El pedido pasa a <code>status = 'return_requested'</code>.</p>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-line">
+            <div class="flow-circle">2</div>
+            <div class="flow-connector"></div>
+          </div>
+          <div class="flow-content">
+            <span class="flow-actor actor-admin">Admin</span>
+            <strong>Revisa y aprueba/rechaza desde <code>/admin/devoluciones</code></strong>
+            <p>El admin puede aceptar cada ítem (cambia a <code>'approved'</code>) o rechazarlo (<code>'rejected'</code>). También puede introducir un importe de reembolso personalizado para devoluciones parciales.</p>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-line">
+            <div class="flow-circle highlight">3</div>
+            <div class="flow-connector"></div>
+          </div>
+          <div class="flow-content">
+            <span class="flow-actor actor-stripe">Stripe</span>
+            <strong>Reembolso parcial o total</strong>
+            <p>Si es devolución total: <code>stripe.refunds.create({ payment_intent })</code> sin amount.</p>
+            <p>Si es parcial: <code>stripe.refunds.create({ payment_intent, amount: importeEnCentimos })</code>. Stripe valida que el importe no supere lo cobrado originalmente.</p>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-line">
+            <div class="flow-circle green">4</div>
+            <div class="flow-connector"></div>
+          </div>
+          <div class="flow-content">
+            <span class="flow-actor actor-sistema">Sistema (RPC)</span>
+            <strong>Procesamiento atómico (<code>admin_process_return</code>)</strong>
+            <p>El RPC filtra exclusivamente los ítems con <code>return_status IN ('requested', 'approved')</code> para evitar restaurar stock de ítems rechazados o ya procesados:</p>
+            <ul style="font-size:12px;color:#555;padding-left:18px;margin-top:4px;">
+              <li>Restaura el <code>stock</code> sólo de los ítems aprobados</li>
+              <li>Marca esos ítems como <code>return_status = 'refunded'</code></li>
+              <li>Si todos los ítems son <code>refunded</code> → pedido <code>'refunded'</code></li>
+              <li>Si quedan ítems sin devolver → pedido <code>'partially_refunded'</code></li>
+              <li>Registra el reembolso en <code>refunds_log</code></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-line">
+            <div class="flow-circle green">5</div>
+          </div>
+          <div class="flow-content">
+            <span class="flow-actor actor-sistema">Sistema</span>
+            <strong>Nota de abono y email al cliente</strong>
+            <p>PDFKit genera una nota de abono parcial (<code>credit_note_scope = 'partial'</code>) con los ítems devueltos y el importe reembolsado. Se inserta en <code>invoices</code> y se envía por email a través de Brevo.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ESTRUCTURA DE FACTURA -->
+    <h3>3.4 Estructura de la Factura / Nota de Abono</h3>
+    <table class="relations-table no-break">
+      <thead>
+        <tr><th>Campo</th><th>Fuente</th><th>Notas</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>invoice_number</code></td><td>Secuencial generado por RPC</td><td><code>FAC-YYYY-NNNN</code> (facturas) / <code>ABN-YYYY-NNNN</code> (abonos)</td></tr>
+        <tr><td><code>type</code></td><td>Constante en código</td><td><code>'invoice'</code> o <code>'credit_note'</code></td></tr>
+        <tr><td><code>reference_invoice_id</code></td><td><code>invoices.id</code> de la factura original</td><td>Sólo en notas de abono; FK self-referencial</td></tr>
+        <tr><td><code>customer_name / email</code></td><td><code>orders.customer_name</code>, <code>guest_email</code></td><td>Funciona para usuarios registrados y guests</td></tr>
+        <tr><td><code>line_items</code></td><td>Array de <code>order_items</code></td><td>JSONB con nombre, cantidad, precio unitario</td></tr>
+        <tr><td><code>subtotal</code></td><td>Suma de <code>price_at_purchase × quantity</code></td><td>En céntimos</td></tr>
+        <tr><td><code>tax_rate / tax_amount</code></td><td>21% calculado</td><td>IVA estándar España</td></tr>
+        <tr><td><code>discount_amount</code></td><td><code>coupon_usage.discount_applied</code></td><td>0 si no se usó cupón</td></tr>
+        <tr><td><code>total_amount</code></td><td><code>subtotal + tax_amount - discount_amount</code></td><td>Igual al importe cobrado por Stripe</td></tr>
+        <tr><td><code>stripe_refund_id</code></td><td>Respuesta de <code>stripe.refunds.create()</code></td><td>Sólo en notas de abono; trazabilidad completa</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <span>ÉCLAT Beauty — Documentación Técnica del Proyecto</span>
+    <span>Febrero 2026 &nbsp;·&nbsp; Astro 5 · Supabase · Stripe · Brevo · Cloudinary · Coolify</span>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -121,19 +121,18 @@ export async function getReturnRate(): Promise<number> {
 
 /**
  * Get sales data for last 7 days (for line chart)
- * Uses order_status_history to get the EXACT date of payment confirmation,
- * not the order creation date (which is always awaiting_payment).
+ * Uses UTC dates to avoid timezone mismatches with Supabase.
+ * Filters by PAID_STATUSES so only real paid orders are counted.
  */
 export async function getSalesLast7Days(): Promise<Array<{ date: string; sales: number }>> {
   const startDate = new Date();
   startDate.setUTCDate(startDate.getUTCDate() - 6);
   startDate.setUTCHours(0, 0, 0, 0);
 
-  // Query when each order was confirmed as paid via the status history
   const { data, error } = await supabase
-    .from('order_status_history')
-    .select('created_at, order_id, orders!order_status_history_order_id_fkey(total_amount)')
-    .eq('to_status', 'paid')
+    .from('orders')
+    .select('created_at, total_amount')
+    .in('status', PAID_STATUSES)
     .gte('created_at', startDate.toISOString());
 
   if (error || !data) {
@@ -141,16 +140,15 @@ export async function getSalesLast7Days(): Promise<Array<{ date: string; sales: 
     return [];
   }
 
-  // Group by the PAYMENT date (when webhook marked it paid), not order creation
+  // Group by UTC date
   const groupedByDate = new Map<string, number>();
-  data.forEach((row: any) => {
-    const d = new Date(row.created_at);
+  data.forEach((order) => {
+    const d = new Date(order.created_at);
     const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
-    const amount = row.orders?.total_amount || 0;
-    groupedByDate.set(key, (groupedByDate.get(key) || 0) + amount);
+    groupedByDate.set(key, (groupedByDate.get(key) || 0) + (order.total_amount || 0));
   });
 
-  // Build last 7 days array (today included)
+  // Build last 7 days array
   const allDates: Array<{ date: string; sales: number }> = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date();

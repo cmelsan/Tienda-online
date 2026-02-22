@@ -8,11 +8,12 @@ interface ProductAddToCartProps {
     discount?: number;
     image?: string;
     slug: string;
+    stock?: number;
     is_flash_sale?: boolean;
     flash_sale_discount?: number;
 }
 
-export default function ProductAddToCart({ productId, productName, price, discountedPrice, discount, image, slug, is_flash_sale, flash_sale_discount }: ProductAddToCartProps) {
+export default function ProductAddToCart({ productId, productName, price, discountedPrice, discount, image, slug, stock, is_flash_sale, flash_sale_discount }: ProductAddToCartProps) {
     const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -52,6 +53,17 @@ export default function ProductAddToCart({ productId, productName, price, discou
             console.error('[ProductAddToCart] Error:', error);
         }
     };
+
+    if (stock !== undefined && stock <= 0) {
+        return (
+            <button
+                disabled
+                className="w-full bg-gray-300 text-gray-500 font-bold text-sm uppercase py-3 cursor-not-allowed"
+            >
+                Agotado
+            </button>
+        );
+    }
 
     return (
         <button

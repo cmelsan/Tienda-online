@@ -153,7 +153,7 @@ export const POST: APIRoute = async ({ request }) => {
                 amount_off: validDiscountAmount,
                 currency: 'eur',
                 duration: 'once',
-                name: `Order Discount - ${orderId}`,
+                name: `Descuento-${orderId.slice(0, 8)}`,
             });
 
             sessionConfig.discounts = [{

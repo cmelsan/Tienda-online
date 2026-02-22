@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient, getAdminSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, createTokenClient } from '@/lib/supabase';
 import { validateCoupon, calculateDiscount } from '@/lib/coupons';
 import type { CartItemForCoupon } from '@/lib/coupons';
 
@@ -53,27 +53,23 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             });
         }
 
-        // Extra server-side check: query coupon_usage directly with admin client
-        // This is the authoritative check — bypasses all RLS and RPC issues
-        if (userId) {
-            const adminClient = getAdminSupabaseClient();
-            if (adminClient) {
-                const { data: existingUsage } = await adminClient
-                    .from('coupon_usage')
-                    .select('id')
-                    .eq('coupon_id', validation.coupon.id)
-                    .eq('user_id', userId)
-                    .limit(1);
+        // Extra server-side check: query coupon_usage with the user's token client
+        // RPC check_coupon_used_by_user es SECURITY DEFINER — funciona sin service role key
+        if (userId && session) {
+            const tokenClient = createTokenClient(session.access_token);
+            const { data: existingUsage } = await (tokenClient as any).rpc(
+                'check_coupon_used_by_user',
+                { p_coupon_id: validation.coupon.id, p_user_id: userId }
+            );
 
-                if (existingUsage && existingUsage.length > 0) {
-                    return new Response(JSON.stringify({
-                        valid: false,
-                        error: 'Ya has utilizado este código de descuento. Solo puedes usarlo una vez.'
-                    }), {
-                        status: 400,
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                }
+            if (existingUsage === true) {
+                return new Response(JSON.stringify({
+                    valid: false,
+                    error: 'Ya has utilizado este código de descuento. Solo puedes usarlo una vez.'
+                }), {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json' }
+                });
             }
         }
 

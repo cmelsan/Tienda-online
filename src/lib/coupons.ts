@@ -1,4 +1,4 @@
-import { supabase, getAdminSupabaseClient } from './supabase';
+import { supabase } from './supabase';
 
 const DEBUG = import.meta.env.DEV;
 
@@ -118,10 +118,9 @@ export async function validateCoupon(
 
     // Check if user has already used this coupon (if userId provided)
     // Restrict to one use per user
+    // RPC is SECURITY DEFINER — works without service role key
     if (userId) {
-      // Use admin client (SECURITY DEFINER not needed) — direct table read with service role
-      const adminClient = getAdminSupabaseClient() ?? supabase;
-      const { data: alreadyUsed, error: usageError } = await (adminClient as any).rpc(
+      const { data: alreadyUsed, error: usageError } = await (supabase as any).rpc(
         'check_coupon_used_by_user',
         { p_coupon_id: validCoupon.id, p_user_id: userId }
       );

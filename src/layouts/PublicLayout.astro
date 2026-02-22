@@ -483,7 +483,7 @@ const isLoggedIn = !!Astro.cookies.get('sb-access-token')?.value;
   </footer>
 
   <!-- Cart Slide Over -->
-  <CartSlideOver client:load />
+  <CartSlideOver client:only="react" />
 </BaseLayout>
 
 <script>

@@ -23,7 +23,7 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
             name="name"
             required
             placeholder="NOMBRE Y APELLIDO"
-            class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 uppercase rounded-none"
+            class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 lowercase placeholder:uppercase rounded-none"
           />
         </div>
 
@@ -35,7 +35,7 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
             name="email"
             required
             placeholder="EMAIL"
-            class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 uppercase rounded-none"
+            class="w-full border-b border-gray-300 py-3 text-sm focus:border-black focus:outline-none transition-colors placeholder-gray-500 lowercase placeholder:uppercase rounded-none"
           />
         </div>
 
@@ -168,7 +168,16 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
 
     } catch (error) {
       if (errorMessage) {
-        errorMessage.textContent = error instanceof Error ? error.message : 'Error al crear la cuenta';
+        let msg = error instanceof Error ? error.message : 'Error al crear la cuenta';
+        const msgLower = msg.toLowerCase();
+        if (msgLower.includes('user already registered') || msgLower.includes('already registered')) {
+          msg = 'Este email ya está registrado. ¿Quieres iniciar sesión?';
+        } else if (msgLower.includes('invalid email')) {
+          msg = 'El formato del email no es válido.';
+        } else if (msgLower.includes('password') && msgLower.includes('characters')) {
+          msg = 'La contraseña debe tener al menos 6 caracteres.';
+        }
+        errorMessage.textContent = msg;
         errorMessage.classList.remove('hidden');
       }
     }

@@ -1,10 +1,10 @@
 import axios from 'axios';
 
 const DEBUG = import.meta.env.DEV;
-const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const BREVO_API_KEY = import.meta.env.BREVO_API_KEY;
 const BREVO_API_URL = 'https://api.brevo.com/v3';
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@eclatbeauty.com';
-const FROM_NAME = process.env.FROM_NAME || 'ÉCLAT Beauty';
+const FROM_EMAIL = import.meta.env.FROM_EMAIL || 'noreply@eclatbeauty.com';
+const FROM_NAME = import.meta.env.FROM_NAME || 'ÉCLAT Beauty';
 
 interface EmailAttachment {
   content: string; // base64 encoded

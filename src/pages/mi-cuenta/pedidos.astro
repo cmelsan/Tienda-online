@@ -151,7 +151,7 @@ const formatPrice = (amount: number) => {
                                      <div class="flex-1 min-w-0">
                                         <h4 class="font-bold text-xs text-gray-900 mb-1">{item.product?.name}</h4>
                                         <p class="text-xs text-gray-500">Cantidad: <span class="font-medium">{item.quantity}</span></p>
-                                        <p class="text-xs font-bold text-black mt-1">{formatPrice(item.price_at_purchase)}</p>
+                                        <p class="text-xs text-gray-500 mt-1">Precio unitario: <span class="font-medium text-gray-700">{formatPrice(item.price_at_purchase)}</span></p>
                                      </div>
                                      {item.return_status && (
                                         <div class="flex-shrink-0">

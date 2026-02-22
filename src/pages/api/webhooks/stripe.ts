@@ -109,6 +109,15 @@ export const POST: APIRoute = async ({ request }) => {
                     p_new_status: 'paid'
                 });
 
+                // Explicitly set updated_at to now so the analytics chart
+                // shows sales on the day payment was confirmed, not order creation date
+                if (!updateError) {
+                    await supabase
+                        .from('orders')
+                        .update({ updated_at: new Date().toISOString() })
+                        .eq('id', orderId);
+                }
+
                 // Invoice attachment — declared here so it's available for the email step
                 let invoiceAttachment: { content: string; name: string } | null = null;
 

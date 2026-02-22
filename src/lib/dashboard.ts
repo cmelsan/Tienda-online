@@ -28,7 +28,7 @@ export async function getTotalSalesMonth(): Promise<number> {
     .from('orders')
     .select('total_amount')
     .in('status', PAID_STATUSES)
-    .gte('created_at', startOfMonth);
+    .gte('updated_at', startOfMonth);  // updated_at = when Stripe confirmed payment
 
   if (error) {
     console.error('Error fetching monthly sales:', error);
@@ -121,29 +121,29 @@ export async function getReturnRate(): Promise<number> {
 
 /**
  * Get sales data for last 7 days (for line chart)
- * Uses UTC dates to avoid timezone mismatches with Supabase.
- * Filters by PAID_STATUSES so only real paid orders are counted.
+ * Uses updated_at (when payment webhook fired) not created_at (awaiting_payment moment).
  */
 export async function getSalesLast7Days(): Promise<Array<{ date: string; sales: number }>> {
   const startDate = new Date();
   startDate.setUTCDate(startDate.getUTCDate() - 6);
   startDate.setUTCHours(0, 0, 0, 0);
 
+  // Filter by updated_at >= 7 days ago: this is when Stripe webhook changed status to paid
   const { data, error } = await supabase
     .from('orders')
-    .select('created_at, total_amount')
+    .select('updated_at, total_amount')
     .in('status', PAID_STATUSES)
-    .gte('created_at', startDate.toISOString());
+    .gte('updated_at', startDate.toISOString());
 
   if (error || !data) {
     console.error('Error fetching sales data:', error);
     return [];
   }
 
-  // Group by UTC date
+  // Group by UTC date of updated_at (= payment date)
   const groupedByDate = new Map<string, number>();
   data.forEach((order) => {
-    const d = new Date(order.created_at);
+    const d = new Date(order.updated_at);
     const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
     groupedByDate.set(key, (groupedByDate.get(key) || 0) + (order.total_amount || 0));
   });

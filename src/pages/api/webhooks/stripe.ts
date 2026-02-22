@@ -110,26 +110,33 @@ export const POST: APIRoute = async ({ request }) => {
                     p_new_status: 'paid'
                 });
 
+                // Invoice attachment — declared here so it's available for the email step
+                let invoiceAttachment: { content: string; name: string } | null = null;
+
                 if (updateError) {
                     console.error('[Stripe Webhook] Error updating order status:', updateError);
                 } else {
                     console.log('[Stripe Webhook] Order status updated to paid');
 
                     // 2b. Crear factura de venta automáticamente
-                    let invoiceAttachment: { content: string; name: string } | null = null;
                     try {
                         const invoiceResult = await createSaleInvoice(supabase, orderId, session.id);
                         if (invoiceResult.success && invoiceResult.invoice_number) {
                             console.log('[Stripe Webhook] Sale invoice created:', invoiceResult.invoice_number);
-                            // Preparar adjunto para el email de confirmación
                             if (invoiceResult.invoice_id) {
                                 invoiceAttachment = await fetchInvoiceAsAttachment(supabase, invoiceResult.invoice_id);
+                                if (invoiceAttachment) {
+                                    console.log('[Stripe Webhook] Invoice PDF attachment ready:', invoiceAttachment.name);
+                                } else {
+                                    console.warn('[Stripe Webhook] PDF generation returned null — email will send without attachment');
+                                }
                             }
                         } else if (!invoiceResult.success) {
                             console.warn('[Stripe Webhook] Could not create invoice:', invoiceResult.error);
                         }
                     } catch (invoiceErr: any) {
-                        console.error('[Stripe Webhook] Invoice creation error:', invoiceErr.message);
+                        console.error('[Stripe Webhook] Invoice/PDF error (email will still send):', invoiceErr.message);
+                        invoiceAttachment = null;
                     }
                 }
 

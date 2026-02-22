@@ -164,7 +164,7 @@ export async function getOrderStatusDistribution(): Promise<Array<{ name: string
   const { data, error } = await supabase
     .from('orders')
     .select('status')
-    .not('status', 'eq', 'pending');
+    .not('status', 'eq', 'awaiting_payment');
 
   if (error || !data) {
     console.error('Error fetching order status:', error);

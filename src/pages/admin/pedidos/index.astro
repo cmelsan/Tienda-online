@@ -30,7 +30,7 @@ const { data: orders, error } = await supabase
       notes
     )
   `)
-  .not('status', 'eq', 'pending')
+  .not('status', 'eq', 'awaiting_payment')
   .order('created_at', { ascending: false });
 
 if (error) {

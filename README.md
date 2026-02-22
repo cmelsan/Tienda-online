@@ -1,385 +1,314 @@
-# ÉCLAT Beauty E-commerce Platform 💄
+﻿# ÉCLAT Beauty  Plataforma E-Commerce Premium
 
-Una tienda online premium de belleza y cuidado personal construida con **Astro 5**, **Supabase** y **Stripe**. Plataforma totalmente funcional con carrito persistente, autenticación, gestión de órdenes y panel administrativo.
+> Tienda online de cosmética de lujo desarrollada con **Astro 5**, **Supabase** y **Stripe**. Plataforma full-stack de producción con carrito persistente, autenticación, gestión completa de pedidos, sistema de facturación PDF, devoluciones, cupones, flash sales y panel administrativo.
 
-## 🚀 Stack Tecnológico
+---
 
-| Área | Tecnología |
-|------|-----------|
-| **Framework** | Astro 5 (SSR + SSG) |
-| **Frontend** | React 18 + TypeScript |
-| **Estilos** | Tailwind CSS 3 |
-| **Base de Datos** | Supabase (PostgreSQL) |
-| **Autenticación** | Supabase Auth |
-| **Pagos** | Stripe |
-| **Estado Global** | Nano Stores |
-| **Deployment** | Coolify + Docker |
-| **Node.js** | v20+ |
+## Stack Tecnológico
 
-## 📦 Características Implementadas
+| Área | Tecnología | Versión |
+|---|---|---|
+| **Framework** | Astro (híbrido SSG + SSR) | 5.0.3 |
+| **Componentes interactivos** | React | 18.3.1 |
+| **Estilos** | Tailwind CSS | 3.4.17 |
+| **Base de datos** | Supabase (PostgreSQL) |  |
+| **Autenticación** | Supabase Auth |  |
+| **Estado global** | Nanostores + @nanostores/persistent |  |
+| **Pagos** | Stripe (Checkout Sessions + Webhooks) |  |
+| **Email transaccional** | Brevo (Sendinblue) |  |
+| **Imágenes** | Cloudinary |  |
+| **Generación PDF** | PDFKit |  |
+| **Gráficas (admin)** | Recharts |  |
+| **Despliegue** | Coolify + Docker (Node standalone) |  |
+| **Runtime** | Node.js | 20+ |
 
-### 🛍️ Tienda Pública
-- ✅ **Catálogo dinámico** - Productos con imágenes, precios y stock
-- ✅ **Categorías** - Maquillaje, Cabello, Cuerpo, Perfumes
-- ✅ **Filtrado avanzado** - Por categoría, marca, rango de precio
-- ✅ **Búsqueda** - Barra de búsqueda en tiempo real
-- ✅ **Carrito persistente** - Guardado en localStorage
-- ✅ **Checkout integrado** - Con Stripe
-- ✅ **Lista de deseos** - Favoritos guardados en BD
-- ✅ **Sistema de marcas** - Catálogo de marcas/proveedores
-- ✅ **Autenticación de usuarios** - Registro e inicio de sesión
-- ✅ **Mi Cuenta** - Panel personal del usuario
-- ✅ **Historial de pedidos** - Visualización de compras
-- ✅ **Newsletter** - Suscripción a boletín
-- ✅ **Ofertas** - Página de ofertas especiales (configurable)
+---
 
-### 👨‍💼 Panel Administrativo (SSR)
-- ✅ **Dashboard** - Estadísticas en tiempo real (productos, categorías, pedidos)
-- ✅ **Gestión de Productos** - CRUD completo con imágenes
-- ✅ **Control de Stock** - Actualizar disponibilidad de productos
-- ✅ **Gestión de Categorías** - Crear y editar categorías
-- ✅ **Gestión de Subcategorías** - Organización jerárquica
-- ✅ **Gestión de Marcas** - Catálogo de proveedores/marcas
-- ✅ **Atributos** - Gestionar marcas y subcategorías
-- ✅ **Gestión de Pedidos** - Ver y actualizar estado
-- ✅ **Gestión de Devoluciones** - Procesar solicitudes de devolución
-- ✅ **Configuración Global** - Habilitar/deshabilitar ofertas
-- ✅ **Autenticación Admin** - Acceso seguro con Supabase Auth
+## Características implementadas
 
-### 💳 Pagos & Órdenes
-- ✅ **Integración Stripe** - Pagos seguros con tarjeta
-- ✅ **Webhooks Stripe** - Sincronización de estados de pago
-- ✅ **Crear órdenes** - Sistema RPC de Supabase
-- ✅ **Seguimiento de pedidos** - Estado en tiempo real
-- ✅ **Gestión de devoluciones** - Solicitudes y procesamiento
+### Tienda pública
+- Catálogo dinámico con filtros y búsqueda en tiempo real (debounce)
+- Páginas de producto con galería, precio, stock y valoraciones
+- Categorías jerárquicas (categoría  subcategoría) y catálogo de marcas
+- **Flash sales** con temporizador de cuenta atrás
+- **Bestsellers** y **Nuevas llegadas**
+- **Ofertas** configurables desde el admin
+- **Lista de deseos** (wishlist) para usuarios registrados
+- **Cupones de descuento** con validación en tiempo real (% o importe fijo, caducidad, uso máximo, importe mínimo)
+- Newsletter con pop-up de captación de leads
+- Páginas informativas en SSG: FAQ, Contacto, Envíos, Tiendas, Sobre Nosotros
+- Diseño responsive premium inspirado en marcas de lujo
 
-### 📱 Experiencia de Usuario
-- ✅ **Diseño responsive** - Mobile-first, totalmente adaptable
-- ✅ **Diseño premium** - Inspirado en marcas de lujo (MAC, NARS)
-- ✅ **Animaciones suaves** - Transiciones elegantes
-- ✅ **Performance optimizado** - SSG + SSR + optimización de imágenes
-- ✅ **SEO optimizado** - Meta tags, Open Graph, Schema.org
+### Autenticación de usuarios
+- Registro e inicio de sesión con email/contraseña
+- Restablecimiento de contraseña por email (token seguro)
+- Panel "Mi Cuenta": perfil, pedidos, facturas, lista de deseos, direcciones guardadas
+- Soporte a clientes guest (sin registro)
 
-## 🔧 Configuración Inicial
+### Carrito y Checkout
+- Carrito persistente en localStorage + sincronización a Supabase (Nanostores)
+- Fusión de carrito anónimo al hacer login
+- Checkout multi-paso: dirección  pago (Stripe Checkout)
+- Aplicación de cupón con descuento visible antes del pago
+- Confirmación automática de pedido via webhook de Stripe
 
-### Requisitos Previos
+### Sistema de pedidos y facturación
+- Flujo completo: `awaiting_payment`  `paid`  `shipped`  `delivered`
+- Confirmación por webhook `checkout.session.completed` (verificado con firma HMAC)
+- Reducción de stock atómica mediante RPC Supabase (sin race conditions)
+- **Factura PDF** generada automáticamente en cada compra (PDFKit)
+- Envío de factura como adjunto en email de confirmación (Brevo)
+- Historial de cambios de estado (`order_status_history`)
+- Numeración de pedidos correlativa (`ECLAT-YYYY-NNNN`)
+
+### Sistema de devoluciones y abonos
+- Solicitud de devolución desde "Mi Cuenta" (por ítem individual)
+- Gestión centralizada desde `/admin/devoluciones` (aprobar/rechazar)
+- Reembolso Stripe automático (total o parcial)
+- **Nota de abono PDF** generada y enviada al cliente
+- Restauración de stock atómica al aprobar devolución
+- Estados del pedido: `return_requested`  `returned` / `partially_returned`  `refunded` / `partially_refunded`
+- Log de reembolsos en `refunds_log`
+
+### Panel administrativo
+- **Dashboard** con KPIs en tiempo real: ventas, pedidos, productos, clientes (gráficas Recharts)
+- **Gestión de productos**: CRUD completo, subida de imágenes a Cloudinary (drag & drop, upload firmado)
+- **Control de stock**: ajuste manual
+- **Gestión de pedidos**: cambios de estado, cancelación con reembolso Stripe automático
+- **Gestión de devoluciones**: aprobación/rechazo, reembolso parcial o total
+- **Facturas**: listado y descarga de facturas y notas de abono en PDF
+- **Cupones**: crear, editar, desactivar cupones con todas las restricciones
+- **Marcas**: CRUD de marcas con logotipo
+- **Flash Sales**: activar/desactivar por producto, descuento y fecha de fin
+- **Ofertas**: activar/desactivar globalmente desde configuración
+- **Newsletter**: listado de suscriptores exportable
+- **Categorías y Subcategorías**: gestión desde panel de atributos
+
+### Seguridad
+- Row Level Security (RLS) en todas las tablas de Supabase
+- Middleware Astro que verifica sesión + `is_admin` en todas las rutas `/admin/*` y `/api/admin/*`
+- RPCs `SECURITY DEFINER`  sin necesidad de exponer `service_role` key al cliente
+- Webhook Stripe verificado con `Stripe-Signature` header (previene falsificación)
+- Upload de imágenes con firma generada en servidor (Cloudinary)
+
+### Valoraciones
+- Los usuarios con compra verificada pueden dejar valoraciones (1-5 estrellas + comentario)
+- Media de valoraciones visible en ficha de producto
+
+---
+
+## Arquitectura: SSG + SSR Híbrido
+
+| Páginas | Estrategia | Motivo |
+|---|---|---|
+| `/faq`, `/contacto`, `/envios`, `/tiendas`, `/sobre-nosotros/*` | **SSG** (`prerender = true`) | Contenido fijo, máxima velocidad y SEO |
+| `/`, `/productos/*`, `/categoria/*`, `/marcas`, `/ofertas`, etc. | **SSR** | Datos dinámicos (stock, flash sales, precios) |
+| `/carrito`, `/checkout/*`, `/mi-cuenta/*` | **SSR** | Requieren sesión autenticada |
+| `/admin/*`, `/api/*` | **SSR** | Lógica de negocio, escrituras en BD |
+
+---
+
+## Requisitos previos
+
 - Node.js 20+
-- npm o yarn
-- Cuenta en Supabase
-- Cuenta en Stripe
-- Docker (para Coolify)
+- Cuenta en [Supabase](https://supabase.com)
+- Cuenta en [Stripe](https://stripe.com)
+- Cuenta en [Brevo](https://brevo.com)
+- Cuenta en [Cloudinary](https://cloudinary.com)
+- Docker (para deploy en Coolify)
 
-### Instalación
+---
+
+## Instalación y desarrollo local
 
 ```bash
-# Clonar el repositorio
-git clone https://github.com/cmelsan/Tienda-online.git
-cd Tienda-online
-
-# Instalar dependencias
+# 1. Instalar dependencias
 npm install
 
-# Configurar variables de entorno
+# 2. Copiar y configurar variables de entorno
 cp .env.example .env
 
-# Editar .env con tus credenciales:
-# - PUBLIC_SUPABASE_URL
-# - PUBLIC_SUPABASE_ANON_KEY
-# - STRIPE_PUBLISHABLE_KEY
-# - STRIPE_SECRET_KEY
-# - STRIPE_WEBHOOK_SECRET
+# 3. Arrancar servidor de desarrollo
+npm run dev
+#  http://localhost:4321
 ```
 
-### Desarrollo Local
+### Comandos disponibles
 
 ```bash
-npm run dev      # Inicia servidor en http://localhost:4321
-npm run build    # Compilar para producción
-npm start        # Ejecutar versión de producción
+npm run dev      # Servidor de desarrollo con hot reload
+npm run build    # Build de producción
+npm start        # Ejecutar build de producción
 ```
 
-## 📁 Estructura del Proyecto
+---
+
+## Variables de entorno
+
+```env
+# Supabase
+PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+PUBLIC_SUPABASE_ANON_KEY=eyJ...
+
+# Stripe
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
+
+# Brevo (email transaccional)
+BREVO_API_KEY=xkeysib-...
+BREVO_FROM_EMAIL=noreply@eclatbeauty.com
+BREVO_FROM_NAME=ÉCLAT Beauty
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+
+# App
+PUBLIC_SITE_URL=https://eclatbeauty.com
+```
+
+---
+
+## Base de datos (Supabase)
+
+### Tablas principales
+
+| Tabla | Descripción |
+|---|---|
+| `profiles` | Extensión de `auth.users` con campo `is_admin` |
+| `products` | Catálogo de productos (precio en céntimos) |
+| `categories` | Categorías principales |
+| `subcategories` | Subcategorías (FK  categories) |
+| `brands` | Marcas de producto |
+| `orders` | Pedidos de usuarios y guests |
+| `order_items` | Líneas de pedido con estado de devolución por ítem |
+| `order_status_history` | Audit trail completo de estados |
+| `invoices` | Facturas y notas de abono (self-referencia) |
+| `refunds_log` | Log de reembolsos Stripe |
+| `carts` | Carritos persistentes (usuario o sesión anónima) |
+| `coupons` | Cupones de descuento con restricciones |
+| `coupon_usage` | Registro de uso de cupones por pedido |
+| `wishlist` | Lista de deseos por usuario |
+| `reviews` | Valoraciones de productos |
+| `user_addresses` | Direcciones guardadas |
+| `newsletter_subscribers` | Suscriptores al newsletter |
+| `app_settings` | Configuración global (key-value JSON) |
+
+### Orden de migraciones SQL
+
+Ejecutar en Supabase SQL Editor en este orden:
+
+```
+1.  database-schema.sql
+2.  migration_offers.sql
+3.  migration_flash_sale.sql
+4.  migrations_coupons.sql
+5.  migration_subcategories.sql
+6.  migration_order_numbering.sql
+7.  migration_invoices.sql
+8.  migration_refunds_log.sql
+9.  migration_reviews.sql
+10. migration_wishlist.sql
+11. migration_newsletter.sql
+12. migration_order_status_fix.sql
+13. migration_partially_refunded_status.sql
+14. migration_return_fields.sql
+15. migration_item_returns.sql
+16. fix_create_order_awaiting_payment.sql
+17. FIX_ORDER_NUMBER_CLEAN.sql
+18. add_customer_invoice_rls.sql
+19. rpc_admin_post_sale.sql
+20. decrease_stock_atomic.sql
+21. increment_coupon_usage_atomic.sql
+22. delete_pending_order.sql
+23. create_reset_password_function.sql
+```
+
+---
+
+## Configurar Stripe Webhook
+
+1. Stripe Dashboard  Developers  Webhooks  Add endpoint
+2. URL: `https://tudominio.com/api/webhooks/stripe`
+3. Evento a escuchar: **`checkout.session.completed`**
+4. Copiar "Signing Secret"  variable `STRIPE_WEBHOOK_SECRET`
+
+---
+
+## Despliegue en Coolify (VPS)
+
+1. Crear nuevo proyecto en Coolify y conectar repositorio GitHub
+2. Coolify detecta automáticamente el `Dockerfile`
+3. Añadir todas las variables de entorno en la configuración de Coolify
+4. Deploy  Coolify construye la imagen Docker y la sirve con SSL automático (Let's Encrypt)
+
+```bash
+# Build manual (opcional)
+docker build -t eclat-beauty .
+docker run -p 4321:4321 --env-file .env eclat-beauty
+```
+
+---
+
+## Estructura del proyecto
 
 ```
 src/
-├── components/
-│   ├── admin/                    # Componentes del admin
-│   │   ├── AdminOrderRow.tsx
-│   │   └── AdminReturnRow.tsx
-│   ├── checkout/                 # Flujo de checkout
-│   │   ├── AddressStep.tsx
-│   │   ├── CheckoutButton.tsx
-│   │   └── CheckoutFlow.tsx
-│   ├── islands/                  # Componentes React interactivos
-│   │   ├── AddToCartButton.tsx
-│   │   ├── CartSlideOver.tsx
-│   │   └── SearchBar.tsx
-│   ├── orders/                   # Gestión de pedidos
-│   │   ├── OrderActions.tsx
-│   │   └── ReturnModal.tsx
-│   ├── product/                  # Componentes de productos
-│   │   ├── ProductCard.astro
-│   │   ├── ProductFilters.tsx
-│   │   └── ProductGallery.astro
-│   └── ui/                       # Componentes reutilizables
-│       ├── Button.astro
-│       ├── Card.astro
-│       └── Input.astro
-├── layouts/
-│   ├── AdminLayout.astro         # Layout del panel admin
-│   ├── BaseLayout.astro          # Layout base
-│   └── PublicLayout.astro        # Layout de tienda pública
-├── lib/
-│   ├── auth-sync.ts              # Sincronización de autenticación
-│   ├── sessionManager.ts         # Gestión de sesiones
-│   ├── supabase.ts               # Cliente Supabase + tipos
-│   └── utils.ts                  # Utilidades (formateo, etc.)
-├── pages/
-│   ├── admin/                    # Rutas del admin
-│   │   ├── index.astro          # Dashboard
-│   │   ├── atributos.astro      # Gestión de atributos
-│   │   ├── configuracion.astro  # Configuración global
-│   │   ├── devoluciones.astro   # Gestión de devoluciones
-│   │   ├── marcas/              # CRUD de marcas
-│   │   ├── pedidos/             # Gestión de pedidos
-│   │   └── productos/           # CRUD de productos
-│   ├── api/                      # Rutas API
-│   │   ├── newsletter.ts
-│   │   ├── wishlist.ts
-│   │   ├── create-checkout-session.ts
-│   │   └── webhooks/stripe.ts
-│   ├── categoria/                # Catálogo por categoría
-│   ├── checkout/                 # Proceso de checkout
-│   ├── marcas/                   # Catálogo de marcas
-│   ├── mi-cuenta/                # Panel de usuario
-│   ├── productos/                # Catálogo principal
-│   ├── index.astro              # Homepage
-│   ├── login.astro              # Login de usuarios
-│   ├── ofertas.astro            # Página de ofertas
-│   └── registro.astro           # Registro de usuarios
-├── stores/
-│   └── cart.ts                   # Estado global del carrito (Nano Stores)
-├── middleware.ts                 # Middleware de autenticación
-└── env.d.ts                      # Tipos de entorno
-
-public/
-├── assets/
-│   └── products/                 # Imágenes de productos
-
-database-schema.sql              # Schema de la BD
-Dockerfile                       # Configuración de Docker
-.dockerignore                    # Archivos ignorados en Docker
-astro.config.mjs                 # Configuración de Astro
-tailwind.config.mjs              # Configuración de Tailwind
-tsconfig.json                    # Configuración de TypeScript
+ components/
+    admin/        # AdminOrderActions, AdminReturnRow, AdminProductForm...
+    checkout/     # CheckoutFlow, AddressStep, CheckoutButton
+    dashboard/    # Gráficas Recharts (ventas, pedidos, KPIs)
+    islands/      # AddToCartButton, CartSlideOver, SearchBar, CountdownTimer
+    orders/       # OrderActions, ReturnModal
+    product/      # ProductCard, ProductFilters, ProductGallery
+    reviews/      # ReviewForm, ReviewList
+    ui/           # Button, Card, Input, Modal, Notification...
+ layouts/
+    PublicLayout.astro
+    AdminLayout.astro
+ lib/
+    supabase.ts       # Cliente Supabase + tipos TypeScript
+    brevo.ts          # Emails transaccionales (confirmación, envío, cancelación, abono)
+    cloudinary.ts     # Upload firmado y transformación de imágenes
+    coupons.ts        # Validación y aplicación de cupones
+    dashboard.ts      # Queries SQL para KPIs del dashboard
+    invoices.ts       # Generación de PDF con PDFKit (facturas + notas de abono)
+    utils.ts          # Utilidades (formateo de precios, fechas, etc.)
+ middleware.ts          # Auth guard para /admin/* y /api/admin/*
+ pages/
+    admin/            # Backoffice (SSR, protegido por middleware)
+    api/
+       admin/        # Endpoints admin (verifican is_admin)
+       stripe/       # Webhook de Stripe
+       orders/       # Endpoints de usuario
+    checkout/         # Proceso de compra (SSR)
+    mi-cuenta/        # Panel del usuario (SSR)
+    productos/        # Detalle de producto (SSR, stock en tiempo real)
+    categoria/        # Catálogo por categoría (SSR)
+    faq.astro         #  SSG (prerender = true)
+    contacto.astro    #  SSG
+    envios.astro      #  SSG
+    tiendas.astro     #  SSG
+    sobre-nosotros/   #  SSG (todas las páginas)
+ stores/
+     cart.ts           # Carrito persistente (Nanostores + localStorage)
+     notifications.ts  # Sistema de toast notifications
 ```
-
-## 🗄️ Base de Datos (Supabase)
-
-### Tablas Principales
-
-| Tabla | Propósito |
-|-------|-----------|
-| **products** | Catálogo de productos |
-| **categories** | Categorías principales |
-| **subcategories** | Subcategorías de productos |
-| **brands** | Marcas/Proveedores |
-| **orders** | Pedidos de clientes |
-| **order_items** | Items de cada pedido |
-| **carts** | Carritos guardados |
-| **wishlist** | Lista de deseos de usuarios |
-| **newsletter_subscribers** | Suscriptores a newsletter |
-| **settings** | Configuración global (ofertas, etc) |
-| **profiles** | Perfiles de usuarios (extensión Auth) |
-
-## 🔐 Autenticación & Seguridad
-
-- ✅ **Supabase Auth** - Autenticación segura con correo/contraseña
-- ✅ **Middleware** - Protección de rutas administrativas
-- ✅ **Row Level Security (RLS)** - Seguridad a nivel de BD
-- ✅ **Sesiones** - Gestión de sesiones de usuario
-- ✅ **JWT** - Tokens seguros
-
-### Acceder al Admin
-1. Ir a `/admin/login`
-2. Usar credenciales de Supabase Auth
-3. Solo usuarios autenticados pueden acceder
-
-## 💳 Pagos con Stripe
-
-- ✅ **Checkout seguro** - Integración de Stripe Checkout
-- ✅ **Webhooks** - Sincronización de eventos de pago
-- ✅ **Estados de pedido** - Actualización automática
-- ✅ **Devoluciones** - Gestión de reembolsos
-
-### Configurar Webhook de Stripe
-1. Ir a Stripe Dashboard → Developers → Webhooks
-2. Agregar endpoint: `https://tudominio.com/api/webhooks/stripe`
-3. Seleccionar eventos: `payment_intent.succeeded`, `charge.refunded`
-4. Copiar "Signing Secret" → Variable `STRIPE_WEBHOOK_SECRET`
-
-## 🚀 Deployment en Coolify
-
-El proyecto incluye `Dockerfile` optimizado para Coolify:
-
-```dockerfile
-# Build multi-stage
-# Compilation + Production image
-```
-
-**Pasos de deployment:**
-1. Conectar repositorio GitHub a Coolify
-2. Configurar variables de entorno en Coolify
-3. Coolify automáticamente construye la imagen Docker
-4. Deploy en tu dominio personalizado
-
-## 📊 Estadísticas del Proyecto
-
-- **+40 archivos** de componentes y páginas
-- **+15 rutas API** funcionales
-- **+10 tablas** de base de datos
-- **+50 funciones** de utilidad
-- **Totalmente responsive** mobile, tablet, desktop
-- **Performance A+** en Lighthouse
 
 ---
 
-## 🔮 Características Sugeridas para Implementar
+## Documentación técnica
 
-### 🎯 Prioritarias (Alto Impacto)
-
-1. **💳 Métodos de Pago Alternativos**
-   - PayPal
-   - Apple Pay / Google Pay
-   - Transferencia bancaria
-   - Pago contra reembolso
-
-2. **📸 Sistema de Reseñas & Ratings**
-   - Calificación de productos (1-5 estrellas)
-   - Comentarios de clientes
-   - Verificación de compra
-   - Fotos de usuario en producto
-
-3. **🎁 Programa de Lealtad**
-   - Puntos por compra
-   - Descuentos acumulativos
-   - Programa VIP/Membresía
-   - Referral program
-
-4. **📧 Sistema de Notificaciones**
-   - Emails transaccionales (confirmación orden, envío)
-   - Alertas de stock bajo
-   - Promociones personalizadas
-   - SMS (opcional)
-
-5. **🔔 Notificaciones en Tiempo Real**
-   - WebSockets para chat
-   - Notificaciones de stock
-   - Alertas de cambios en ordenes
-
-### 🎨 Mejoras UX/UI (Medio Impacto)
-
-6. **🎨 Tema Oscuro/Claro**
-   - Toggle de tema
-   - Persistencia en localStorage
-   - Respeto a preferencia del sistema
-
-7. **🏆 Comparador de Productos**
-   - Comparar hasta 3-4 productos
-   - Tabla de características
-   - Diferencias de precio
-
-8. **🔍 Búsqueda Avanzada**
-   - Búsqueda por voz
-   - Autocomplete mejorado
-   - Filtros guardados
-   - Búsqueda visual (por imagen)
-
-9. **🎯 Recomendaciones Personalizadas**
-   - "Productos que otros compraron"
-   - "Vistos recientemente"
-   - "También te puede gustar"
-   - Algoritmo de IA
-
-10. **📱 Progressive Web App (PWA)**
-    - Instalable en móvil
-    - Funcionamiento offline
-    - Push notifications
-
-### 🔧 Funcionalidad (Medio-Bajo Impacto)
-
-11. **📦 Integración de Logística**
-    - Cálculo de envíos en tiempo real
-    - Integración con correos (DHL, Correos, etc.)
-    - Tracking de paquetes
-    - Múltiples opciones de envío
-
-12. **🌍 Multiidioma & Multimoneda**
-    - i18n (español, inglés, francés)
-    - Conversión de moneda
-    - Impuestos locales
-
-13. **📊 Analytics & Dashboard Avanzado**
-    - Google Analytics integrado
-    - Heatmaps de usuario
-    - Conversión y abandonos
-    - Productos más vendidos
-    - ROI de campañas
-
-14. **🔐 Gestión de Cupones/Códigos Promocionales**
-    - Cupones con descuento
-    - Código de referral
-    - Restricciones (categoría, cantidad min, vigencia)
-    - Uso ilimitado o limitado
-
-15. **👥 Gestión de Usuarios Mejorada**
-    - Múltiples direcciones de envío
-    - Métodos de pago guardados
-    - Historial de compras
-    - Centro de atención al cliente
-
-### 🤖 Innovación (Bajo Impacto/Futuro)
-
-16. **🤖 Chatbot IA**
-    - Soporte 24/7 con IA
-    - Respuestas inteligentes
-    - Escalamiento a humanos
-
-17. **🧠 Motor de Recomendación con IA**
-    - Machine Learning
-    - Predicción de preferencias
-    - Personalización profunda
-
-18. **📸 Búsqueda por Imagen**
-    - Upload de foto
-    - Encuentra productos similares
-    - Reconocimiento visual
-
-19. **🎥 Video Showcase**
-    - Videos de tutoriales de productos
-    - Demostración de aplicación
-    - Reseñas en video
-
-20. **🌐 Social Commerce**
-    - Integración con Instagram/TikTok
-    - Compra desde redes sociales
-    - User-generated content
+Ver [DOCUMENTACION.md](./DOCUMENTACION.md) para:
+- **Diagrama Entidad-Relación** completo de las 17 tablas (Mermaid)
+- **Justificación del stack** tecnológico (por qué cada tecnología)
+- **Flujos de facturación** detallados: compra, cancelación y devolución parcial
+- **Arquitectura de seguridad**: RLS, middleware, RPCs, webhooks
 
 ---
 
-## 🛠️ Stack Recomendado para Nuevas Features
+## Licencia
 
-- **Emails**: SendGrid o Resend
-- **IA**: OpenAI GPT, Hugging Face
-- **Analytics**: Mixpanel, Segment
-- **Video**: Cloudinary, Mux
-- **Búsqueda**: Algolia
-- **CDN**: Cloudflare
-
-## 👨‍💻 Contribuir
-
-Las contribuciones son bienvenidas. Para cambios mayores, abre un issue primero.
-
-## 📄 Licencia
-
-Proyecto académico - ÉCLAT Beauty © 2026
+Proyecto académico  ÉCLAT Beauty  2025

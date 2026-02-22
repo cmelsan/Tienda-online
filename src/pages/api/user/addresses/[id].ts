@@ -14,7 +14,7 @@ export const PUT: APIRoute = async (context) => {
 
     try {
         const { address_data, address_type, is_default } = await context.request.json();
-        const adminClient = getAdminSupabaseClient()!;
+        const adminClient = getAdminSupabaseClient() ?? supabase;
 
         // Verify ownership
         const { data: existing } = await adminClient
@@ -65,7 +65,7 @@ export const DELETE: APIRoute = async (context) => {
     const { id } = context.params;
 
     try {
-        const adminClient = getAdminSupabaseClient()!;
+        const adminClient = getAdminSupabaseClient() ?? supabase;
 
         // Verify ownership
         const { data: existing } = await adminClient
@@ -106,7 +106,7 @@ export const PATCH: APIRoute = async (context) => {
     const { id } = context.params;
 
     try {
-        const adminClient = getAdminSupabaseClient()!;
+        const adminClient = getAdminSupabaseClient() ?? supabase;
 
         // Get the address to know its type and verify ownership
         const { data: addr } = await adminClient

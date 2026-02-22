@@ -11,10 +11,10 @@ export const GET: APIRoute = async (context) => {
     }
 
     try {
-        const adminClient = getAdminSupabaseClient()!;
         const type = context.url.searchParams.get('type');
 
-        let query = adminClient
+        // Use session-based client — auth.uid() is set, RLS allows reading own addresses
+        let query = supabase
             .from('user_addresses')
             .select('*')
             .eq('user_id', session.user.id)
@@ -28,6 +28,22 @@ export const GET: APIRoute = async (context) => {
         const { data, error } = await query;
 
         if (error) {
+            // Fallback: try with admin client if session client fails (RLS issue)
+            const adminClient = getAdminSupabaseClient();
+            if (adminClient) {
+                let adminQuery = adminClient
+                    .from('user_addresses')
+                    .select('*')
+                    .eq('user_id', session.user.id)
+                    .order('is_default', { ascending: false })
+                    .order('created_at', { ascending: false });
+                if (type) adminQuery = adminQuery.eq('address_type', type);
+                const { data: adminData, error: adminError } = await adminQuery;
+                if (adminError) {
+                    return new Response(JSON.stringify({ error: adminError.message }), { status: 400 });
+                }
+                return new Response(JSON.stringify({ addresses: adminData ?? [] }), { status: 200 });
+            }
             return new Response(JSON.stringify({ error: error.message }), { status: 400 });
         }
 

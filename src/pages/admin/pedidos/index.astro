@@ -30,7 +30,7 @@ const { data: orders, error } = await supabase
       notes
     )
   `)
-  .not('status', 'eq', 'awaiting_payment')
+  .in('status', ['paid', 'shipped', 'delivered', 'cancelled', 'return_requested', 'returned', 'refunded', 'partially_returned', 'partially_refunded'])
   .order('created_at', { ascending: false });
 
 if (error) {
@@ -43,7 +43,7 @@ const orderList = (orders || []).map((o: any) => ({
 }));
 
 // Stats por estado
-const totalOrders = orderList.length;
+const totalOrders = orderList.filter(o => o.status !== 'cancelled').length;
 const pendingOrders = orderList.filter(o => o.status === 'paid').length;
 const shippedOrders = orderList.filter(o => o.status === 'shipped').length;
 const deliveredOrders = orderList.filter(o => o.status === 'delivered').length;

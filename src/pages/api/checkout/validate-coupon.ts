@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { supabase } from '@/lib/supabase';
+import { createServerSupabaseClient } from '@/lib/supabase';
 import { validateCoupon, calculateDiscount } from '@/lib/coupons';
 import type { CartItemForCoupon } from '@/lib/coupons';
 
@@ -20,8 +20,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             });
         }
 
-        // Try to get user ID from session (optional)
-        const supabaseClient = supabase;
+        // Get user ID from session via cookies (needed for per-user coupon check)
+        const supabaseClient = await createServerSupabaseClient({ cookies });
         const { data: { session } } = await supabaseClient.auth.getSession();
         const userId = session?.user?.id || null;
 

@@ -1,6 +1,6 @@
 -- Create atomic coupon increment function
--- This function validates max_uses limit and increments in a single transaction
--- preventing race conditions from concurrent requests
+-- This function validates max_uses limit and per-user uniqueness, then
+-- increments in a single transaction preventing race conditions.
 
 CREATE OR REPLACE FUNCTION increment_coupon_usage_atomic(
   p_coupon_id UUID,
@@ -35,6 +35,19 @@ BEGIN
       'current_uses', v_coupon.current_uses,
       'max_uses', v_coupon.max_uses
     );
+  END IF;
+
+  -- Check if this user has already used this coupon (one use per user)
+  IF p_user_id IS NOT NULL THEN
+    IF EXISTS (
+      SELECT 1 FROM coupon_usage
+      WHERE coupon_id = p_coupon_id AND user_id = p_user_id
+    ) THEN
+      RETURN jsonb_build_object(
+        'success', false,
+        'error', 'User has already used this coupon'
+      );
+    END IF;
   END IF;
 
   -- Increment the usage counter

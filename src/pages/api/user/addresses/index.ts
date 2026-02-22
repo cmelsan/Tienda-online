@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, createTokenClient } from '@/lib/supabase';
 
 // GET — fetch saved addresses (all types or filtered by ?type=shipping|billing)
 export const GET: APIRoute = async (context) => {
@@ -12,9 +12,9 @@ export const GET: APIRoute = async (context) => {
 
     try {
         const type = context.url.searchParams.get('type');
+        const client = createTokenClient(session.access_token);
 
-        // Use session-based client — auth.uid() is set, RLS allows reading own addresses
-        let query = supabase
+        let query = client
             .from('user_addresses')
             .select('*')
             .eq('user_id', session.user.id)
@@ -56,8 +56,9 @@ export const POST: APIRoute = async (context) => {
 
         // Determine if this will be the default
         let makeDefault = is_default ?? false;
+        const client = createTokenClient(session.access_token);
         if (!makeDefault) {
-            const { count } = await supabase
+            const { count } = await client
                 .from('user_addresses')
                 .select('id', { count: 'exact', head: true })
                 .eq('user_id', session.user.id)
@@ -68,14 +69,14 @@ export const POST: APIRoute = async (context) => {
 
         // If setting as default, unset others of same type
         if (makeDefault) {
-            await supabase
+            await client
                 .from('user_addresses')
                 .update({ is_default: false })
                 .eq('user_id', session.user.id)
                 .eq('address_type', address_type);
         }
 
-        const { error } = await supabase.from('user_addresses').insert({
+        const { error } = await client.from('user_addresses').insert({
             user_id: session.user.id,
             address_data: addressData,
             address_type,

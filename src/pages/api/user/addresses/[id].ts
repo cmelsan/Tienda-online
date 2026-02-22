@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, createTokenClient } from '@/lib/supabase';
 
 // PUT — update an address by id
 export const PUT: APIRoute = async (context) => {
@@ -10,6 +10,7 @@ export const PUT: APIRoute = async (context) => {
         return new Response(JSON.stringify({ error: 'No autenticado' }), { status: 401 });
     }
 
+    const client = createTokenClient(session.access_token);
     const { id } = context.params;
 
     try {
@@ -17,7 +18,7 @@ export const PUT: APIRoute = async (context) => {
 
         // If setting as default, unset others of same type first
         if (is_default) {
-            await supabase
+            await client
                 .from('user_addresses')
                 .update({ is_default: false })
                 .eq('user_id', session.user.id)
@@ -25,7 +26,7 @@ export const PUT: APIRoute = async (context) => {
                 .neq('id', id);
         }
 
-        const { error } = await supabase
+        const { error } = await client
             .from('user_addresses')
             .update({ address_data, address_type, is_default, updated_at: new Date().toISOString() })
             .eq('id', id)
@@ -51,10 +52,11 @@ export const DELETE: APIRoute = async (context) => {
         return new Response(JSON.stringify({ error: 'No autenticado' }), { status: 401 });
     }
 
+    const client = createTokenClient(session.access_token);
     const { id } = context.params;
 
     try {
-        const { error } = await supabase
+        const { error } = await client
             .from('user_addresses')
             .delete()
             .eq('id', id)
@@ -80,11 +82,11 @@ export const PATCH: APIRoute = async (context) => {
         return new Response(JSON.stringify({ error: 'No autenticado' }), { status: 401 });
     }
 
+    const client = createTokenClient(session.access_token);
     const { id } = context.params;
 
     try {
-        // Get address type to unset others of same type
-        const { data: addr, error: fetchErr } = await supabase
+        const { data: addr, error: fetchErr } = await client
             .from('user_addresses')
             .select('address_type')
             .eq('id', id)
@@ -95,15 +97,13 @@ export const PATCH: APIRoute = async (context) => {
             return new Response(JSON.stringify({ error: 'Dirección no encontrada' }), { status: 404 });
         }
 
-        // Unset all others of same type
-        await supabase
+        await client
             .from('user_addresses')
             .update({ is_default: false })
             .eq('user_id', session.user.id)
             .eq('address_type', addr.address_type);
 
-        // Set this one as default
-        const { error } = await supabase
+        const { error } = await client
             .from('user_addresses')
             .update({ is_default: true })
             .eq('id', id)

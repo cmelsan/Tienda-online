@@ -16,7 +16,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     try {
-        const { items, orderId, email, discountAmount } = await request.json();
+        const { items, orderId, email, discountAmount, discountType, discountValue } = await request.json();
 
         if (!items || !orderId) {
             return new Response(JSON.stringify({ error: 'Missing required parameters' }), { status: 400 });
@@ -114,21 +114,30 @@ export const POST: APIRoute = async ({ request }) => {
             };
         });
 
-        // Calculate subtotal from validated prices
+        // Calculate subtotal from validated prices (after flash sale / featured offers)
         const subtotal = line_items.reduce((sum, item) => 
             sum + (item.price_data.unit_amount * item.quantity), 0
         );
 
-        // Validate discount amount doesn't exceed subtotal
-        const validDiscountAmount = discountAmount && discountAmount > 0 
-            ? Math.min(Math.round(discountAmount), subtotal) 
-            : 0;
-
-        if (discountAmount > 0 && validDiscountAmount !== Math.round(discountAmount)) {
-            console.warn('[Checkout] Discount amount capped to subtotal:', {
-                requested: discountAmount,
-                subtotal,
-                applied: validDiscountAmount
+        // Recalculate discount based on the REAL Stripe subtotal to avoid double-discount:
+        // The client sends discountAmount calculated from cart prices (before featured-offer discounts).
+        // Stripe line items already have featured-offer prices applied, so we must recalculate.
+        let validDiscountAmount = 0;
+        if (discountAmount && discountAmount > 0) {
+            if (discountType === 'percentage' && discountValue > 0) {
+                // Recalculate % discount from the actual Stripe subtotal
+                validDiscountAmount = Math.round(subtotal * discountValue / 100);
+            } else {
+                // Fixed amount: use as-is, capped to subtotal
+                validDiscountAmount = Math.min(Math.round(discountAmount), subtotal);
+            }
+            validDiscountAmount = Math.min(validDiscountAmount, subtotal);
+            console.log('[Checkout] Discount recalculated:', {
+                discountType,
+                discountValue,
+                stripeSubtotal: subtotal,
+                originalDiscountAmount: discountAmount,
+                recalculatedDiscount: validDiscountAmount
             });
         }
 

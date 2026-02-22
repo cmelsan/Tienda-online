@@ -222,6 +222,8 @@ export default function CheckoutFlow() {
                     orderId: orderId,
                     email: email,
                     discountAmount: coupon?.discount_amount || 0,
+                    discountType: coupon?.discount_type || null,
+                    discountValue: coupon?.discount_value || 0,
                     finalTotal: total
                 })
             });

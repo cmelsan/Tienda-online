@@ -121,18 +121,19 @@ export async function getReturnRate(): Promise<number> {
 
 /**
  * Get sales data for last 7 days (for line chart)
- * Uses UTC dates to avoid timezone mismatches with Supabase
+ * Uses order_status_history to get the EXACT date of payment confirmation,
+ * not the order creation date (which is always awaiting_payment).
  */
 export async function getSalesLast7Days(): Promise<Array<{ date: string; sales: number }>> {
-  // Start of 7 days ago in UTC
   const startDate = new Date();
   startDate.setUTCDate(startDate.getUTCDate() - 6);
   startDate.setUTCHours(0, 0, 0, 0);
 
+  // Query when each order was confirmed as paid via the status history
   const { data, error } = await supabase
-    .from('orders')
-    .select('created_at, total_amount')
-    .in('status', PAID_STATUSES)
+    .from('order_status_history')
+    .select('created_at, order_id, orders!order_status_history_order_id_fkey(total_amount)')
+    .eq('to_status', 'paid')
     .gte('created_at', startDate.toISOString());
 
   if (error || !data) {
@@ -140,13 +141,13 @@ export async function getSalesLast7Days(): Promise<Array<{ date: string; sales: 
     return [];
   }
 
-  // Group by UTC date string (YYYY-MM-DD) to avoid timezone issues
+  // Group by the PAYMENT date (when webhook marked it paid), not order creation
   const groupedByDate = new Map<string, number>();
-  data.forEach((order) => {
-    const d = new Date(order.created_at);
-    // Use UTC date parts to match Supabase stored UTC timestamps
+  data.forEach((row: any) => {
+    const d = new Date(row.created_at);
     const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
-    groupedByDate.set(key, (groupedByDate.get(key) || 0) + (order.total_amount || 0));
+    const amount = row.orders?.total_amount || 0;
+    groupedByDate.set(key, (groupedByDate.get(key) || 0) + amount);
   });
 
   // Build last 7 days array (today included)
@@ -156,7 +157,6 @@ export async function getSalesLast7Days(): Promise<Array<{ date: string; sales: 
     d.setUTCDate(d.getUTCDate() - i);
     d.setUTCHours(0, 0, 0, 0);
     const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
-    // Label legible: "22 feb"
     const label = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
     allDates.push({ date: label, sales: Math.round((groupedByDate.get(key) || 0) / 100) });
   }

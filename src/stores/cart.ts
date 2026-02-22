@@ -1,5 +1,5 @@
 import { atom, map, computed } from 'nanostores';
-import { persistentMap } from '@nanostores/persistent';
+import { persistentMap, persistentAtom } from '@nanostores/persistent';
 import type { Product } from '@/lib/supabase';
 import { supabase } from '@/lib/supabase';
 import { getOrCreateSessionId } from '@/lib/sessionManager';
@@ -102,15 +102,19 @@ export const cartItems = persistentMap<Record<string, CartItem>>(
 // Cart UI state
 export const isCartOpen = atom<boolean>(false);
 
-// Coupon state - NO persistente (se limpia al recargar página)
-// El cupón solo se registra en BD después del pago exitoso
-export const appliedCoupon = atom<{
+// Coupon state - Persistente en localStorage (se limpia al completar el pago)
+export const appliedCoupon = persistentAtom<{
     code: string;
     id: string;
     discount_value: number;
     discount_type: 'percentage' | 'fixed';
     discount_amount: number;
-} | null>(null);
+} | null>('eclat-coupon:', null, {
+    encode: JSON.stringify,
+    decode: (raw) => {
+        try { return JSON.parse(raw); } catch { return null; }
+    }
+});
 
 // Computed: Total items in cart
 export const cartCount = computed(cartItems, (items) => {
@@ -276,11 +280,11 @@ export function clearCart() {
 }
 
 /**
- * Clear only the applied coupon (sin persistir en localStorage)
+ * Clear only the applied coupon (también borra de localStorage)
  */
 export function removeCoupon() {
     appliedCoupon.set(null);
-    console.log('[Coupon] Cupón removido de memoria - NOT registrado en BD');
+    console.log('[Coupon] Cupón removido');
 }
 
 /**

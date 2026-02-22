@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
-import { clearCart } from '@/stores/cart';
+import { clearCart, removeCoupon } from '@/stores/cart';
 
 export default function ClearCartOnSuccess() {
   useEffect(() => {
-    // Clear cart from nanostores and localStorage
-    console.log('[ClearCartOnSuccess] Clearing cart after successful purchase');
+    // Clear cart and coupon from nanostores and localStorage
+    console.log('[ClearCartOnSuccess] Clearing cart and coupon after successful purchase');
     clearCart();
+    removeCoupon();
     
     // Extra confirmation
     setTimeout(() => {

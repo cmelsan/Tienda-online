@@ -163,8 +163,6 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
 </PublicLayout>
 
 <script>
-  import { supabase } from '@/lib/supabase';
-
   // ── Helpers ──────────────────────────────────────────────
   function showMsg(id: string, text: string, ok: boolean) {
     const el = document.getElementById(id)!;
@@ -203,13 +201,18 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
     hideMsg('info-msg');
 
     const newName = inputName.value.trim();
-    const { error } = await supabase.auth.updateUser({ data: { full_name: newName } });
+    const res = await fetch('/api/user/update-name', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName }),
+    });
+    const data = await res.json();
 
     btn.disabled = false;
     btn.textContent = 'Guardar cambios';
 
-    if (error) {
-      showMsg('info-msg', 'Error al actualizar el nombre. Inténtalo de nuevo.', false);
+    if (!res.ok) {
+      showMsg('info-msg', data.error || 'Error al actualizar el nombre. Inténtalo de nuevo.', false);
       return;
     }
 
@@ -264,28 +267,18 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
     btn.disabled = true;
     btn.textContent = 'Verificando...';
 
-    // Verificar contraseña actual
-    const { data: { user } } = await supabase.auth.getUser();
-    const { error: signInErr } = await supabase.auth.signInWithPassword({
-      email: user!.email!,
-      password: currentPwd,
+    const res = await fetch('/api/user/update-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword: currentPwd, newPassword: newPwd }),
     });
-
-    if (signInErr) {
-      btn.disabled = false;
-      btn.textContent = 'Actualizar contraseña';
-      showMsg('pwd-msg', 'La contraseña actual es incorrecta.', false);
-      return;
-    }
-
-    btn.textContent = 'Actualizando...';
-    const { error } = await supabase.auth.updateUser({ password: newPwd });
+    const data = await res.json();
 
     btn.disabled = false;
     btn.textContent = 'Actualizar contraseña';
 
-    if (error) {
-      showMsg('pwd-msg', 'Error al actualizar la contraseña. Inténtalo de nuevo.', false);
+    if (!res.ok) {
+      showMsg('pwd-msg', data.error || 'Error al actualizar la contraseña. Inténtalo de nuevo.', false);
       return;
     }
 

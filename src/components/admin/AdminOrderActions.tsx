@@ -82,35 +82,11 @@ export default function AdminOrderActions({ order, onActionComplete }: AdminOrde
             case 'delivered':
                 break;
             case 'return_requested':
-                actions.push({
-                    type: 'process_return',
-                    label: 'Aceptar Devolución',
-                    requiresNotes: false,
-                    requiresConfirm: true,
-                    showRestoreStock: true
-                });
-                actions.push({
-                    type: 'refund',
-                    label: 'Procesar Reembolso',
-                    requiresNotes: true,
-                    requiresConfirm: true
-                });
-                break;
             case 'returned':
-                actions.push({
-                    type: 'refund',
-                    label: 'Procesar Reembolso',
-                    requiresNotes: true,
-                    requiresConfirm: true
-                });
-                break;
             case 'partially_returned':
-                actions.push({
-                    type: 'refund',
-                    label: 'Procesar Reembolso Parcial',
-                    requiresNotes: true,
-                    requiresConfirm: true
-                });
+            case 'refunded':
+            case 'partially_refunded':
+                // Gestionado exclusivamente desde /admin/devoluciones
                 break;
         }
 

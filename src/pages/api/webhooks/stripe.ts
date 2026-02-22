@@ -1,9 +1,8 @@
 import type { APIRoute } from 'astro';
 import Stripe from 'stripe';
-import { supabase } from '@/lib/supabase';
+import { supabase, getAdminSupabaseClient } from '@/lib/supabase';
 import { sendEmail, getOrderConfirmationTemplate } from '@/lib/brevo';
 import { createSaleInvoice, fetchInvoiceAsAttachment } from '@/lib/invoices';
-import { incrementCouponUsage } from '@/lib/coupons';
 
 const DEBUG = import.meta.env.DEV;
 
@@ -220,14 +219,30 @@ export const POST: APIRoute = async ({ request }) => {
                     console.warn('[Stripe Webhook] No customer email found or order data missing');
                 }
                 // 5. Register coupon usage (after payment confirmed — avoids tracking abandoned carts)
+                // Uses admin client to bypass RLS — anon client would be blocked by insert policies
                 if (couponId && discountAmount > 0) {
                     try {
                         const userId = orderData?.user_id || null;
-                        await incrementCouponUsage(couponId, orderId, userId, discountAmount);
-                        console.log('[Stripe Webhook] Coupon usage registered:', couponId);
+                        // Prefer admin client (bypasses RLS); fallback to anon with SECURITY DEFINER fn
+                        const couponClient = getAdminSupabaseClient() || supabase;
+                        const { data: couponResult, error: couponRpcError } = await (couponClient as any).rpc(
+                            'increment_coupon_usage_atomic',
+                            {
+                                p_coupon_id: couponId,
+                                p_order_id: orderId,
+                                p_user_id: userId,
+                                p_discount_applied: discountAmount,
+                            }
+                        );
+                        if (couponRpcError) {
+                            console.error('[Stripe Webhook] Coupon RPC error:', couponRpcError.message);
+                        } else if (couponResult?.success === false) {
+                            console.warn('[Stripe Webhook] Coupon usage rejected by DB:', couponResult.error);
+                        } else {
+                            console.log('[Stripe Webhook] Coupon usage registered:', couponId, 'new_uses:', couponResult?.new_uses);
+                        }
                     } catch (couponErr: any) {
-                        // Non-fatal: log but don't block the webhook response
-                        console.warn('[Stripe Webhook] Coupon usage tracking failed:', couponErr.message);
+                        console.error('[Stripe Webhook] Coupon usage tracking exception:', couponErr.message);
                     }
                 }
 

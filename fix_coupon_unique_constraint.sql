@@ -11,21 +11,42 @@
 -- Run this in your Supabase SQL editor.
 -- ============================================================
 
--- Step 1: Add DB-level UNIQUE constraint so even concurrent requests
+-- Step 1: Remove duplicate coupon_usage rows caused by the bug
+-- Keeps only the FIRST usage per (coupon_id, user_id), deletes the rest.
+DELETE FROM public.coupon_usage
+WHERE id NOT IN (
+  SELECT DISTINCT ON (coupon_id, user_id) id
+  FROM public.coupon_usage
+  WHERE user_id IS NOT NULL
+  ORDER BY coupon_id, user_id, used_at ASC
+)
+AND user_id IS NOT NULL;
+
+-- Also fix current_uses counter on affected coupons to match real usage count
+UPDATE public.coupons c
+SET current_uses = (
+  SELECT COUNT(*) FROM public.coupon_usage cu WHERE cu.coupon_id = c.id
+);
+
+-- Step 2: Add DB-level UNIQUE constraint so even concurrent requests
 -- cannot insert duplicate (coupon_id, user_id) rows.
 -- Partial index: only applies when user_id IS NOT NULL (guests excluded).
 CREATE UNIQUE INDEX IF NOT EXISTS coupon_usage_one_per_user
   ON public.coupon_usage (coupon_id, user_id)
   WHERE user_id IS NOT NULL;
 
--- Step 2: Replace the atomic function with the corrected INSERT
--- (uses 'used_at' column, not 'created_at')
+-- Step 3: Replace the atomic function with the corrected INSERT + SECURITY DEFINER
+-- SECURITY DEFINER: function runs with DB owner privileges, bypassing RLS.
+-- This is safe because the function validates everything before writing.
 CREATE OR REPLACE FUNCTION increment_coupon_usage_atomic(
   p_coupon_id UUID,
   p_order_id UUID,
   p_user_id UUID,
   p_discount_applied BIGINT
-) RETURNS jsonb AS $$
+) RETURNS jsonb
+SECURITY DEFINER
+SET search_path = public
+AS $$
 DECLARE
   v_coupon RECORD;
   v_new_uses INT;

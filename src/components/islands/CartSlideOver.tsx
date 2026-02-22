@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { cartItemsArray, cartTotal, cartSubtotal, appliedCoupon, removeFromCart, updateQuantity, clearCart, isCartOpen } from '@/stores/cart';
+import { cartItemsArray, cartTotal, cartSubtotal, appliedCoupon, removeFromCart, updateQuantity, clearCart, removeCoupon, isCartOpen } from '@/stores/cart';
 import { addNotification } from '@/stores/notifications';
 import { formatPrice } from '@/lib/utils';
 
@@ -13,6 +13,24 @@ export default function CartSlideOver() {
     const total = useStore(cartTotal);
     const coupon = useStore(appliedCoupon);
     const cartOpenState = useStore(isCartOpen);
+
+    // Detect user change → clear cart if different user
+    useEffect(() => {
+        const OWNER_KEY = 'eclat-cart-owner';
+        fetch('/api/user/me')
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                const currentUserId = data?.user?.id ?? 'guest';
+                const storedOwner = localStorage.getItem(OWNER_KEY) ?? 'guest';
+                if (storedOwner !== currentUserId) {
+                    // Different user — wipe cart and coupon
+                    clearCart();
+                    removeCoupon();
+                }
+                localStorage.setItem(OWNER_KEY, currentUserId);
+            })
+            .catch(() => {}); // silencioso si falla
+    }, []);
 
     // Sync with store state
     useEffect(() => {

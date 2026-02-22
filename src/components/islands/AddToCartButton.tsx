@@ -92,7 +92,7 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
     };
 
     const isOutOfStock = product.stock === 0;
-    const maxQuantity = Math.min(product.stock || 0, 10);
+    const maxQuantity = product.stock || 0;
 
     return (
         <div className="space-y-4">

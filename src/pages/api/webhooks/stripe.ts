@@ -155,8 +155,8 @@ export const POST: APIRoute = async ({ request }) => {
                     }
                 }
 
-                // 4. Send confirmation email if we have customer email
-                if (customerEmail && orderData) {
+                // 4. Send confirmation email if not already sent (deduplication with success page)
+                if (customerEmail && orderData && !orderData.email_sent) {
                     try {
                         if (DEBUG) {
                             console.log('[Stripe Webhook] Preparing to send confirmation email');
@@ -188,6 +188,11 @@ export const POST: APIRoute = async ({ request }) => {
 
                         if (emailResult.success) {
                             console.log('[Stripe Webhook] Confirmation email sent:', emailResult.messageId);
+                            // Mark email as sent to avoid duplicates
+                            await supabase
+                                .from('orders')
+                                .update({ email_sent: true })
+                                .eq('id', orderId);
                         } else {
                             console.warn('[Stripe Webhook] Failed to send confirmation email:', emailResult.error);
                         }
@@ -195,7 +200,11 @@ export const POST: APIRoute = async ({ request }) => {
                         console.error('[Stripe Webhook] Exception sending email:', emailErr.message);
                     }
                 } else {
-                    console.warn('[Stripe Webhook] No customer email found or order data missing');
+                    if (orderData?.email_sent) {
+                        console.log('[Stripe Webhook] Email already sent by success page, skipping duplicate');
+                    } else {
+                        console.warn('[Stripe Webhook] No customer email found or order data missing');
+                    }
                 }
             } catch (err: any) {
                 console.error('[Stripe Webhook] Exception updating order:', err.message);

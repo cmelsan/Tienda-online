@@ -30,19 +30,20 @@ export default function ProductAddToCart({ productId, productName, price, discou
             }
 
             addToCart(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 {
                     id: productId,
                     name: productName,
-                    price: finalPrice,  // Store as final price for calculations
-                    originalPrice: price,  // EXPLICITLY store original price
-                    discountedPrice: finalPrice,  // Also store as discountedPrice for consistency
+                    price: finalPrice,
+                    originalPrice: price,
+                    discountedPrice: finalPrice,
                     discount: discount || 0,
                     is_flash_sale: is_flash_sale || false,
                     flash_sale_discount: flash_sale_discount || 0,
                     images: image ? [image] : [],
                     slug,
                     stock: stock ?? 0,
-                },
+                } as any,
                 1
             );
 

@@ -44,10 +44,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 secure: isSecure,
             };
             
-            if (DEBUG) {
-                console.log('[Admin Login] Setting cookies - Site URL:', siteUrl, 'Secure:', isSecure);
-            }
-            
             // Use different cookie names for admin to avoid conflicts with user sessions
             cookies.set('sb-admin-access-token', data.session.access_token, cookieOptions);
             cookies.set('sb-admin-refresh-token', data.session.refresh_token, cookieOptions);

@@ -1,6 +1,6 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import { Dashboard } from '../../components/dashboard/Dashboard';
+import { Dashboard as DashboardComponent } from '../../components/dashboard/Dashboard';
 import {
   getTotalSalesMonth,
   getPendingOrdersCount,
@@ -49,7 +49,7 @@ const [
 
     {/* Dashboard Content */}
     <div class="px-8 pb-8">
-      <Dashboard
+      <DashboardComponent
         client:load
         totalSalesMonth={totalSalesMonth}
         pendingOrders={pendingOrders}

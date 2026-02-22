@@ -27,6 +27,7 @@ const { data: orders, error } = await supabase
       )
     )
   `)
+  .not('status', 'eq', 'pending')
   .order('created_at', { ascending: false });
 
 if (error) {

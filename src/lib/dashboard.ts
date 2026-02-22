@@ -161,7 +161,10 @@ export async function getTopProducts(): Promise<Array<{ name: string; quantity: 
  * Get order status distribution (for donut chart)
  */
 export async function getOrderStatusDistribution(): Promise<Array<{ name: string; value: number }>> {
-  const { data, error } = await supabase.from('orders').select('status');
+  const { data, error } = await supabase
+    .from('orders')
+    .select('status')
+    .not('status', 'eq', 'pending');
 
   if (error || !data) {
     console.error('Error fetching order status:', error);

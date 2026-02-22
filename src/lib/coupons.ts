@@ -119,15 +119,24 @@ export async function validateCoupon(
     // Check if user has already used this coupon (if userId provided)
     // Restrict to one use per user
     if (userId) {
+      // Use maybeSingle() — returns null (no error) when 0 rows, error only on DB failure
       const { data: userUsage, error: usageError } = await supabase
         .from('coupon_usage')
         .select('id')
         .eq('coupon_id', validCoupon.id)
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
-      // If no error and data exists, user has already used this coupon
-      if (!usageError && userUsage) {
+      if (usageError) {
+        // Real DB error — fail safely blocking the coupon
+        return {
+          valid: false,
+          error: 'Error al verificar el uso del cupón. Inténtalo de nuevo.',
+        };
+      }
+
+      // If a row exists, user has already used this coupon
+      if (userUsage) {
         return {
           valid: false,
           error: 'Ya has utilizado este código de descuento. Solo puedes usarlo una vez.',

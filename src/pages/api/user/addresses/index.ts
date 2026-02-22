@@ -70,13 +70,13 @@ export const POST: APIRoute = async (context) => {
             return new Response(JSON.stringify({ error: 'Datos de dirección requeridos' }), { status: 400 });
         }
 
-        const adminClient = getAdminSupabaseClient()!;
+        const client = getAdminSupabaseClient() ?? supabase;
 
         // Determine if this will be the default
         let makeDefault = is_default ?? false;
         if (!makeDefault) {
             // Auto-make default if it's the first of this type
-            const { count } = await adminClient
+            const { count } = await client
                 .from('user_addresses')
                 .select('id', { count: 'exact', head: true })
                 .eq('user_id', session.user.id)
@@ -87,14 +87,14 @@ export const POST: APIRoute = async (context) => {
 
         // If setting as default, unset others of same type
         if (makeDefault) {
-            await adminClient
+            await client
                 .from('user_addresses')
                 .update({ is_default: false })
                 .eq('user_id', session.user.id)
                 .eq('address_type', address_type);
         }
 
-        const { error } = await adminClient.from('user_addresses').insert({
+        const { error } = await client.from('user_addresses').insert({
             user_id: session.user.id,
             address_data: addressData,
             address_type,

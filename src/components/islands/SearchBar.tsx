@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
 interface Product {
     id: string;
@@ -61,7 +62,11 @@ export default function SearchBar() {
     const [results, setResults]     = useState<SearchResults>({ products: [], brands: [], categories: [], subcategories: [] });
     const [loading, setLoading]     = useState(false);
     const [searched, setSearched]   = useState(false);
+    const [mounted, setMounted]     = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    // Portal mount guard (SSR safe)
+    useEffect(() => { setMounted(true); }, []);
 
     const debouncedQuery = useDebounce(query, 350);
 
@@ -146,9 +151,9 @@ export default function SearchBar() {
                 </svg>
             </button>
 
-            {/* ── Full-screen overlay ─────────────────────────────────────── */}
-            {isOpen && (
-                <div className="fixed inset-0 z-[999] flex flex-col items-center justify-start pt-24 md:pt-32" style={{ backgroundColor: '#111010' }}>
+            {/* ── Full-screen overlay via Portal (escapes header stacking context) ─ */}
+            {isOpen && mounted && createPortal(
+                <div className="fixed inset-0 bg-black flex flex-col items-center justify-start pt-24 md:pt-32" style={{zIndex:99999}}>
 
                     {/* Close */}
                     <button
@@ -383,7 +388,7 @@ export default function SearchBar() {
                         </div>
                     )}
                 </div>
-            )}
+            , document.body)}
         </>
     );
 }

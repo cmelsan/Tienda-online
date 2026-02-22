@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { supabase } from '@/lib/supabase';
+import { supabase, getAdminSupabaseClient } from '@/lib/supabase';
 
 export const PUT: APIRoute = async ({ request, params }) => {
   try {
@@ -9,6 +9,7 @@ export const PUT: APIRoute = async ({ request, params }) => {
     }
 
     const token = authHeader.slice(7);
+    // Validate token via anon client
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
@@ -26,8 +27,11 @@ export const PUT: APIRoute = async ({ request, params }) => {
       );
     }
 
+    // Use admin client to bypass RLS (auth.uid() is null in server routes without cookie session)
+    const adminClient = getAdminSupabaseClient() || supabase;
+
     // Verify ownership
-    const { data: review, error: fetchError } = await supabase
+    const { data: review, error: fetchError } = await adminClient
       .from('reviews')
       .select('user_id')
       .eq('id', id)
@@ -42,7 +46,7 @@ export const PUT: APIRoute = async ({ request, params }) => {
     }
 
     // Update review
-    const { data: updated, error: updateError } = await supabase
+    const { data: updated, error: updateError } = await adminClient
       .from('reviews')
       .update({
         rating,
@@ -50,6 +54,7 @@ export const PUT: APIRoute = async ({ request, params }) => {
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
+      .eq('user_id', user.id) // extra safety: only update own review
       .select()
       .single();
 
@@ -73,6 +78,7 @@ export const DELETE: APIRoute = async ({ request, params }) => {
     }
 
     const token = authHeader.slice(7);
+    // Validate token via anon client
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
@@ -81,8 +87,11 @@ export const DELETE: APIRoute = async ({ request, params }) => {
 
     const { id } = params;
 
+    // Use admin client to bypass RLS
+    const adminClient = getAdminSupabaseClient() || supabase;
+
     // Verify ownership
-    const { data: review, error: fetchError } = await supabase
+    const { data: review, error: fetchError } = await adminClient
       .from('reviews')
       .select('user_id')
       .eq('id', id)
@@ -96,11 +105,12 @@ export const DELETE: APIRoute = async ({ request, params }) => {
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
     }
 
-    // Delete review
-    const { error: deleteError } = await supabase
+    // Delete review (extra safety: filter by user_id too)
+    const { error: deleteError } = await adminClient
       .from('reviews')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', user.id);
 
     if (deleteError) throw deleteError;
 

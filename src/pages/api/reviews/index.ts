@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
-import { supabase } from '@/lib/supabase';
+import { supabase, getAdminSupabaseClient } from '@/lib/supabase';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    // Verify auth
+    // Verify auth via anon client (validates JWT without needing session cookie)
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
@@ -27,32 +27,31 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    if (rating < 0 || rating > 5) {
+    if (rating < 1 || rating > 5) {
       return new Response(
-        JSON.stringify({ error: 'Rating must be between 0 and 5' }),
+        JSON.stringify({ error: 'Rating must be between 1 and 5' }),
         { status: 400 }
       );
     }
 
-    // Check if user has purchased the product (using RLS will handle this)
-    const { data: review, error: insertError } = await supabase
+    // Use admin client — anon client has auth.uid()=null in server routes
+    // (no cookie session), so RLS would block the INSERT.
+    const adminClient = getAdminSupabaseClient() || supabase;
+    const { data: review, error: insertError } = await adminClient
       .from('reviews')
-      .insert([
-        {
-          product_id,
-          user_id: user.id,
-          rating,
-          comment: comment?.trim() || null,
-        },
-      ])
+      .insert([{
+        product_id,
+        user_id: user.id,
+        rating,
+        comment: comment?.trim() || null,
+      }])
       .select()
       .single();
 
     if (insertError) {
-      // Check if it's a duplicate review error
       if (insertError.code === '23505') {
         return new Response(
-          JSON.stringify({ error: 'Ya have already reviewed this product' }),
+          JSON.stringify({ error: 'Ya has dejado una opinión para este producto' }),
           { status: 409 }
         );
       }
@@ -80,6 +79,7 @@ export const GET: APIRoute = async ({ url }) => {
       );
     }
 
+    // Reviews are public — anon client is fine here (reviews_are_public RLS policy)
     const { data: reviews, error } = await supabase
       .from('reviews')
       .select('*')

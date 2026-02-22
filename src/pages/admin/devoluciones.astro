@@ -7,7 +7,7 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 // Fetch all orders with return_requested or returned status
 const supabase = await createServerSupabaseClient(Astro, true);
 
-const { data: returnRequests } = await supabase
+const { data: returnRequests, error: returnError } = await supabase
   .from('orders')
   .select(`
     id,
@@ -31,13 +31,17 @@ const { data: returnRequests } = await supabase
       )
     ),
     order_status_history!order_status_history_order_id_fkey (
-      status,
+      to_status,
       notes,
       created_at
     )
   `)
   .in('status', ['return_requested', 'returned', 'partially_returned', 'refunded', 'partially_refunded'])
   .order('created_at', { ascending: false });
+
+if (returnError) {
+  console.error('[Admin Devoluciones] Query error:', returnError);
+}
 
 const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('es-ES', {
@@ -140,8 +144,8 @@ const refundedCount = returnRequests?.filter((o: any) => o.status === 'refunded'
           // Get return reason: prefer the history entry for the return_requested transition,
           // then fall back to item-level reasons, then a generic message.
           const returnHistory = order.order_status_history?.find(
-            (h: any) => h.status === 'return_requested' && h.notes
-          ) || order.order_status_history?.find((h: any) => h.status === 'return_requested');
+            (h: any) => h.to_status === 'return_requested' && h.notes
+          ) || order.order_status_history?.find((h: any) => h.to_status === 'return_requested');
           const itemReasons = [...new Set(
             (order.order_items || []).map((i: any) => i.return_reason).filter(Boolean)
           )].join(', ');

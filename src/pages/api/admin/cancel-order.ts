@@ -81,9 +81,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             const stripe = new Stripe(stripeSecretKey, { apiVersion: '2025-12-15.clover' as any });
 
             try {
+                // No pasamos 'amount': Stripe reembolsa exactamente lo cobrado.
+                // Pasar order.total_amount falla cuando hay cupones (total en BD > cobrado en Stripe).
                 const refund = await stripe.refunds.create({
                     payment_intent: order.stripe_payment_intent_id,
-                    amount: order.total_amount, // céntimos
                     metadata: {
                         order_id: orderId,
                         admin_id: session.user.id,

@@ -76,10 +76,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         }
 
         // Determinar monto a reembolsar
-        // IMPORTANTE: order.total_amount está en céntimos (INTEGER en BD)
-        // refundAmount viene del input del admin en EUROS (float)
-        // Para Stripe siempre enviamos céntimos.
-        let finalRefundAmountCents: number = order.total_amount; // default: reembolso total en céntimos
+        // NOTA: order.total_amount puede ser el total pre-cupón y diferir del cobro real en Stripe.
+        // Para reembolsos totales NO pasamos 'amount' → Stripe devuelve exactamente lo cobrado.
+        // Para reembolsos parciales pasamos el importe; si excede lo cobrado, Stripe devolverá error.
+        let finalRefundAmountCents: number | undefined = undefined; // undefined = reembolso total
         let isPartialRefund = false;
 
         if (refundAmount !== undefined && refundAmount !== null) {
@@ -93,21 +93,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 );
             }
 
-            // El usuario introduce euros → convertir a céntimos para comparar
-            const refundAmountCents = Math.round(refundAmount * 100);
-
-            if (refundAmountCents > order.total_amount) {
-                return new Response(
-                    JSON.stringify({ 
-                        success: false, 
-                        message: `El monto de reembolso (€${refundAmount.toFixed(2)}) no puede exceder el total del pedido (€${(order.total_amount / 100).toFixed(2)})` 
-                    }),
-                    { status: 400 }
-                );
-            }
-
-            finalRefundAmountCents = refundAmountCents;
-            isPartialRefund = finalRefundAmountCents < order.total_amount;
+            // El usuario introduce euros → convertir a céntimos para Stripe
+            finalRefundAmountCents = Math.round(refundAmount * 100);
+            isPartialRefund = true;
         }
 
         const newStatus = isPartialRefund ? 'partially_refunded' : 'refunded';
@@ -124,15 +112,19 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
         let stripeRefund;
         try {
-            stripeRefund = await stripe.refunds.create({
+            const refundParams: Stripe.RefundCreateParams = {
                 payment_intent: order.stripe_payment_intent_id,
-                amount: finalRefundAmountCents, // ya en céntimos
                 metadata: {
                     order_id: orderId,
                     admin_id: session.user.id,
                     reason: notes || 'Reembolso de administrador',
-                }
-            });
+                },
+            };
+            // Solo pasamos amount en reembolsos parciales; en reembolso total Stripe devuelve lo cobrado.
+            if (finalRefundAmountCents !== undefined) {
+                refundParams.amount = finalRefundAmountCents;
+            }
+            stripeRefund = await stripe.refunds.create(refundParams);
 
             // 'pending' es válido: los reembolsos bancarios tardan 5-10 días
             if (!['succeeded', 'pending'].includes(stripeRefund.status)) {

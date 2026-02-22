@@ -39,13 +39,13 @@ export async function getTotalSalesMonth(): Promise<number> {
 }
 
 /**
- * Get count of pending orders (awaiting_payment, paid, shipped)
+ * Get count of pending orders: only 'paid' (confirmed payment, awaiting shipment)
  */
 export async function getPendingOrdersCount(): Promise<number> {
   const { count, error } = await supabase
     .from('orders')
     .select('id', { count: 'exact', head: true })
-    .in('status', ['awaiting_payment', 'paid', 'shipped']);
+    .eq('status', 'paid');
 
   if (error) {
     console.error('Error fetching pending orders:', error);
@@ -59,9 +59,19 @@ export async function getPendingOrdersCount(): Promise<number> {
  * Get top selling product (sum of quantities across all order_items)
  */
 export async function getTopSellingProduct(): Promise<{ name: string; quantity: number } | null> {
-  const { data, error } = await supabase
-    .from('order_items')
-    .select('product_id, quantity, products(name)');
+  // Only count items from paid/fulfilled orders
+  const { data: paidOrderIds } = await supabase
+    .from('orders')
+    .select('id')
+    .in('status', PAID_STATUSES);
+  const ids = (paidOrderIds || []).map((o: any) => o.id);
+
+  const { data, error } = ids.length > 0
+    ? await supabase
+        .from('order_items')
+        .select('product_id, quantity, products(name)')
+        .in('order_id', ids)
+    : { data: [], error: null };
 
   if (error || !data || data.length === 0) {
     console.error('Error fetching top product:', error);
@@ -90,13 +100,15 @@ export async function getTopSellingProduct(): Promise<{ name: string; quantity: 
 export async function getReturnRate(): Promise<number> {
   const { data: allOrders, error: errorAll } = await supabase
     .from('orders')
-    .select('id, status');
+    .select('id, status')
+    .in('status', PAID_STATUSES.concat(['cancelled']));
 
   if (errorAll || !allOrders) {
     console.error('Error fetching orders:', errorAll);
     return 0;
   }
 
+  // Exclude awaiting_payment from denominator — those are not confirmed sales
   const totalOrders = allOrders.length;
   if (totalOrders === 0) return 0;
 
@@ -156,9 +168,19 @@ export async function getSalesLast7Days(): Promise<Array<{ date: string; sales: 
  * Get top 5 best-selling products (real aggregated totals)
  */
 export async function getTopProducts(): Promise<Array<{ name: string; quantity: number }>> {
-  const { data, error } = await supabase
-    .from('order_items')
-    .select('product_id, quantity, products(name)');
+  // Only count items from paid/fulfilled orders
+  const { data: paidOrderIds } = await supabase
+    .from('orders')
+    .select('id')
+    .in('status', PAID_STATUSES);
+  const ids = (paidOrderIds || []).map((o: any) => o.id);
+
+  const { data, error } = ids.length > 0
+    ? await supabase
+        .from('order_items')
+        .select('product_id, quantity, products(name)')
+        .in('order_id', ids)
+    : { data: [], error: null };
 
   if (error || !data) {
     console.error('Error fetching top products:', error);

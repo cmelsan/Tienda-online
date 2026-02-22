@@ -29,7 +29,11 @@ const { data: recentProducts } = await supabase
   .order('created_at', { ascending: false })
   .limit(5);
 
-const totalStock = recentProducts?.reduce((sum, p) => sum + (p.stock || 0), 0) || 0;
+// Sum stock across ALL products (not just the 5 recent ones)
+const { data: allProductsForStock } = await supabase
+  .from('products')
+  .select('stock');
+const totalStock = allProductsForStock?.reduce((sum, p) => sum + (p.stock || 0), 0) || 0;
 
 // Fetch dashboard analytics data
 const [

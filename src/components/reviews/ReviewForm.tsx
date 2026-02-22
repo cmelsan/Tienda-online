@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 
 interface ReviewFormProps {
@@ -25,8 +24,10 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted })
 
   const checkUserAndReview = async () => {
     try {
-      // Get current user
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      // Get current user via server-side session (reads httpOnly cookies)
+      const meRes = await fetch('/api/user/me');
+      if (!meRes.ok) return;
+      const { user: currentUser } = await meRes.json();
       setUser(currentUser);
 
       if (!currentUser) {
@@ -34,31 +35,25 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted })
         return;
       }
 
-      // Check if user has already reviewed this product
-      const { data: review } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('product_id', productId)
-        .eq('user_id', currentUser.id)
-        .single();
-
-      if (review) {
-        setExistingReview(review);
-        setRating(review.rating);
-        setComment(review.comment || '');
-        setCanReview(false);
-      } else {
-        // Check if user has purchased the product
-        const response = await fetch(`/api/reviews/can-review?productId=${productId}`, {
-          headers: {
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`,
-          },
-        });
-
-        if (response.ok) {
-          const { canReview: can } = await response.json();
-          setCanReview(can);
+      // Fetch all reviews for this product (public) and find user's own
+      const reviewsRes = await fetch(`/api/reviews?productId=${productId}`);
+      if (reviewsRes.ok) {
+        const reviews = await reviewsRes.json();
+        const myReview = reviews.find((r: any) => r.user_id === currentUser.id);
+        if (myReview) {
+          setExistingReview(myReview);
+          setRating(myReview.rating);
+          setComment(myReview.comment || '');
+          setCanReview(false);
+          return;
         }
+      }
+
+      // Check if user has purchased this product
+      const canReviewRes = await fetch(`/api/reviews/can-review?productId=${productId}`);
+      if (canReviewRes.ok) {
+        const { canReview: can } = await canReviewRes.json();
+        setCanReview(can);
       }
     } catch (err) {
       console.error('Error checking user:', err);
@@ -90,20 +85,14 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted })
         // Update existing review
         response = await fetch(`/api/reviews/${existingReview.id}`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`,
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(reviewData),
         });
       } else {
         // Create new review
         response = await fetch('/api/reviews', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`,
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(reviewData),
         });
       }
@@ -136,9 +125,6 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted })
     try {
       const response = await fetch(`/api/reviews/${existingReview.id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`,
-        },
       });
 
       if (!response.ok) {

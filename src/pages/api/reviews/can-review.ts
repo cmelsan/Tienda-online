@@ -1,18 +1,14 @@
 import type { APIRoute } from 'astro';
-import { supabase, getAdminSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, getAdminSupabaseClient } from '@/lib/supabase';
 
-export const GET: APIRoute = async ({ request, url }) => {
+export const GET: APIRoute = async (context) => {
+  const { url } = context;
   try {
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ canReview: false }), { status: 200 });
-    }
+    const serverSupabase = await createServerSupabaseClient(context);
+    const { data: { session } } = await serverSupabase.auth.getSession();
+    const user = session?.user ?? null;
 
-    const token = authHeader.slice(7);
-    // Validate the user's token (anon client is fine for auth.getUser)
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
+    if (!user) {
       return new Response(JSON.stringify({ canReview: false }), { status: 200 });
     }
 

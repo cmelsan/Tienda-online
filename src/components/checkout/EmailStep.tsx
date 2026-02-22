@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 
 interface EmailStepProps {
     initialEmail: string;
@@ -19,11 +18,14 @@ export default function EmailStep({ initialEmail, onContinue, onLogin }: EmailSt
         const checkEmail = async () => {
             if (!email || !email.includes('@')) return;
             setCheckingEmail(true);
-            const { data } = await supabase.from('profiles').select('id').eq('email', email).single();
-            if (data) {
-                setEmailExists(true);
-            } else {
-                setEmailExists(false);
+            try {
+                const res = await fetch(`/api/user/check-email?email=${encodeURIComponent(email)}`);
+                if (res.ok) {
+                    const { exists } = await res.json();
+                    setEmailExists(exists);
+                }
+            } catch (err) {
+                console.error('Error checking email:', err);
             }
             setCheckingEmail(false);
         };

@@ -1,19 +1,15 @@
 import type { APIRoute } from 'astro';
-import { supabase, getAdminSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, getAdminSupabaseClient, supabase } from '@/lib/supabase';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async (context) => {
+  const { request } = context;
   try {
-    // Verify auth via anon client (validates JWT without needing session cookie)
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
+    const serverSupabase = await createServerSupabaseClient(context);
+    const { data: { session } } = await serverSupabase.auth.getSession();
+    const user = session?.user ?? null;
+
+    if (!user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    }
-
-    const token = authHeader.slice(7);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401 });
     }
 
     // Parse request body

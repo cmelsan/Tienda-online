@@ -361,9 +361,8 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
   $('modal-close').addEventListener('click', closeModal);
   $('modal').addEventListener('click', (e) => { if (e.target === $('modal')) closeModal(); });
 
-  document.getElementById('logout-btn')?.addEventListener('click', async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.replace('/login');
+  document.getElementById('logout-btn')?.addEventListener('click', () => {
+    window.location.href = '/api/auth/logout';
   });
 
   // ── Init ───────────────────────────────────────────────────

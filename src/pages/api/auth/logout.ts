@@ -1,24 +1,32 @@
 import type { APIRoute } from "astro";
 
-export const POST: APIRoute = async ({ cookies }) => {
+// GET: browser navigates directly here → clears cookies → redirects to /login
+// This is the most reliable way: Set-Cookie is processed BEFORE the redirect is followed
+export const GET: APIRoute = async ({ cookies, redirect }) => {
+    clearUserCookies(cookies);
+    console.log('[User Logout] User session cleared (GET)');
+    return redirect('/login', 302);
+};
+
+// POST: kept for backwards compat (delete-account still calls it)
+export const POST: APIRoute = async ({ cookies, redirect }) => {
+    clearUserCookies(cookies);
+    console.log('[User Logout] User session cleared (POST)');
+    return redirect('/login', 302);
+};
+
+function clearUserCookies(cookies: any) {
     const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'http://localhost:4321';
     const isSecure = siteUrl.startsWith('https');
 
-    // Set cookies to empty with maxAge 0 — more reliable than cookies.delete()
-    const expiredOptions = {
+    const opts = {
         path: '/',
         maxAge: 0,
+        expires: new Date(0), // explicitly expire in the past
         sameSite: isSecure ? 'none' as const : 'lax' as const,
         httpOnly: true,
         secure: isSecure,
     };
-    cookies.set('sb-access-token', '', expiredOptions);
-    cookies.set('sb-refresh-token', '', expiredOptions);
-
-    console.log('[User Logout] User session cleared');
-
-    return new Response(JSON.stringify({ success: true }), {
-        status: 200,
-        headers: { 'Cache-Control': 'no-store' },
-    });
-};
+    cookies.set('sb-access-token', '', opts);
+    cookies.set('sb-refresh-token', '', opts);
+}

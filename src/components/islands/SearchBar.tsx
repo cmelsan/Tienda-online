@@ -153,7 +153,18 @@ export default function SearchBar() {
 
             {/* ── Full-screen overlay via Portal (escapes header stacking context) ─ */}
             {isOpen && mounted && createPortal(
-                <div className="fixed inset-0 bg-black flex flex-col items-center justify-start pt-24 md:pt-32" style={{zIndex:99999}}>
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 99999,
+                    backgroundColor: '#000000',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    paddingTop: '8rem',
+                    overflowY: 'auto',
+                }}>
 
                     {/* Close */}
                     <button

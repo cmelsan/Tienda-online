@@ -3,6 +3,7 @@
 
 interface Window {
   userWishlist: string[];
+  adminConfirm: (options?: { title?: string; message?: string; confirmLabel?: string }) => Promise<boolean>;
 }
 
 interface ImportMetaEnv {

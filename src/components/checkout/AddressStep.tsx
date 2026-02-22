@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 
 interface AddressData {
     fullName: string;
@@ -41,18 +40,20 @@ export default function AddressStep({ user, onContinue, onBack }: AddressStepPro
 
     const fetchAddresses = async () => {
         setLoading(true);
-        const { data } = await supabase
-            .from('user_addresses')
-            .select('*')
-            .eq('user_id', user.id)
-            .eq('address_type', 'shipping');
-
-        if (data && data.length > 0) {
-            setSavedAddresses(data);
-            // Select default or first
-            const defaultAddr = data.find((a: any) => a.is_default) || data[0];
-            setSelectedAddressId(defaultAddr.id);
-            setFormData(defaultAddr.address_data);
+        try {
+            const res = await fetch('/api/user/addresses');
+            if (res.ok) {
+                const { addresses } = await res.json();
+                if (addresses && addresses.length > 0) {
+                    setSavedAddresses(addresses);
+                    // Select default or first
+                    const defaultAddr = addresses.find((a: any) => a.is_default) || addresses[0];
+                    setSelectedAddressId(defaultAddr.id);
+                    setFormData(defaultAddr.address_data);
+                }
+            }
+        } catch (err) {
+            console.error('Error cargando direcciones:', err);
         }
         setLoading(false);
     };
@@ -79,13 +80,19 @@ export default function AddressStep({ user, onContinue, onBack }: AddressStepPro
 
         // Save logic if new address and user wants to save
         if (user && selectedAddressId === 'new' && saveAddress) {
-            const { error } = await supabase.from('user_addresses').insert({
-                user_id: user.id,
-                address_data: formData,
-                address_type: 'shipping',
-                is_default: savedAddresses.length === 0 // Make default if first one
-            });
-            if (error) console.error('Error saving address:', error);
+            try {
+                const res = await fetch('/api/user/addresses', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ addressData: formData }),
+                });
+                if (!res.ok) {
+                    const { error } = await res.json();
+                    console.error('Error saving address:', error);
+                }
+            } catch (err) {
+                console.error('Error saving address:', err);
+            }
         }
 
         onContinue(formData);

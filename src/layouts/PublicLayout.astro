@@ -20,6 +20,9 @@ const { data: offersSettings } = await supabase
   .single();
 
 const offersEnabled = offersSettings !== null && (offersSettings as any).value === true;
+
+// Read session from httpOnly cookie (set by server-side login API)
+const isLoggedIn = !!Astro.cookies.get('sb-access-token')?.value;
 ---
 
 <BaseLayout title={title} description={description}>
@@ -317,12 +320,12 @@ const offersEnabled = offersSettings !== null && (offersSettings as any).value =
           </a>
 
           <!-- Login / Account -->
-          <div id="auth-container" class="hidden lg:flex items-center space-x-2 group cursor-pointer">
-             <a href="/login" id="auth-link" class="flex items-center space-x-2">
+          <div class="hidden lg:flex items-center space-x-2 group cursor-pointer">
+             <a href={isLoggedIn ? '/mi-cuenta' : '/login'} class="flex items-center space-x-2">
                 <svg class="w-4 h-4 text-white/80 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span id="auth-text" class="text-[10px] font-medium text-white/80 uppercase tracking-[0.1em] group-hover:text-white transition-colors">Iniciar Sesión</span>
+                <span class="text-[10px] font-medium text-white/80 uppercase tracking-[0.1em] group-hover:text-white transition-colors">{isLoggedIn ? 'Mi Cuenta' : 'Iniciar Sesión'}</span>
              </a>
           </div>
 
@@ -485,23 +488,6 @@ const offersEnabled = offersSettings !== null && (offersSettings as any).value =
 
 <script>
   import { cartCount } from '@/stores/cart';
-  import { supabase } from '@/lib/supabase';
-
-  // Check Session for Header
-  (async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    const authLink = document.getElementById('auth-link') as HTMLAnchorElement;
-    const authText = document.getElementById('auth-text');
-
-    if (session && authLink && authText) {
-      if (location.pathname.startsWith('/admin')) {
-         // Don't change link if on admin pages, or handle differently
-      } else {
-        authLink.href = '/mi-cuenta';
-        authText.textContent = 'Mi Cuenta';
-      }
-    }
-  })();
 
   // Update cart count badge
   cartCount.subscribe((count) => {

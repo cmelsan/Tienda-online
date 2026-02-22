@@ -101,12 +101,8 @@ const { data: wishlistItems, error } = await supabase
 </PublicLayout>
 
 <script>
-  import { supabase } from '@/lib/supabase';
-
   document.getElementById('logout-btn')?.addEventListener('click', async () => {
-    const { error } = await supabase.auth.signOut();
-    if (!error) {
-       window.location.href = '/login';
-    }
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.replace('/login');
   });
 </script>

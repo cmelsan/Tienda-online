@@ -362,10 +362,8 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
   $('modal').addEventListener('click', (e) => { if (e.target === $('modal')) closeModal(); });
 
   document.getElementById('logout-btn')?.addEventListener('click', async () => {
-    const { error } = await supabase.auth.signOut();
-    if (!error) {
-       window.location.href = '/login';
-    }
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.replace('/login');
   });
 
   // ── Init ───────────────────────────────────────────────────

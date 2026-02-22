@@ -171,13 +171,8 @@ const formatPrice = (amount: number) => {
 </PublicLayout>
 
 <script>
-  import { supabase } from '@/lib/supabase';
-
   document.getElementById('logout-btn')?.addEventListener('click', async () => {
-    // Sign out
-    const { error } = await supabase.auth.signOut();
-    if (!error) {
-       window.location.href = '/login';
-    }
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.replace('/login');
   });
 </script>

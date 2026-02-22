@@ -336,13 +336,13 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
       return;
     }
 
-    await supabase.auth.signOut();
-    window.location.href = '/?cuenta=eliminada';
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.replace('/?cuenta=eliminada');
   });
 
   // ── Logout ───────────────────────────────────────────────
   document.getElementById('logout-btn')?.addEventListener('click', async () => {
-    const { error } = await supabase.auth.signOut();
-    if (!error) window.location.href = '/login';
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.replace('/login');
   });
 </script>

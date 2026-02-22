@@ -90,7 +90,9 @@ export default function CheckoutButton() {
                 body: JSON.stringify({
                     items: items,
                     orderId: orderId,
-                    email: finalGuestEmail || user?.email
+                    email: finalGuestEmail || user?.email,
+                    couponId: coupon?.id || null,
+                    discountAmount: coupon?.discount_amount || 0,
                 }),
             });
 

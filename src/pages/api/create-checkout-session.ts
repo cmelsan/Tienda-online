@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import Stripe from 'stripe';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 
 const YOUR_DOMAIN = import.meta.env.PUBLIC_SITE_URL || 'https://claudiaeclat.victoriafp.online';
 const DEBUG = import.meta.env.DEV;
@@ -16,7 +16,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     try {
-        const { items, orderId, email, discountAmount } = await request.json();
+        const { items, orderId, email, discountAmount, couponId } = await request.json();
 
         if (!items || !orderId) {
             return new Response(JSON.stringify({ error: 'Missing required parameters' }), { status: 400 });
@@ -29,16 +29,12 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         // SECURITY: Validate prices against database (never trust client)
-        const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-        const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-        const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
         const productIds = items.map((item: any) => item.product.id);
 
-        // Fetch products to validate stock
+        // Fetch products including flash sale fields to compute server-side price
         const productsResult = await supabase
             .from('products')
-            .select('id, name, price, stock, images')
+            .select('id, name, price, stock, images, is_flash_sale, flash_sale_discount, flash_sale_end_time')
             .in('id', productIds);
 
         if (productsResult.error || !productsResult.data) {
@@ -61,13 +57,25 @@ export const POST: APIRoute = async ({ request }) => {
                 throw new Error(`Insufficient stock for ${dbProduct.name}. Available: ${dbProduct.stock}`);
             }
 
-            // Use the cart price (already has all product discounts applied)
-            const unitAmount = Math.round(item.price);
+            // SECURITY: Calculate price server-side — never trust client value
+            // Apply flash sale discount if active
+            const now = new Date();
+            const isFlashSaleActive =
+                dbProduct.is_flash_sale &&
+                dbProduct.flash_sale_discount > 0 &&
+                (!dbProduct.flash_sale_end_time || new Date(dbProduct.flash_sale_end_time) > now);
+
+            const unitAmount = isFlashSaleActive
+                ? Math.round(dbProduct.price * (1 - dbProduct.flash_sale_discount / 100))
+                : dbProduct.price;
 
             if (DEBUG) {
                 console.log('[Checkout] Product validated:', {
                     name: dbProduct.name,
-                    cartPrice: item.price,
+                    dbPrice: dbProduct.price,
+                    clientPrice: item.price,
+                    effectivePrice: unitAmount,
+                    flashSale: isFlashSaleActive,
                     quantity: item.quantity,
                     stock: dbProduct.stock
                 });
@@ -107,6 +115,7 @@ export const POST: APIRoute = async ({ request }) => {
             metadata: {
                 orderId: orderId,
                 discountAmount: validDiscountAmount.toString(),
+                couponId: couponId || '',
             },
         };
 

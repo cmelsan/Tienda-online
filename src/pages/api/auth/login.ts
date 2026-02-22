@@ -54,7 +54,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect: astroRedirect
                 path: '/',
                 maxAge: 60 * 60 * 24 * 7, // 7 days
                 sameSite: isSecure ? 'none' as const : 'lax' as const,
-                httpOnly: false,
+                httpOnly: true, // Prevent XSS access to session tokens
                 secure: isSecure,
             };
             

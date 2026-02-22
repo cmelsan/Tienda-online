@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro';
 import { createServerSupabaseClient } from '@/lib/supabase';
-import { incrementCouponUsage } from '@/lib/coupons';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
@@ -43,19 +42,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         if (data && data.success) {
             console.log('[Order API] Success! Order ID:', data.order_id);
 
-            // NOTE: Confirmation email will be sent by Stripe webhook after payment is confirmed
-
-            // Register coupon usage if a coupon was applied
-            if (couponId && discountAmount) {
-                try {
-                    await incrementCouponUsage(couponId, data.order_id, session?.user?.id || null, discountAmount);
-                    console.log('[Order API] Coupon usage registered successfully');
-                } catch (couponErr: any) {
-                    console.error('[Order API] Failed to register coupon usage:', couponErr.message);
-                    // Log the error but don't fail the order
-                    console.warn('[Order API] Coupon usage tracking failed, but order was created');
-                }
-            }
+            // NOTE: Coupon usage and stock deduction are handled by the Stripe webhook
+            // after payment is confirmed, to avoid recording usage for abandoned payments.
 
             return new Response(JSON.stringify({
                 success: true,

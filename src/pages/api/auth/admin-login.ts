@@ -40,11 +40,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 path: '/',
                 maxAge: 60 * 60 * 24 * 7, // 7 days
                 sameSite: isSecure ? 'none' as const : 'lax' as const,
-                httpOnly: false,
+                httpOnly: true, // Prevent XSS access to session tokens
                 secure: isSecure,
             };
             
-            console.log('[Admin Login] Setting cookies - Site URL:', siteUrl, 'Secure:', isSecure, 'User:', data.user.id);
+            if (DEBUG) {
+                console.log('[Admin Login] Setting cookies - Site URL:', siteUrl, 'Secure:', isSecure);
+            }
             
             // Use different cookie names for admin to avoid conflicts with user sessions
             cookies.set('sb-admin-access-token', data.session.access_token, cookieOptions);

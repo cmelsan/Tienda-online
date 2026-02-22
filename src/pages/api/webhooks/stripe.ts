@@ -1,14 +1,11 @@
 import type { APIRoute } from 'astro';
 import Stripe from 'stripe';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 import { sendEmail, getOrderConfirmationTemplate } from '@/lib/brevo';
 import { createSaleInvoice, fetchInvoiceAsAttachment } from '@/lib/invoices';
+import { incrementCouponUsage } from '@/lib/coupons';
 
 const DEBUG = import.meta.env.DEV;
-
-// Initialize Supabase client for webhooks
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
 export const POST: APIRoute = async ({ request }) => {
     const stripeSecretKey = import.meta.env.STRIPE_SECRET_KEY;
@@ -54,13 +51,16 @@ export const POST: APIRoute = async ({ request }) => {
         const session = event.data.object as Stripe.Checkout.Session;
         const orderId = session.metadata?.orderId;
         const customerEmail = session.customer_email;
+        const couponId = session.metadata?.couponId || null;
+        const discountAmount = session.metadata?.discountAmount
+            ? parseInt(session.metadata.discountAmount, 10)
+            : 0;
 
         if (DEBUG) {
             console.log('[Stripe Webhook] Payment successful for Order ID:', orderId ? 'present' : 'missing');
         }
 
-        if (orderId && supabaseUrl && supabaseAnonKey) {
-            const supabase = createClient(supabaseUrl, supabaseAnonKey);
+        if (orderId) {
 
             try {
                 // 1. Get order details
@@ -219,6 +219,18 @@ export const POST: APIRoute = async ({ request }) => {
                 } else {
                     console.warn('[Stripe Webhook] No customer email found or order data missing');
                 }
+                // 5. Register coupon usage (after payment confirmed — avoids tracking abandoned carts)
+                if (couponId && discountAmount > 0) {
+                    try {
+                        const userId = orderData?.user_id || null;
+                        await incrementCouponUsage(couponId, orderId, userId, discountAmount);
+                        console.log('[Stripe Webhook] Coupon usage registered:', couponId);
+                    } catch (couponErr: any) {
+                        // Non-fatal: log but don't block the webhook response
+                        console.warn('[Stripe Webhook] Coupon usage tracking failed:', couponErr.message);
+                    }
+                }
+
             } catch (err: any) {
                 console.error('[Stripe Webhook] Exception updating order:', err.message);
             }

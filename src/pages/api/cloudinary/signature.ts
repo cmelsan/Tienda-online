@@ -1,12 +1,37 @@
 import type { APIRoute } from 'astro';
 import crypto from 'crypto';
+import { createServerSupabaseClient } from '@/lib/supabase';
 
 /**
  * GET /api/cloudinary/signature
  * Generate a signature for unsigned upload to Cloudinary
+ * Requires active admin session.
  */
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ cookies }) => {
   try {
+    // Verify admin session
+    const supabase = await createServerSupabaseClient({ cookies }, true);
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      return new Response(
+        JSON.stringify({ error: 'No autenticado' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', session.user.id)
+      .single();
+
+    if (!profile?.is_admin) {
+      return new Response(
+        JSON.stringify({ error: 'Acceso denegado' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
     const cloudName = process.env.PUBLIC_CLOUDINARY_CLOUD_NAME;
     const apiKey = process.env.PUBLIC_CLOUDINARY_API_KEY;
     const apiSecret = process.env.CLOUDINARY_API_SECRET;

@@ -226,15 +226,7 @@ export function calculateDiscount(
 export async function incrementCouponUsage(couponId: string, orderId: string, userId: string | null, discountApplied: number) {
   try {
     // Use atomic RPC function to prevent race conditions
-    // The RPC function:
-    // 1. Locks the coupon row (FOR UPDATE)
-    // 2. Verifies max_uses limit hasn't been reached
-    // 3. Increments current_uses atomically
-    // 4. Records usage in coupon_usage table
-    // All in a single database transaction
-    
-    // @ts-ignore - Custom RPC function not in Supabase types
-    const { data, error } = await supabase.rpc('increment_coupon_usage_atomic', {
+    const { data, error } = await (supabase as any).rpc('increment_coupon_usage_atomic', {
       p_coupon_id: couponId,
       p_order_id: orderId,
       p_user_id: userId,

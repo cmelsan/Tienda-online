@@ -149,16 +149,31 @@ export const POST: APIRoute = async ({ request }) => {
                 if (itemsError) {
                     console.error('[Stripe Webhook] Error fetching order items for stock:', itemsError);
                 } else if (itemsData && itemsData.length > 0) {
+                    const stockFailures: string[] = [];
+
                     for (const item of itemsData) {
-                        const { error: rpcStockError } = await supabase.rpc('decrease_product_stock_atomic', {
+                        const { data: stockResult, error: rpcStockError } = await supabase.rpc('decrease_product_stock_atomic', {
                             p_product_id: item.product_id,
                             p_quantity: item.quantity
                         });
-                        if (rpcStockError) {
-                            console.error('[Stripe Webhook] Stock deduction failed for product:', item.product_id, rpcStockError.message);
+                        if (rpcStockError || stockResult?.success === false) {
+                            const reason = rpcStockError?.message || stockResult?.error || 'Sin stock';
+                            const productName = item.products?.name || item.product_id;
+                            console.error('[Stripe Webhook] Stock deduction failed for product:', item.product_id, reason);
+                            stockFailures.push(`${productName} (x${item.quantity}): ${reason}`);
                         } else {
                             console.log('[Stripe Webhook] Stock deducted for product:', item.product_id, 'qty:', item.quantity);
                         }
+                    }
+
+                    // If any stock failed, insert a visible alert in order_status_history
+                    if (stockFailures.length > 0 && orderId) {
+                        const alertMessage = `STOCK_ISSUE: Sin stock suficiente para — ${stockFailures.join(' | ')}`;
+                        await supabase.rpc('insert_order_stock_alert', {
+                            p_order_id: orderId,
+                            p_notes: alertMessage
+                        });
+                        console.warn('[Stripe Webhook] Stock alert inserted for order:', orderId, alertMessage);
                     }
                 }
 

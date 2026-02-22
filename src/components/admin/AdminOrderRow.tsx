@@ -45,6 +45,7 @@ interface Order {
     guest_email: string | null;
     order_items: OrderItem[];
     shipping_address?: any;
+    stockIssue?: boolean;
 }
 
 interface AdminOrderRowProps {
@@ -115,9 +116,16 @@ export default function AdminOrderRow({ order }: AdminOrderRowProps) {
 
             {/* Estado */}
             <td className="py-4 px-4">
-                <span className={`inline-block text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 ${statusStyle}`}>
-                    {statusLabel}
-                </span>
+                <div className="flex flex-col gap-1">
+                    <span className={`inline-block text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 ${statusStyle}`}>
+                        {statusLabel}
+                    </span>
+                    {order?.stockIssue && (
+                        <span className="inline-block text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 bg-orange-500 text-white">
+                            ⚠ Stock insuficiente
+                        </span>
+                    )}
+                </div>
             </td>
 
             {/* Acciones */}

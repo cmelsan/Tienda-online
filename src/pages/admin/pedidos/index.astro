@@ -25,6 +25,9 @@ const { data: orders, error } = await supabase
         name,
         stock
       )
+    ),
+    order_status_history!order_status_history_order_id_fkey (
+      notes
     )
   `)
   .not('status', 'eq', 'pending')
@@ -34,7 +37,10 @@ if (error) {
   console.error('Error fetching orders:', error);
 }
 
-const orderList = orders || [];
+const orderList = (orders || []).map((o: any) => ({
+  ...o,
+  stockIssue: (o.order_status_history || []).some((h: any) => h.notes?.startsWith('STOCK_ISSUE:')),
+}));
 
 // Stats por estado
 const totalOrders = orderList.length;

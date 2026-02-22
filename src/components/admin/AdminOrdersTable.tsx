@@ -17,6 +17,7 @@ interface Order {
     guest_email: string | null;
     order_items: OrderItem[];
     shipping_address?: any;
+    stockIssue?: boolean;
 }
 
 interface Props {

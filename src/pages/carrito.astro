@@ -126,9 +126,10 @@ import PublicLayout from '@/layouts/PublicLayout.astro';
                 >−</button>
                 <span class="w-8 h-8 flex items-center justify-center text-sm font-bold text-black border-x border-gray-200">${item.quantity}</span>
                 <button
-                  class="qty-btn w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors text-lg leading-none select-none"
+                  class="qty-btn w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors text-lg leading-none select-none disabled:opacity-40 disabled:cursor-not-allowed"
                   data-id="${item.product.id}" data-qty="${item.quantity + 1}"
                   aria-label="Aumentar cantidad"
+                  ${item.quantity >= (item.product.stock ?? 0) ? 'disabled' : ''}
                 >+</button>
               </div>
             </div>

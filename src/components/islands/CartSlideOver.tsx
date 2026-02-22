@@ -192,7 +192,7 @@ export default function CartSlideOver() {
                                         </p>
 
                                         {/* Quantity Controls - Mejorados */}
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-3 flex-wrap">
                                             <span className="text-xs text-gray-500 font-medium">Cantidad:</span>
                                             <div className="flex items-center border border-gray-300 rounded-lg">
                                                 <button
@@ -213,12 +213,16 @@ export default function CartSlideOver() {
                                                             addNotification(err instanceof Error ? err.message : 'Error', 'error');
                                                         }
                                                     }}
-                                                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-700 font-semibold border-l border-gray-300"
+                                                    disabled={item.quantity >= (item.product?.stock ?? 0)}
+                                                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-700 font-semibold border-l border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed"
                                                     title="Aumentar cantidad"
                                                 >
                                                     +
                                                 </button>
                                             </div>
+                                            {item.quantity >= (item.product?.stock ?? 0) && (
+                                                <span className="text-xs text-amber-600 font-medium">Máximo disponible</span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

@@ -41,7 +41,7 @@ export default function ProductAddToCart({ productId, productName, price, discou
                     flash_sale_discount: flash_sale_discount || 0,
                     images: image ? [image] : [],
                     slug,
-                    stock: 999,
+                    stock: stock ?? 0,
                 },
                 1
             );

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient, getAdminSupabaseClient, supabase } from '@/lib/supabase';
+import { createServerSupabaseClient, createTokenClient } from '@/lib/supabase';
 
 export const PUT: APIRoute = async (context) => {
   const { request, params } = context;
@@ -23,26 +23,10 @@ export const PUT: APIRoute = async (context) => {
       );
     }
 
-    // Use admin client to bypass RLS (auth.uid() is null in server routes without cookie session)
-    const adminClient = getAdminSupabaseClient() || supabase;
+    // Use token client — RLS policies allow users to update only their own reviews
+    const client = createTokenClient(session.access_token);
 
-    // Verify ownership
-    const { data: review, error: fetchError } = await adminClient
-      .from('reviews')
-      .select('user_id')
-      .eq('id', id)
-      .single();
-
-    if (fetchError || !review) {
-      return new Response(JSON.stringify({ error: 'Review not found' }), { status: 404 });
-    }
-
-    if (review.user_id !== user.id) {
-      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
-    }
-
-    // Update review
-    const { data: updated, error: updateError } = await adminClient
+    const { data: updated, error: updateError } = await client
       .from('reviews')
       .update({
         rating,
@@ -50,11 +34,13 @@ export const PUT: APIRoute = async (context) => {
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
-      .eq('user_id', user.id) // extra safety: only update own review
+      .eq('user_id', user.id)
       .select()
       .single();
 
-    if (updateError) throw updateError;
+    if (updateError || !updated) {
+      return new Response(JSON.stringify({ error: 'Reseña no encontrada o sin permiso' }), { status: 404 });
+    }
 
     return new Response(JSON.stringify(updated), { status: 200 });
   } catch (error) {
@@ -79,26 +65,10 @@ export const DELETE: APIRoute = async (context) => {
 
     const { id } = params;
 
-    // Use admin client to bypass RLS
-    const adminClient = getAdminSupabaseClient() || supabase;
+    // Use token client — RLS policies allow users to delete only their own reviews
+    const client = createTokenClient(session.access_token);
 
-    // Verify ownership
-    const { data: review, error: fetchError } = await adminClient
-      .from('reviews')
-      .select('user_id')
-      .eq('id', id)
-      .single();
-
-    if (fetchError || !review) {
-      return new Response(JSON.stringify({ error: 'Review not found' }), { status: 404 });
-    }
-
-    if (review.user_id !== user.id) {
-      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
-    }
-
-    // Delete review (extra safety: filter by user_id too)
-    const { error: deleteError } = await adminClient
+    const { error: deleteError } = await client
       .from('reviews')
       .delete()
       .eq('id', id)

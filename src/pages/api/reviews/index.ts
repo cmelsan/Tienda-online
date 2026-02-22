@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient, getAdminSupabaseClient, supabase } from '@/lib/supabase';
+import { createServerSupabaseClient, createTokenClient, supabase } from '@/lib/supabase';
 
 export const POST: APIRoute = async (context) => {
   const { request } = context;
@@ -30,38 +30,78 @@ export const POST: APIRoute = async (context) => {
       );
     }
 
-    // Use SECURITY DEFINER RPC — works regardless of RLS, validates purchase at DB level
-    const adminClient = getAdminSupabaseClient() || supabase;
-    const { data: rpcResult, error: rpcError } = await (adminClient as any).rpc(
-      'insert_review_for_buyer',
-      {
-        p_product_id: product_id,
-        p_user_id: user.id,
-        p_rating: rating,
-        p_comment: comment?.trim() || null,
-      }
-    );
+    const client = createTokenClient(session.access_token);
 
-    if (rpcError) {
-      console.error('[Reviews POST] RPC error:', rpcError.message);
+    // Verify user has purchased this product
+    const reviewableStatuses = [
+      'paid', 'shipped', 'delivered',
+      'return_requested', 'returned', 'partially_returned',
+      'refunded', 'partially_refunded',
+    ];
+
+    const { data: purchases } = await client
+      .from('orders')
+      .select('id')
+      .eq('user_id', user.id)
+      .in('status', reviewableStatuses);
+
+    if (!purchases || purchases.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Error al guardar la opinión: ' + rpcError.message }),
+        JSON.stringify({ error: 'Solo puedes opinar sobre productos que hayas comprado' }),
+        { status: 403 }
+      );
+    }
+
+    const { data: orderItems } = await client
+      .from('order_items')
+      .select('order_id')
+      .eq('product_id', product_id)
+      .in('order_id', purchases.map((o: any) => o.id))
+      .limit(1);
+
+    if (!orderItems || orderItems.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Solo puedes opinar sobre productos que hayas comprado' }),
+        { status: 403 }
+      );
+    }
+
+    // Check for duplicate review
+    const { data: existing } = await client
+      .from('reviews')
+      .select('id')
+      .eq('product_id', product_id)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (existing) {
+      return new Response(
+        JSON.stringify({ error: 'Ya has opinado sobre este producto' }),
+        { status: 409 }
+      );
+    }
+
+    // Insert review (RLS: authenticated users can insert their own reviews)
+    const { data: newReview, error: insertError } = await client
+      .from('reviews')
+      .insert({
+        product_id,
+        user_id: user.id,
+        rating,
+        comment: comment?.trim() || null,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('[Reviews POST] Insert error:', insertError.message);
+      return new Response(
+        JSON.stringify({ error: 'Error al guardar la opinión: ' + insertError.message }),
         { status: 500 }
       );
     }
 
-    if (!rpcResult?.success) {
-      const code = rpcResult?.code;
-      const status = code === 'DUPLICATE_REVIEW' ? 409
-        : code === 'NOT_PURCHASED' ? 403
-        : 400;
-      return new Response(
-        JSON.stringify({ error: rpcResult?.error || 'Error desconocido' }),
-        { status }
-      );
-    }
-
-    return new Response(JSON.stringify(rpcResult.review), { status: 201 });
+    return new Response(JSON.stringify(newReview), { status: 201 });
   } catch (error: any) {
     console.error('Error creating review:', error);
     return new Response(

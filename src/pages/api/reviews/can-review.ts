@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createServerSupabaseClient, getAdminSupabaseClient } from '@/lib/supabase';
+import { createServerSupabaseClient, createTokenClient } from '@/lib/supabase';
 
 export const GET: APIRoute = async (context) => {
   const { url } = context;
@@ -20,10 +20,8 @@ export const GET: APIRoute = async (context) => {
       );
     }
 
-    // Use admin client to bypass RLS — anon client cannot read orders table
-    // with server-to-server requests (no cookie session). Identity already
-    // verified above via supabase.auth.getUser(token).
-    const adminClient = getAdminSupabaseClient() || supabase;
+    // Use token client — RLS policies allow users to read their own orders
+    const adminClient = createTokenClient(session.access_token);
 
     // Valid post-payment statuses in this system (no 'completed' status exists)
     const reviewableStatuses = [
@@ -32,17 +30,14 @@ export const GET: APIRoute = async (context) => {
       'refunded', 'partially_refunded',
     ];
 
-    // Check if user has purchased this product
+    // Check if user has purchased this product (RLS: users see only their own orders)
     const { data: purchases, error } = await adminClient
       .from('orders')
       .select('id')
       .eq('user_id', user.id)
-      .in('status', reviewableStatuses)
-      .limit(50);
+      .in('status', reviewableStatuses);
 
-    if (error) throw error;
-
-    if (!purchases || purchases.length === 0) {
+    if (error || !purchases || purchases.length === 0) {
       return new Response(JSON.stringify({ canReview: false }), { status: 200 });
     }
 
@@ -51,19 +46,31 @@ export const GET: APIRoute = async (context) => {
       .from('order_items')
       .select('order_id')
       .eq('product_id', productId)
-      .in('order_id', purchases.map(o => o.id))
+      .in('order_id', purchases.map((o: any) => o.id))
       .limit(1);
 
-    if (itemsError) throw itemsError;
+    if (itemsError || !orderItems || orderItems.length === 0) {
+      return new Response(JSON.stringify({ canReview: false }), { status: 200 });
+    }
 
-    const canReview = orderItems && orderItems.length > 0;
+    // Check if user already reviewed this product
+    const { data: existingReview } = await adminClient
+      .from('reviews')
+      .select('id')
+      .eq('product_id', productId)
+      .eq('user_id', user.id)
+      .maybeSingle();
 
-    return new Response(JSON.stringify({ canReview }), { status: 200 });
+    if (existingReview) {
+      return new Response(JSON.stringify({ canReview: false, alreadyReviewed: true }), { status: 200 });
+    }
+
+    return new Response(JSON.stringify({ canReview: true }), { status: 200 });
   } catch (error) {
     console.error('Error checking review eligibility:', error);
     return new Response(
-      JSON.stringify({ canReview: false, error: 'Internal server error' }),
-      { status: 500 }
+      JSON.stringify({ canReview: false }),
+      { status: 200 }
     );
   }
 };

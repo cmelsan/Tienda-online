@@ -45,15 +45,27 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         // Fetch order to check status and Stripe payment intent
         const { data: order, error: orderError } = await userClient
             .from('orders')
-            .select('status, total_amount, stripe_payment_intent_id, order_number, guest_email, profiles(email)')
+            .select('id, status, total_amount, stripe_payment_intent_id, order_number, guest_email, user_id')
             .eq('id', orderId)
             .single();
 
         if (orderError || !order) {
+            console.error('[CancelOrder] Order fetch error:', orderError, 'orderId:', orderId);
             return new Response(
                 JSON.stringify({ success: false, message: 'Pedido no encontrado' }),
                 { status: 404 }
             );
+        }
+
+        // Get customer email: guest_email first, then look up profile
+        let customerEmail: string | null = order.guest_email || null;
+        if (!customerEmail && order.user_id) {
+            const { data: profileData } = await userClient
+                .from('profiles')
+                .select('email')
+                .eq('id', order.user_id)
+                .single();
+            customerEmail = profileData?.email || null;
         }
 
         // If the order was already paid, refund in Stripe first
@@ -128,10 +140,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
         // Send cancellation confirmation email (best-effort, don't fail if email errors)
         try {
-            const customerEmail: string | null =
-                (order as any)?.guest_email ||
-                (order as any)?.profiles?.email ||
-                null;
             if (customerEmail) {
                 const html = getCancellationEmailTemplate(
                     customerEmail.split('@')[0],

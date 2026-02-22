@@ -181,41 +181,38 @@ export default function SearchBar() {
                     <form onSubmit={handleSearch} className="w-full max-w-4xl px-4" autoComplete="off">
                         <label htmlFor="search-input" className="sr-only">Buscar</label>
 
-                        <div className="relative group">
-                            <input
-                                ref={inputRef}
-                                id="search-input"
-                                type="text"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                placeholder="BUSCAR PRODUCTOS, MARCAS..."
-                                className="w-full bg-transparent border-b-2 border-gray-600 text-white text-3xl md:text-5xl font-bold py-6 px-4 focus:outline-none focus:border-white placeholder-gray-600 uppercase text-center tracking-widest transition-colors"
-                                autoComplete="off"
-                                spellCheck={false}
-                            />
+                        <input
+                            ref={inputRef}
+                            id="search-input"
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="BUSCAR PRODUCTOS, MARCAS..."
+                            className="w-full bg-transparent border-b-2 border-gray-600 text-white text-3xl md:text-5xl font-bold py-6 px-4 focus:outline-none focus:border-white placeholder-gray-600 uppercase text-center tracking-widest transition-colors"
+                            autoComplete="off"
+                            spellCheck={false}
+                        />
 
-                            {/* Submit icon */}
+                        <div className="flex items-center justify-center gap-4 mt-5">
+                            {/* Submit button */}
                             <button
                                 type="submit"
-                                className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
                                 aria-label="Buscar"
                             >
                                 {loading ? (
-                                    <svg className="w-8 h-8 md:w-10 md:h-10 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                                     </svg>
                                 ) : (
-                                    <svg className="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 )}
+                                <span className="text-sm uppercase tracking-widest">Presiona Enter para buscar</span>
                             </button>
                         </div>
-
-                        <p className="text-gray-500 text-center mt-4 text-sm uppercase tracking-widest">
-                            Presiona Enter para buscar
-                        </p>
                     </form>
 
                     {/* ── Results dropdown ────────────────────────────────────── */}

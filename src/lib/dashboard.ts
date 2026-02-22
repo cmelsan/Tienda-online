@@ -5,15 +5,30 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Todos los estados que implican que el pedido fue pagado
+const PAID_STATUSES = [
+  'paid',
+  'shipped',
+  'delivered',
+  'return_requested',
+  'returned',
+  'partially_returned',
+  'refunded',
+  'partially_refunded',
+];
+
 /**
- * Get total sales for current month (only paid orders)
+ * Get total sales for current month (all statuses that were paid)
  */
 export async function getTotalSalesMonth(): Promise<number> {
+  const now = new Date();
+  const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+
   const { data, error } = await supabase
     .from('orders')
     .select('total_amount')
-    .eq('status', 'paid')
-    .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
+    .in('status', PAID_STATUSES)
+    .gte('created_at', startOfMonth);
 
   if (error) {
     console.error('Error fetching monthly sales:', error);
@@ -41,25 +56,32 @@ export async function getPendingOrdersCount(): Promise<number> {
 }
 
 /**
- * Get top selling product
+ * Get top selling product (sum of quantities across all order_items)
  */
 export async function getTopSellingProduct(): Promise<{ name: string; quantity: number } | null> {
   const { data, error } = await supabase
     .from('order_items')
-    .select('product_id, quantity, products(name)')
-    .order('quantity', { ascending: false })
-    .limit(1);
+    .select('product_id, quantity, products(name)');
 
   if (error || !data || data.length === 0) {
     console.error('Error fetching top product:', error);
     return null;
   }
 
-  const item = data[0];
-  const productName = (item.products as any)?.[0]?.name || (item.products as any)?.name || 'Unknown';
-  const quantity = item.quantity || 0;
+  // Aggregate quantity per product
+  const totals = new Map<string, { name: string; quantity: number }>();
+  data.forEach((item) => {
+    const pid = item.product_id as string;
+    const name = (item.products as any)?.name || (item.products as any)?.[0]?.name || 'Desconocido';
+    const qty = item.quantity || 0;
+    const prev = totals.get(pid);
+    totals.set(pid, { name, quantity: (prev?.quantity || 0) + qty });
+  });
 
-  return { name: productName, quantity };
+  if (totals.size === 0) return null;
+
+  // Find the one with highest total quantity
+  return [...totals.values()].reduce((best, cur) => cur.quantity > best.quantity ? cur : best);
 }
 
 /**
@@ -87,74 +109,76 @@ export async function getReturnRate(): Promise<number> {
 
 /**
  * Get sales data for last 7 days (for line chart)
+ * Uses UTC dates to avoid timezone mismatches with Supabase
  */
 export async function getSalesLast7Days(): Promise<Array<{ date: string; sales: number }>> {
-  const last7Days = new Date();
-  last7Days.setDate(last7Days.getDate() - 7);
+  // Start of 7 days ago in UTC
+  const startDate = new Date();
+  startDate.setUTCDate(startDate.getUTCDate() - 6);
+  startDate.setUTCHours(0, 0, 0, 0);
 
   const { data, error } = await supabase
     .from('orders')
     .select('created_at, total_amount')
-    .eq('status', 'paid')
-    .gte('created_at', last7Days.toISOString());
+    .in('status', PAID_STATUSES)
+    .gte('created_at', startDate.toISOString());
 
   if (error || !data) {
     console.error('Error fetching sales data:', error);
     return [];
   }
 
-  // Group by date
+  // Group by UTC date string (YYYY-MM-DD) to avoid timezone issues
   const groupedByDate = new Map<string, number>();
-
   data.forEach((order) => {
-    const date = new Date(order.created_at).toLocaleDateString('es-ES', {
-      month: 'short',
-      day: 'numeric',
-    });
-
-    const current = groupedByDate.get(date) || 0;
-    groupedByDate.set(date, current + (order.total_amount || 0));
+    const d = new Date(order.created_at);
+    // Use UTC date parts to match Supabase stored UTC timestamps
+    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+    groupedByDate.set(key, (groupedByDate.get(key) || 0) + (order.total_amount || 0));
   });
 
-  // Convert to array and sort by date
-  const result = Array.from(groupedByDate, ([date, sales]) => ({
-    date,
-    sales: Math.round(sales / 100), // Convert cents to euros
-  }));
-
-  // Fill missing dates
+  // Build last 7 days array (today included)
   const allDates: Array<{ date: string; sales: number }> = [];
   for (let i = 6; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const dateStr = date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
-
-    const existing = result.find((r) => r.date === dateStr);
-    allDates.push({ date: dateStr, sales: existing?.sales || 0 });
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() - i);
+    d.setUTCHours(0, 0, 0, 0);
+    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+    // Label legible: "22 feb"
+    const label = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    allDates.push({ date: label, sales: Math.round((groupedByDate.get(key) || 0) / 100) });
   }
 
   return allDates;
 }
 
 /**
- * Get top 5 best-selling products
+ * Get top 5 best-selling products (real aggregated totals)
  */
 export async function getTopProducts(): Promise<Array<{ name: string; quantity: number }>> {
   const { data, error } = await supabase
     .from('order_items')
-    .select('product_id, quantity, products(name)')
-    .order('quantity', { ascending: false })
-    .limit(5);
+    .select('product_id, quantity, products(name)');
 
   if (error || !data) {
     console.error('Error fetching top products:', error);
     return [];
   }
 
-  return data.map((item) => ({
-    name: (item.products as any)?.[0]?.name || (item.products as any)?.name || 'Unknown',
-    quantity: item.quantity || 0,
-  }));
+  // Aggregate quantity per product
+  const totals = new Map<string, { name: string; quantity: number }>();
+  data.forEach((item) => {
+    const pid = item.product_id as string;
+    const name = (item.products as any)?.name || (item.products as any)?.[0]?.name || 'Desconocido';
+    const qty = item.quantity || 0;
+    const prev = totals.get(pid);
+    totals.set(pid, { name, quantity: (prev?.quantity || 0) + qty });
+  });
+
+  // Sort by total quantity descending, take top 5
+  return [...totals.values()]
+    .sort((a, b) => b.quantity - a.quantity)
+    .slice(0, 5);
 }
 
 /**

@@ -31,6 +31,7 @@ const { data: returnRequests } = await supabase
       )
     ),
     order_status_history!order_status_history_order_id_fkey (
+      status,
       notes,
       created_at
     )
@@ -136,9 +137,15 @@ const refundedCount = returnRequests?.filter((o: any) => o.status === 'refunded'
     ) : (
       <div class="space-y-4">
         {returnRequests.map((order: any) => {
-          // Get return reason from status history
-          const returnHistory = order.order_status_history?.find((h: any) => h.notes);
-          const returnReason = returnHistory?.notes || 'Sin motivo especificado';
+          // Get return reason: prefer the history entry for the return_requested transition,
+          // then fall back to item-level reasons, then a generic message.
+          const returnHistory = order.order_status_history?.find(
+            (h: any) => h.status === 'return_requested' && h.notes
+          ) || order.order_status_history?.find((h: any) => h.status === 'return_requested');
+          const itemReasons = [...new Set(
+            (order.order_items || []).map((i: any) => i.return_reason).filter(Boolean)
+          )].join(', ');
+          const returnReason = returnHistory?.notes || itemReasons || 'Sin motivo especificado';
           const requestDate = returnHistory?.created_at || order.created_at;
           const isRefundStage = order.status === 'returned' || order.status === 'partially_returned';
           const isRefunded = order.status === 'refunded' || order.status === 'partially_refunded';

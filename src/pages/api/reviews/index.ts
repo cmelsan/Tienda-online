@@ -32,9 +32,9 @@ export const POST: APIRoute = async (context) => {
 
     const client = createTokenClient(session.access_token);
 
-    // Verify user has purchased this product
+    // Solo se puede opinar después de que el pedido haya sido entregado
     const reviewableStatuses = [
-      'paid', 'shipped', 'delivered',
+      'delivered',
       'return_requested', 'returned', 'partially_returned',
       'refunded', 'partially_refunded',
     ];

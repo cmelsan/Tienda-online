@@ -23,9 +23,9 @@ export const GET: APIRoute = async (context) => {
     // Use token client — RLS policies allow users to read their own orders
     const adminClient = createTokenClient(session.access_token);
 
-    // Valid post-payment statuses in this system (no 'completed' status exists)
+    // Solo se puede opinar después de que el pedido haya sido entregado
     const reviewableStatuses = [
-      'paid', 'shipped', 'delivered',
+      'delivered',
       'return_requested', 'returned', 'partially_returned',
       'refunded', 'partially_refunded',
     ];

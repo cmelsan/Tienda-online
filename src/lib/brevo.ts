@@ -633,6 +633,83 @@ export function getReturnRequestTemplate(customerName: string, orderNumber: stri
 }
 
 // Template: Reembolso Procesado
+export function getCancellationEmailTemplate(
+  customerName: string,
+  orderNumber: string,
+  totalAmount: number,
+  cancelledBy: 'admin' | 'customer',
+  stripeRefundId?: string | null
+): string {
+  const refundBlock = stripeRefundId
+    ? `
+      <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:16px 20px;margin:20px 0">
+        <p style="margin:0 0 6px;font-weight:bold;color:#065f46">✔ Reembolso iniciado</p>
+        <p style="margin:0;font-size:13px;color:#374151">
+          Se ha iniciado el reembolso de <strong>€${(totalAmount / 100).toFixed(2)}</strong> a tu método de pago original.<br>
+          El importe aparecerá en tu cuenta en un plazo de <strong>5–7 días hábiles</strong>.
+        </p>
+        <p style="margin:8px 0 0;font-size:11px;color:#6b7280">Referencia de reembolso: ${stripeRefundId}</p>
+      </div>`
+    : `
+      <div style="background:#fef9c3;border-left:4px solid #eab308;padding:16px 20px;margin:20px 0">
+        <p style="margin:0;font-size:13px;color:#374151">
+          Este pedido no generó cargo, por lo que no hay importe a reembolsar.
+        </p>
+      </div>`;
+
+  const cancelledByText = cancelledBy === 'admin'
+    ? 'nuestro equipo ha cancelado tu pedido'
+    : 'has cancelado tu pedido';
+
+  return `
+    <!DOCTYPE html>
+    <html lang="es">
+      <head>
+        <meta charset="UTF-8" />
+        <style>
+          body{font-family:Arial,sans-serif;line-height:1.6;color:#333;margin:0;padding:0;background:#f5f5f5}
+          .wrap{max-width:600px;margin:0 auto;background:#fff}
+          .hdr{background:#111;color:#fff;padding:32px 40px;text-align:center}
+          .hdr h1{margin:0;font-size:20px;letter-spacing:4px;font-weight:700;text-transform:uppercase}
+          .hdr p{margin:6px 0 0;font-size:11px;letter-spacing:2px;color:#aaa;text-transform:uppercase}
+          .body{padding:36px 40px}
+          .order-ref{background:#f9f9f9;border:1px solid #e5e7eb;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;margin:20px 0}
+          .footer{background:#f9f9f9;border-top:1px solid #e5e7eb;padding:24px 40px;text-align:center;font-size:11px;color:#9ca3af}
+        </style>
+      </head>
+      <body>
+        <div class="wrap">
+          <div class="hdr">
+            <h1>ÉCLAT Beauty</h1>
+            <p>Pedido cancelado</p>
+          </div>
+          <div class="body">
+            <p>Hola <strong>${customerName}</strong>,</p>
+            <p>Te confirmamos que ${cancelledByText} con referencia:</p>
+
+            <div class="order-ref">
+              <span style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#6b7280">Pedido</span>
+              <span style="font-weight:700;font-size:16px;color:#111">#${orderNumber}</span>
+              <span style="font-weight:700;color:#111">€${(totalAmount / 100).toFixed(2)}</span>
+            </div>
+
+            ${refundBlock}
+
+            <p style="font-size:13px;color:#6b7280;margin-top:24px">
+              Si tienes alguna duda puedes escribirnos a
+              <a href="mailto:support@eclatbeauty.com" style="color:#111">support@eclatbeauty.com</a>.
+            </p>
+            <p>Gracias por confiar en ÉCLAT Beauty.</p>
+          </div>
+          <div class="footer">
+            &copy; 2026 ÉCLAT Beauty · Todos los derechos reservados
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
 export function getRefundProcessedTemplate(customerName: string, orderNumber: string, refundAmount: number): string {
   return `
     <!DOCTYPE html>

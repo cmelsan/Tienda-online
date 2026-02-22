@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createServerSupabaseClient, getAdminSupabaseClient } from '@/lib/supabase';
 import Stripe from 'stripe';
+import { sendEmail, getCancellationEmailTemplate } from '@/lib/brevo';
 
 // Statuses that require a Stripe refund when cancelled
 const PAID_STATUSES = ['paid', 'shipped', 'delivered'];
@@ -44,7 +45,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         // Fetch order to check status and Stripe payment intent
         const { data: order, error: orderError } = await userClient
             .from('orders')
-            .select('status, total_amount, stripe_payment_intent_id')
+            .select('status, total_amount, stripe_payment_intent_id, order_number, guest_email, profiles(email)')
             .eq('id', orderId)
             .single();
 
@@ -123,6 +124,31 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 JSON.stringify({ success: false, message: result.error, code: result.code }),
                 { status: 400 }
             );
+        }
+
+        // Send cancellation confirmation email (best-effort, don't fail if email errors)
+        try {
+            const customerEmail: string | null =
+                (order as any)?.guest_email ||
+                (order as any)?.profiles?.email ||
+                null;
+            if (customerEmail) {
+                const html = getCancellationEmailTemplate(
+                    customerEmail.split('@')[0],
+                    (order as any).order_number || orderId,
+                    order.total_amount,
+                    'admin',
+                    stripeRefundId
+                );
+                await sendEmail({
+                    to: customerEmail,
+                    subject: `Pedido #${(order as any).order_number || orderId} cancelado — ÉCLAT Beauty`,
+                    htmlContent: html,
+                });
+                console.log('[CancelOrder] Cancellation email sent to', customerEmail);
+            }
+        } catch (emailErr) {
+            console.warn('[CancelOrder] Email failed (non-blocking):', emailErr);
         }
 
         return new Response(

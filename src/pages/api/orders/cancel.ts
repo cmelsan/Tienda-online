@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import Stripe from 'stripe';
+import { sendEmail, getCancellationEmailTemplate } from '@/lib/brevo';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
@@ -26,7 +27,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         // Verify order belongs to user and fetch status + stripe intent
         const { data: order } = await userClient
             .from('orders')
-            .select('user_id, status, total_amount, stripe_payment_intent_id')
+            .select('user_id, status, total_amount, stripe_payment_intent_id, order_number')
             .eq('id', orderId)
             .single();
 
@@ -104,6 +105,28 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 JSON.stringify({ success: false, message: result.error, code: result.code }),
                 { status: 400 }
             );
+        }
+
+        // Send cancellation email (best-effort)
+        try {
+            const customerEmail = user.email;
+            if (customerEmail) {
+                const html = getCancellationEmailTemplate(
+                    customerEmail.split('@')[0],
+                    (order as any).order_number || orderId,
+                    order.total_amount,
+                    'customer',
+                    stripeRefundId
+                );
+                await sendEmail({
+                    to: customerEmail,
+                    subject: `Pedido #${(order as any).order_number || orderId} cancelado — ÉCLAT Beauty`,
+                    htmlContent: html,
+                });
+                console.log('[CancelOrder] Cancellation email sent to', customerEmail);
+            }
+        } catch (emailErr) {
+            console.warn('[CancelOrder] Email failed (non-blocking):', emailErr);
         }
 
         return new Response(

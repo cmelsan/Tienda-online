@@ -34,32 +34,39 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Use admin client — anon client has auth.uid()=null in server routes
-    // (no cookie session), so RLS would block the INSERT.
+    // Use SECURITY DEFINER RPC — works regardless of RLS, validates purchase at DB level
     const adminClient = getAdminSupabaseClient() || supabase;
-    const { data: review, error: insertError } = await adminClient
-      .from('reviews')
-      .insert([{
-        product_id,
-        user_id: user.id,
-        rating,
-        comment: comment?.trim() || null,
-      }])
-      .select()
-      .single();
-
-    if (insertError) {
-      if (insertError.code === '23505') {
-        return new Response(
-          JSON.stringify({ error: 'Ya has dejado una opinión para este producto' }),
-          { status: 409 }
-        );
+    const { data: rpcResult, error: rpcError } = await (adminClient as any).rpc(
+      'insert_review_for_buyer',
+      {
+        p_product_id: product_id,
+        p_user_id: user.id,
+        p_rating: rating,
+        p_comment: comment?.trim() || null,
       }
-      throw insertError;
+    );
+
+    if (rpcError) {
+      console.error('[Reviews POST] RPC error:', rpcError.message);
+      return new Response(
+        JSON.stringify({ error: 'Error al guardar la opinión: ' + rpcError.message }),
+        { status: 500 }
+      );
     }
 
-    return new Response(JSON.stringify(review), { status: 201 });
-  } catch (error) {
+    if (!rpcResult?.success) {
+      const code = rpcResult?.code;
+      const status = code === 'DUPLICATE_REVIEW' ? 409
+        : code === 'NOT_PURCHASED' ? 403
+        : 400;
+      return new Response(
+        JSON.stringify({ error: rpcResult?.error || 'Error desconocido' }),
+        { status }
+      );
+    }
+
+    return new Response(JSON.stringify(rpcResult.review), { status: 201 });
+  } catch (error: any) {
     console.error('Error creating review:', error);
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),

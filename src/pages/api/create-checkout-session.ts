@@ -16,7 +16,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     try {
-        const { items, orderId, email, discountAmount, discountType, discountValue } = await request.json();
+        const { items, orderId, email, discountAmount } = await request.json();
 
         if (!items || !orderId) {
             return new Response(JSON.stringify({ error: 'Missing required parameters' }), { status: 400 });
@@ -35,18 +35,11 @@ export const POST: APIRoute = async ({ request }) => {
 
         const productIds = items.map((item: any) => item.product.id);
 
-        // Fetch products + featured_offers setting in parallel
-        const [productsResult, offersResult] = await Promise.all([
-            supabase
-                .from('products')
-                .select('id, name, price, stock, images, is_flash_sale, flash_sale_discount, flash_sale_end_time')
-                .in('id', productIds),
-            supabase
-                .from('app_settings')
-                .select('value')
-                .eq('key', 'featured_offers')
-                .single()
-        ]);
+        // Fetch products to validate stock
+        const productsResult = await supabase
+            .from('products')
+            .select('id, name, price, stock, images')
+            .in('id', productIds);
 
         if (productsResult.error || !productsResult.data) {
             console.error('[Checkout] Error fetching products:', productsResult.error);
@@ -54,16 +47,8 @@ export const POST: APIRoute = async ({ request }) => {
         }
         const dbProducts = productsResult.data;
 
-        // Build featured-offers discount map: productId → discount%
-        const featuredOffers: any[] = offersResult.data?.value || [];
-        const offerDiscountMap: Record<string, number> = {};
-        if (Array.isArray(featuredOffers)) {
-            featuredOffers.forEach((o: any) => {
-                if (o?.id && o?.discount > 0) offerDiscountMap[o.id] = o.discount;
-            });
-        }
-
-        // Prepare line items using DATABASE prices (not client prices)
+        // Prepare line items using CART prices (already include flash sale / featured offer discounts)
+        // Only validate stock from DB - prices are trusted from cart which is validated at add-to-cart time
         const line_items = items.map((item: any) => {
             const dbProduct = dbProducts.find(p => p.id === item.product.id);
             
@@ -76,26 +61,13 @@ export const POST: APIRoute = async ({ request }) => {
                 throw new Error(`Insufficient stock for ${dbProduct.name}. Available: ${dbProduct.stock}`);
             }
 
-            // Effective price priority: flash sale > featured offer (rebajas) > base price
-            let unitAmount = Math.round(dbProduct.price);
-            const now = new Date();
-
-            if (dbProduct.is_flash_sale && dbProduct.flash_sale_discount > 0) {
-                const endTime = dbProduct.flash_sale_end_time ? new Date(dbProduct.flash_sale_end_time) : null;
-                if (!endTime || endTime > now) {
-                    unitAmount = Math.round(dbProduct.price * (1 - dbProduct.flash_sale_discount / 100));
-                }
-            } else if (offerDiscountMap[dbProduct.id]) {
-                unitAmount = Math.round(dbProduct.price * (1 - offerDiscountMap[dbProduct.id] / 100));
-            }
+            // Use the cart price (already has all product discounts applied)
+            const unitAmount = Math.round(item.price);
 
             if (DEBUG) {
                 console.log('[Checkout] Product validated:', {
                     name: dbProduct.name,
-                    basePrice: dbProduct.price,
-                    effectivePrice: unitAmount,
-                    isFlashSale: dbProduct.is_flash_sale,
-                    offerDiscount: offerDiscountMap[dbProduct.id] || 0,
+                    cartPrice: item.price,
                     quantity: item.quantity,
                     stock: dbProduct.stock
                 });
@@ -119,27 +91,10 @@ export const POST: APIRoute = async ({ request }) => {
             sum + (item.price_data.unit_amount * item.quantity), 0
         );
 
-        // Recalculate discount based on the REAL Stripe subtotal to avoid double-discount:
-        // The client sends discountAmount calculated from cart prices (before featured-offer discounts).
-        // Stripe line items already have featured-offer prices applied, so we must recalculate.
-        let validDiscountAmount = 0;
-        if (discountAmount && discountAmount > 0) {
-            if (discountType === 'percentage' && discountValue > 0) {
-                // Recalculate % discount from the actual Stripe subtotal
-                validDiscountAmount = Math.round(subtotal * discountValue / 100);
-            } else {
-                // Fixed amount: use as-is, capped to subtotal
-                validDiscountAmount = Math.min(Math.round(discountAmount), subtotal);
-            }
-            validDiscountAmount = Math.min(validDiscountAmount, subtotal);
-            console.log('[Checkout] Discount recalculated:', {
-                discountType,
-                discountValue,
-                stripeSubtotal: subtotal,
-                originalDiscountAmount: discountAmount,
-                recalculatedDiscount: validDiscountAmount
-            });
-        }
+        // Use the discount amount exactly as calculated in the cart (coupon already applied there)
+        const validDiscountAmount = discountAmount && discountAmount > 0
+            ? Math.min(Math.round(discountAmount), subtotal)
+            : 0;
 
         // Create Checkout Session configuration
         const sessionConfig: Stripe.Checkout.SessionCreateParams = {

@@ -66,6 +66,17 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
     </div>
   </div>
 
+  <!-- Modal confirmación eliminar -->
+  <div id="confirm-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
+    <div class="bg-white w-full max-w-sm p-6">
+      <p class="text-sm text-gray-700 mb-6">¿Eliminar esta dirección? Esta acción no se puede deshacer.</p>
+      <div class="flex gap-3">
+        <button id="confirm-yes" class="flex-1 bg-black text-white py-2.5 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors">Eliminar</button>
+        <button id="confirm-no" class="flex-1 border border-gray-300 text-gray-700 py-2.5 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal formulario -->
   <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
     <div class="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -336,16 +347,32 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
   }
 
   // ── Delete ─────────────────────────────────────────────────
-  async function deleteAddress(id: string) {
-    if (!confirm('¿Eliminar esta dirección?')) return;
-    try {
-      const res = await fetch(`/api/user/addresses/${id}`, { method: 'DELETE' });
-      if (!res.ok) { showMsg('Error al eliminar la dirección.', false); return; }
-      showMsg('Dirección eliminada.');
-      loadAddresses();
-    } catch {
-      showMsg('Error de conexión.', false);
-    }
+  function deleteAddress(id: string) {
+    const modal = $('confirm-modal');
+    modal.classList.remove('hidden');
+
+    const cleanup = () => {
+      modal.classList.add('hidden');
+      // re-clone to remove old listeners
+      const yes = $('confirm-yes');
+      const no = $('confirm-no');
+      yes.replaceWith(yes.cloneNode(true));
+      no.replaceWith(no.cloneNode(true));
+    };
+
+    $('confirm-yes').addEventListener('click', async () => {
+      cleanup();
+      try {
+        const res = await fetch(`/api/user/addresses/${id}`, { method: 'DELETE' });
+        if (!res.ok) { showMsg('Error al eliminar la dirección.', false); return; }
+        showMsg('Dirección eliminada.');
+        loadAddresses();
+      } catch {
+        showMsg('Error de conexión.', false);
+      }
+    }, { once: true });
+
+    $('confirm-no').addEventListener('click', cleanup, { once: true });
   }
 
   // ── Events ─────────────────────────────────────────────────

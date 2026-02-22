@@ -123,8 +123,12 @@ export default function AddressStep({ user, onContinue, onBack }: AddressStepPro
                                         className="text-black focus:ring-black"
                                     />
                                     <div className="text-sm">
-                                        <p className="font-bold">{addr.address_data.fullName}</p>
-                                        <p>{addr.address_data.street}, {addr.address_data.city}</p>
+                                        <p className="font-bold">
+                                            {addr.address_data.fullName || addr.address_data.street || 'Dirección guardada'}
+                                        </p>
+                                        <p>
+                                            {[addr.address_data.street, addr.address_data.city].filter(Boolean).join(', ')}
+                                        </p>
                                     </div>
                                 </div>
                             </div>

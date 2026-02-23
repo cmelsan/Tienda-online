@@ -217,15 +217,13 @@ const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || '
               data-id="${addr.id}">Editar</button>
             ${!addr.is_default ? `<button class="btn-default text-xs font-bold uppercase tracking-wide text-gray-500 hover:text-black transition-colors"
               data-id="${addr.id}">Predeterminar</button>` : ''}
-            <button class="btn-delete text-xs font-bold uppercase tracking-wide text-rose-400 hover:text-rose-600 transition-colors ml-auto"
-              data-id="${addr.id}">Eliminar</button>
           </div>
         </div>`;
     }).join('');
 
     list.querySelectorAll('.btn-edit').forEach(b => b.addEventListener('click', () => openEdit((b as HTMLElement).dataset.id!, addresses)));
     list.querySelectorAll('.btn-default').forEach(b => b.addEventListener('click', () => setDefault((b as HTMLElement).dataset.id!)));
-    list.querySelectorAll('.btn-delete').forEach(b => b.addEventListener('click', () => deleteAddress((b as HTMLElement).dataset.id!)));
+
   }
 
   // ── Fetch ──────────────────────────────────────────────────

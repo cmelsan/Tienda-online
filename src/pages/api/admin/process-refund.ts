@@ -100,13 +100,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
         const newStatus = isPartialRefund ? 'partially_refunded' : 'refunded';
 
-        // Obtener ítems pendientes de reembolso ANTES de llamar a Stripe
-        // (el RPC posterior cambiará sus estados; necesitamos los IDs ahora)
+        // Obtener ítems de devolución. Incluimos 'refunded' porque fix_process_return_stock
+        // los marca como 'refunded' en la fase previa (admin_process_return con p_new_status='returned').
         const { data: returnItems } = await userClient
             .from('order_items')
             .select('id, price_at_purchase, quantity')
             .eq('order_id', orderId)
-            .in('return_status', ['requested', 'approved']);
+            .in('return_status', ['requested', 'approved', 'refunded']);
 
         const refundedItemIds: string[] = (returnItems || []).map((i: any) => i.id);
 
@@ -173,11 +173,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         }
 
         // Crear factura de abono automáticamente
+        // Usamos stripeRefund.amount (monto real devuelto por Stripe, en céntimos) como fuente de verdad.
+        // Esto resuelve el caso de reembolso total donde finalRefundAmountCents era undefined.
+        const creditRefundAmount = stripeRefund.amount ?? finalRefundAmountCents ?? order.total_amount;
         let creditAttachment: { content: string; name: string } | null = null;
         try {
             const creditResult = await createCreditNote(userClient, {
                 orderId,
-                refundAmount:    finalRefundAmountCents, // en céntimos (INTEGER en BD)
+                refundAmount:    creditRefundAmount,
                 refundedItemIds,
                 stripeRefundId:  stripeRefund.id,
                 notes:           notes || undefined,

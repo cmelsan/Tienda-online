@@ -157,8 +157,10 @@ const refundedCount = returnRequests?.filter((o: any) => o.status === 'refunded'
           const statusLabel = getStatusLabel(order.status);
 
           // Calcular reembolso de los items en devolución
+          // Incluimos 'refunded' porque fix_process_return_stock los marca así al aceptar la devolución física,
+          // antes de que Stripe procese el reembolso real.
           const returnItems = order.order_items?.filter((i: any) => 
-            i.return_status === 'requested' || i.return_status === 'approved'
+            i.return_status === 'requested' || i.return_status === 'approved' || i.return_status === 'refunded'
           ) || [];
           const refundAmount = returnItems.reduce((sum: number, i: any) => 
             sum + (i.price_at_purchase * i.quantity), 0
@@ -232,7 +234,7 @@ const refundedCount = returnRequests?.filter((o: any) => o.status === 'refunded'
                   {/* Resumen de reembolso */}
                   {(() => {
                     const returnItems = order.order_items?.filter((i: any) => 
-                      i.return_status === 'requested' || i.return_status === 'approved'
+                      i.return_status === 'requested' || i.return_status === 'approved' || i.return_status === 'refunded'
                     ) || [];
                     const refundAmount = returnItems.reduce((sum: number, i: any) => 
                       sum + (i.price_at_purchase * i.quantity), 0
@@ -271,7 +273,7 @@ const refundedCount = returnRequests?.filter((o: any) => o.status === 'refunded'
                   client:visible 
                   orderId={order.id}
                   orderTotalCents={order.total_amount}
-                  refundAmountCents={refundAmount || order.total_amount}
+                  refundAmountCents={refundAmount > 0 ? refundAmount : order.total_amount}
                   orderStatus={order.status}
                 />
               </div>

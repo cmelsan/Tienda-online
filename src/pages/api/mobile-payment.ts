@@ -32,6 +32,8 @@ interface MobilePaymentRequestItem {
 interface MobilePaymentRequest {
     items: MobilePaymentRequestItem[];
     email: string;
+    orderId?: string;
+    couponId?: string;
     /** Descuento de cupón en céntimos (ya validado en el cliente, pero se aplica aquí). */
     discountAmount?: number;
 }
@@ -49,16 +51,17 @@ interface DbProduct {
 // ─── Handler ───────────────────────────────────────────────────────────────────
 export const POST: APIRoute = async ({ request }) => {
     // ── 0. Variables de entorno ────────────────────────────────────────────────
-    const stripeSecretKey = import.meta.env.STRIPE_SECRET_KEY;
-    const stripePublishableKey = import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    // Usamos typeof process !== 'undefined' para evitar ReferenceError en entornos Edge
+    const stripeSecretKey = import.meta.env.STRIPE_SECRET_KEY ?? (typeof process !== 'undefined' ? process.env.STRIPE_SECRET_KEY : undefined);
+    const stripePublishableKey = import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY ?? (typeof process !== 'undefined' ? process.env.PUBLIC_STRIPE_PUBLISHABLE_KEY : undefined);
 
     if (!stripeSecretKey || !stripePublishableKey) {
         console.error('[MobilePayment] Missing Stripe environment variables.');
         return errorResponse('Server configuration error', 500);
     }
 
-    const stripe = new Stripe(stripeSecretKey, {
-        // Mantén la misma apiVersion que usa create-checkout-session.ts
+    const stripe = new Stripe(stripeSecretKey as string, {
+        // Usamos la misma versión exigida por la librería de Stripe instalada
         apiVersion: '2025-12-15.clover',
     });
 
@@ -70,7 +73,7 @@ export const POST: APIRoute = async ({ request }) => {
         return errorResponse('Invalid JSON body', 400);
     }
 
-    const { items, email, discountAmount = 0 } = body;
+    const { items, email, discountAmount = 0, orderId = 'no_enviado', couponId = 'no_enviado' } = body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
         return errorResponse('items is required and must be a non-empty array', 400);
@@ -177,7 +180,10 @@ export const POST: APIRoute = async ({ request }) => {
                     effective: unitAmount,
                 });
             }
-
+            
+            // Asumiendo que el precio no viene en céntimos desde Supabase
+            // Si el precio en tu BD ES CON DECIMALES (ej: 15.50 -> 15.5), descomenta la siguiente línea y borra la original
+            // totalAmountCents += Math.round(unitAmount * 100) * item.quantity;
             totalAmountCents += unitAmount * item.quantity;
             lineItems.push({ name: product.name, unitAmount, quantity: item.quantity });
         }
@@ -200,14 +206,14 @@ export const POST: APIRoute = async ({ request }) => {
             existingCustomers.data.length > 0
                 ? existingCustomers.data[0]
                 : await stripe.customers.create({
-                      email,
-                      metadata: { source: 'flutter_app' },
-                  });
+                    email,
+                    metadata: { source: 'flutter_app' },
+                });
 
         // ── 6. Generar Ephemeral Key para el SDK móvil ────────────────────────
         const ephemeralKey = await stripe.ephemeralKeys.create(
             { customer: customer.id },
-            { apiVersion: '2025-12-15.clover' },
+            { apiVersion: '2025-12-15.clover' }, // Debe coincidir con la versión de Stripe
         );
 
         // ── 7. Crear PaymentIntent ─────────────────────────────────────────────
@@ -219,6 +225,8 @@ export const POST: APIRoute = async ({ request }) => {
             automatic_payment_methods: { enabled: true },
             metadata: {
                 source: 'flutter_app',
+                order_id: orderId,
+                coupon_id: couponId,
                 items_count: items.length.toString(),
                 coupon_discount_cents: sanitizedDiscount.toString(),
             },

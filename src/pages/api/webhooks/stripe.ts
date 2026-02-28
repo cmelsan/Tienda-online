@@ -46,57 +46,88 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Handle the event
+    let orderId: string | undefined;
+    let customerEmail: string | undefined | null;
+    let couponId: string | null = null;
+    let discountAmount: number = 0;
+    let paymentIntentId: string | null = null;
+    let invoiceSessionId: string = '';
+
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object as Stripe.Checkout.Session;
-        const orderId = session.metadata?.orderId;
-        const customerEmail = session.customer_email;
-        const couponId = session.metadata?.couponId || null;
-        const discountAmount = session.metadata?.discountAmount
+        orderId = session.metadata?.orderId || session.metadata?.order_id;
+        customerEmail = session.customer_email || session.customer_details?.email;
+        couponId = session.metadata?.couponId || session.metadata?.coupon_id || null;
+        discountAmount = session.metadata?.discountAmount
             ? parseInt(session.metadata.discountAmount, 10)
             : 0;
-
-        if (DEBUG) {
-            console.log('[Stripe Webhook] Payment successful for Order ID:', orderId ? 'present' : 'missing');
+        paymentIntentId = typeof session.payment_intent === 'string'
+            ? session.payment_intent
+            : session.payment_intent?.id || null;
+        invoiceSessionId = session.id;
+    } else if (event.type === 'payment_intent.succeeded') {
+        const pi = event.data.object as Stripe.PaymentIntent;
+        // Sólo procesamos payment intents que vienen de flutter (para no duplicar los de checkout web)
+        if (pi.metadata?.source === 'flutter_app') {
+            orderId = pi.metadata?.order_id || pi.metadata?.orderId;
+            customerEmail = pi.receipt_email;
+            couponId = pi.metadata?.coupon_id || pi.metadata?.couponId || null;
+            discountAmount = pi.metadata?.coupon_discount_cents
+                ? parseInt(pi.metadata.coupon_discount_cents, 10)
+                : 0;
+            paymentIntentId = pi.id;
+            invoiceSessionId = pi.id; // Usamos el PI id para la factura simulando la sesión
+        } else {
+            console.log('[Stripe Webhook] Ignoring payment_intent.succeeded because source is not flutter_app');
+            return new Response('Ignored', { status: 200 });
         }
+    } else {
+        return new Response('Received', { status: 200 });
+    }
 
-        if (orderId) {
+    if (DEBUG) {
+        console.log('[Stripe Webhook] Payment successful for Order ID:', orderId ? 'present' : 'missing');
+    }
 
-            try {
-                // 1. Get order details
-                const { data: orderData, error: fetchError } = await supabase
+    if (orderId) {
+
+        try {
+            // 1. Get order details
+            const { data: orderData, error: fetchError } = await supabase
+                .from('orders')
+                .select('*')
+                .eq('id', orderId)
+                .single();
+
+            if (fetchError) {
+                console.error('[Stripe Webhook] Error fetching order:', fetchError);
+            } else {
+                console.log('[Stripe Webhook] Order data fetched');
+            }
+            
+            // Intenta sacar el correo del pedido si Stripe no lo trajo (ej. en flutter payment_intent sin receipt_email)
+            if (!customerEmail && orderData) {
+                customerEmail = orderData.guest_email || null;
+            }
+
+            // P0: Idempotencia — si el pedido ya está pagado no procesar de nuevo
+            if (orderData?.status === 'paid' || orderData?.status === 'shipped' || orderData?.status === 'delivered') {
+                console.log('[Stripe Webhook] Order already processed (status:', orderData.status, '), skipping idempotent event');
+                return new Response('Already processed', { status: 200 });
+            }
+
+            // Get customer name from order (stored when order was created)
+            const customerName = orderData?.customer_name || 'Cliente';
+            if (DEBUG) {
+                console.log('[Stripe Webhook] Customer name:', customerName);
+            }
+
+            // 2. Save Stripe payment_intent ID + update order status to 'paid'
+            if (paymentIntentId) {
+                const { error: piError } = await supabase
                     .from('orders')
-                    .select('*')
-                    .eq('id', orderId)
-                    .single();
-
-                if (fetchError) {
-                    console.error('[Stripe Webhook] Error fetching order:', fetchError);
-                } else {
-                    console.log('[Stripe Webhook] Order data fetched');
-                }
-
-                // P0: Idempotencia — si el pedido ya está pagado no procesar de nuevo
-                if (orderData?.status === 'paid' || orderData?.status === 'shipped' || orderData?.status === 'delivered') {
-                    console.log('[Stripe Webhook] Order already processed (status:', orderData.status, '), skipping idempotent event');
-                    return new Response('Already processed', { status: 200 });
-                }
-
-                // Get customer name from order (stored when order was created)
-                const customerName = orderData?.customer_name || 'Cliente';
-                if (DEBUG) {
-                    console.log('[Stripe Webhook] Customer name:', customerName);
-                }
-
-                // 2. Save Stripe payment_intent ID + update order status to 'paid'
-                const paymentIntentId = typeof session.payment_intent === 'string'
-                    ? session.payment_intent
-                    : session.payment_intent?.id || null;
-
-                if (paymentIntentId) {
-                    const { error: piError } = await supabase
-                        .from('orders')
-                        .update({ stripe_payment_intent_id: paymentIntentId })
-                        .eq('id', orderId);
+                    .update({ stripe_payment_intent_id: paymentIntentId })
+                    .eq('id', orderId);
                     if (piError) {
                         console.error('[Stripe Webhook] CRITICAL: Failed to save stripe_payment_intent_id:', piError.message);
                     } else {
@@ -128,7 +159,7 @@ export const POST: APIRoute = async ({ request }) => {
 
                     // 2b. Crear factura de venta automáticamente
                     try {
-                        const invoiceResult = await createSaleInvoice(supabase, orderId, session.id);
+                        const invoiceResult = await createSaleInvoice(supabase, orderId, invoiceSessionId);
                         if (invoiceResult.success && invoiceResult.invoice_number) {
                             console.log('[Stripe Webhook] Sale invoice created:', invoiceResult.invoice_number);
                             if (invoiceResult.invoice_id) {
@@ -211,7 +242,7 @@ export const POST: APIRoute = async ({ request }) => {
 
                         const emailResult = await sendEmail({
                             to: customerEmail,
-                            subject: `📦 Pedido confirmado #${orderData.order_number}`,
+                            subject: `Pedido confirmado #${orderData.order_number}`,
                             htmlContent,
                             ...(invoiceAttachment ? { attachments: [invoiceAttachment] } : {})
                         });
@@ -259,7 +290,6 @@ export const POST: APIRoute = async ({ request }) => {
                 console.error('[Stripe Webhook] Exception updating order:', err.message);
             }
         }
-    }
 
     return new Response('Received', { status: 200 });
 };

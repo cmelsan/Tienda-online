@@ -1,0 +1,271 @@
+import type { APIRoute } from 'astro';
+import { createServerSupabaseClient } from '@/lib/supabase';
+import Stripe from 'stripe';
+import { sendEmail, getRefundProcessedTemplate } from '@/lib/brevo';
+import { createCreditNote, fetchInvoiceAsAttachment } from '@/lib/invoices';
+
+export const POST: APIRoute = async ({ request, cookies }) => {
+    const stripeSecretKey = import.meta.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+        return new Response(
+            JSON.stringify({ success: false, message: 'Stripe no configurado' }),
+            { status: 500 }
+        );
+    }
+    const stripe = new Stripe(stripeSecretKey, {
+        apiVersion: '2025-12-15.clover' as any,
+    });
+
+    try {
+        const { orderId, notes, refundAmount } = await request.json();
+
+        if (!orderId) {
+            return new Response(
+                JSON.stringify({ success: false, message: 'ID del pedido requerido' }),
+                { status: 400 }
+            );
+        }
+
+        // Verificar sesión y permisos de admin
+        const userClient = await createServerSupabaseClient({ cookies }, true);
+        const { data: { session } } = await userClient.auth.getSession();
+
+        if (!session) {
+            return new Response(
+                JSON.stringify({ success: false, message: 'No autorizado' }),
+                { status: 401 }
+            );
+        }
+
+        const { data: profile, error: profileError } = await userClient
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', session.user.id)
+            .single();
+
+        if (profileError || !profile?.is_admin) {
+            return new Response(
+                JSON.stringify({ success: false, message: 'Se requiere acceso de administrador' }),
+                { status: 403 }
+            );
+        }
+
+        // Obtener detalles del pedido
+        const { data: order, error: orderError } = await userClient
+            .from('orders')
+            .select('id, order_number, total_amount, stripe_payment_intent_id, customer_name, guest_email, user_id')
+            .eq('id', orderId)
+            .single();
+
+        if (orderError || !order) {
+            return new Response(
+                JSON.stringify({ success: false, message: 'Pedido no encontrado' }),
+                { status: 404 }
+            );
+        }
+
+        // Validar que el pedido tenga payment intent de Stripe
+        if (!order.stripe_payment_intent_id) {
+            return new Response(
+                JSON.stringify({ 
+                    success: false, 
+                    message: 'Este pedido no tiene un ID de pago de Stripe registrado' 
+                }),
+                { status: 400 }
+            );
+        }
+
+        // Determinar monto a reembolsar
+        // NOTA: order.total_amount puede ser el total pre-cupón y diferir del cobro real en Stripe.
+        // Para reembolsos totales NO pasamos 'amount' → Stripe devuelve exactamente lo cobrado.
+        // Para reembolsos parciales pasamos el importe; si excede lo cobrado, Stripe devolverá error.
+        let finalRefundAmountCents: number | undefined = undefined; // undefined = reembolso total
+        let isPartialRefund = false;
+
+        if (refundAmount !== undefined && refundAmount !== null) {
+            if (refundAmount <= 0) {
+                return new Response(
+                    JSON.stringify({ 
+                        success: false, 
+                        message: 'El monto de reembolso debe ser mayor a 0' 
+                    }),
+                    { status: 400 }
+                );
+            }
+
+            // El usuario introduce euros → convertir a céntimos para Stripe
+            finalRefundAmountCents = Math.round(refundAmount * 100);
+            isPartialRefund = true;
+        }
+
+        const newStatus = isPartialRefund ? 'partially_refunded' : 'refunded';
+
+        // Obtener ítems de devolución. Incluimos 'refunded' porque fix_process_return_stock
+        // los marca como 'refunded' en la fase previa (admin_process_return con p_new_status='returned').
+        const { data: returnItems } = await userClient
+            .from('order_items')
+            .select('id, price_at_purchase, quantity')
+            .eq('order_id', orderId)
+            .in('return_status', ['requested', 'approved', 'refunded']);
+
+        const refundedItemIds: string[] = (returnItems || []).map((i: any) => i.id);
+
+        let stripeRefund;
+        try {
+            const refundParams: Stripe.RefundCreateParams = {
+                payment_intent: order.stripe_payment_intent_id,
+                metadata: {
+                    order_id: orderId,
+                    admin_id: session.user.id,
+                    reason: notes || 'Reembolso de administrador',
+                },
+            };
+            // Solo pasamos amount en reembolsos parciales; en reembolso total Stripe devuelve lo cobrado.
+            if (finalRefundAmountCents !== undefined) {
+                refundParams.amount = finalRefundAmountCents;
+            }
+            stripeRefund = await stripe.refunds.create(refundParams);
+
+            // 'pending' es válido: los reembolsos bancarios tardan 5-10 días
+            if (!['succeeded', 'pending'].includes(stripeRefund.status)) {
+                return new Response(
+                    JSON.stringify({ 
+                        success: false, 
+                        message: `Error al procesar reembolso en Stripe: ${stripeRefund.status}` 
+                    }),
+                    { status: 500 }
+                );
+            }
+
+            console.log('[API] Stripe refund successful:', stripeRefund.id);
+        } catch (stripeError: any) {
+            console.error('[API] Stripe refund error:', stripeError);
+            return new Response(
+                JSON.stringify({ 
+                    success: false, 
+                    message: `Error de Stripe: ${stripeError.message}` 
+                }),
+                { status: 500 }
+            );
+        }
+
+        // Llamar RPC para actualizar estado en BD
+        const { data: rpcResult, error: rpcError } = await userClient.rpc(
+            'admin_process_return',
+            {
+                p_order_id: orderId,
+                p_admin_id: session.user.id,
+                p_new_status: newStatus,
+                p_restore_stock: false,
+                p_notes: notes || `Reembolsado €${(finalRefundAmountCents / 100).toFixed(2)} por Stripe: ${stripeRefund.id}`
+            }
+        );
+
+        if (rpcError || !rpcResult?.success) {
+            console.error('[API] RPC error:', rpcError);
+            return new Response(
+                JSON.stringify({ 
+                    success: false, 
+                    message: rpcError?.message || 'Error al actualizar estado del pedido' 
+                }),
+                { status: 500 }
+            );
+        }
+
+        // Crear factura de abono automáticamente
+        // Usamos stripeRefund.amount (monto real devuelto por Stripe, en céntimos) como fuente de verdad.
+        // Esto resuelve el caso de reembolso total donde finalRefundAmountCents era undefined.
+        const creditRefundAmount = stripeRefund.amount ?? finalRefundAmountCents ?? order.total_amount;
+        let creditAttachment: { content: string; name: string } | null = null;
+        try {
+            const creditResult = await createCreditNote(userClient, {
+                orderId,
+                refundAmount:    creditRefundAmount,
+                refundedItemIds,
+                stripeRefundId:  stripeRefund.id,
+                notes:           notes || undefined,
+            });
+            if (creditResult.success) {
+                console.log('[API] Credit note created:', creditResult.credit_note_number);
+                if (creditResult.credit_note_id) {
+                    creditAttachment = await fetchInvoiceAsAttachment(userClient, creditResult.credit_note_id);
+                }
+            } else {
+                console.warn('[API] Credit note creation failed:', creditResult.error);
+            }
+        } catch (creditErr: any) {
+            // No bloqueamos el reembolso si falla la factura
+            console.error('[API] Credit note error:', creditErr.message);
+        }
+
+        // Registrar reembolso en tabla de auditoría (monto real reembolsado, no el total del pedido)
+        await userClient
+            .from('refunds_log')
+            .insert({
+                order_id: orderId,
+                stripe_refund_id: stripeRefund.id,
+                amount: finalRefundAmountCents,
+                admin_id: session.user.id,
+                notes: notes,
+                created_at: new Date().toISOString()
+            })
+            .then(({ error }) => {
+                if (error) console.log('[API] Could not log refund, but Stripe refund was successful');
+            });
+
+        // Enviar email de confirmación al cliente
+        let customerEmail = order.guest_email;
+        let customerName = order.customer_name || 'Cliente';
+
+        if (!customerEmail && order.user_id) {
+            try {
+                const { data: { user }, error: userError } = await (userClient.auth.admin as any).getUserById(order.user_id);
+                if (user && !userError) {
+                    customerEmail = user.email;
+                    customerName = user.user_metadata?.full_name || customerName;
+                }
+            } catch (e) {
+                console.log('[API] Could not fetch auth user');
+            }
+        }
+
+        if (customerEmail) {
+            // Usar el monto realmente reembolsado (no el total del pedido en caso de reembolso parcial)
+            const emailTemplate = getRefundProcessedTemplate(
+                customerName,
+                order.order_number || orderId.slice(0, 8).toUpperCase(),
+                finalRefundAmountCents
+            );
+
+            await sendEmail({
+                to: customerEmail,
+                subject: `Reembolso confirmado para tu pedido #${order.order_number || orderId.slice(0, 8).toUpperCase()}`,
+                htmlContent: emailTemplate,
+                ...(creditAttachment ? { attachments: [creditAttachment] } : {})
+            });
+
+            console.log('[API] Refund confirmation email sent to:', customerEmail);
+        }
+
+        return new Response(
+            JSON.stringify({ 
+                success: true, 
+                message: 'Reembolso procesado exitosamente',
+                data: {
+                    order_id: orderId,
+                    stripe_refund_id: stripeRefund.id,
+                    amount: order.total_amount,
+                    status: 'refunded'
+                }
+            }),
+            { status: 200 }
+        );
+
+    } catch (err: any) {
+        console.error('[API] Error:', err);
+        return new Response(
+            JSON.stringify({ success: false, message: err.message }),
+            { status: 500 }
+        );
+    }
+};

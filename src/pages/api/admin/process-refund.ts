@@ -230,11 +230,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         }
 
         if (customerEmail) {
-            // Usar el monto realmente reembolsado (no el total del pedido en caso de reembolso parcial)
+            // Usar el monto realmente reembolsado (fuente de verdad: Stripe)
+            // creditRefundAmount = stripeRefund.amount ?? finalRefundAmountCents, nunca undefined
             const emailTemplate = getRefundProcessedTemplate(
                 customerName,
                 order.order_number || orderId.slice(0, 8).toUpperCase(),
-                finalRefundAmountCents
+                creditRefundAmount
             );
 
             await sendEmail({

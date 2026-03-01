@@ -171,7 +171,7 @@ export default function ReturnModal({ isOpen, onClose, orderId, onReturnRequeste
                         <div className="bg-gray-50 p-4 border-l-4 border-black">
                             <h3 className="font-bold uppercase tracking-wider text-xs mb-3">Política de Devoluciones</h3>
                             <ul className="space-y-2 text-xs text-gray-700">
-                                <li>Tienes <strong>30 días</strong> desde la fecha de entrega para solicitar una devolución</li>
+                                <li>Tienes <strong>14 días</strong> desde la fecha de entrega para solicitar una devolución</li>
                                 <li>Debes enviar los artículos en su embalaje original a: <strong>Calle de la Moda 123, Polígono Industrial, Madrid</strong></li>
                                 <li>Recibirás un correo con la <strong>etiqueta de devolución</strong> a tu email asociado</li>
                                 <li><strong>Aviso Importante:</strong> Una vez recibido y validado el paquete, el reembolso se procesará en tu método de pago original en un plazo de <strong>5 a 7 días hábiles</strong></li>

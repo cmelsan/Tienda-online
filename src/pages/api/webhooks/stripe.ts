@@ -110,6 +110,22 @@ export const POST: APIRoute = async ({ request }) => {
                 customerEmail = orderData.guest_email || null;
             }
 
+            // P0b: Guardar stripe_payment_intent_id SIEMPRE antes del guard de idempotencia.
+            // En pedidos de Flutter el cliente ya marca el pedido como 'paid' antes de que
+            // llegue el webhook, por lo que el guard lo descartaría sin guardar el PI ID.
+            // Sin este ID no es posible procesar reembolsos desde el panel de admin.
+            if (paymentIntentId && !orderData?.stripe_payment_intent_id) {
+                const { error: piSaveError } = await supabase
+                    .from('orders')
+                    .update({ stripe_payment_intent_id: paymentIntentId })
+                    .eq('id', orderId);
+                if (piSaveError) {
+                    console.error('[Stripe Webhook] Error saving stripe_payment_intent_id (pre-idempotency):', piSaveError.message);
+                } else {
+                    console.log('[Stripe Webhook] stripe_payment_intent_id saved (pre-idempotency):', paymentIntentId);
+                }
+            }
+
             // P0: Idempotencia — si el pedido ya está pagado no procesar de nuevo
             if (orderData?.status === 'paid' || orderData?.status === 'shipped' || orderData?.status === 'delivered') {
                 console.log('[Stripe Webhook] Order already processed (status:', orderData.status, '), skipping idempotent event');
@@ -123,6 +139,7 @@ export const POST: APIRoute = async ({ request }) => {
             }
 
             // 2. Save Stripe payment_intent ID + update order status to 'paid'
+            // (El guardado del PI ID ya ocurrió arriba antes del guard de idempotencia)
             if (paymentIntentId) {
                 const { error: piError } = await supabase
                     .from('orders')
